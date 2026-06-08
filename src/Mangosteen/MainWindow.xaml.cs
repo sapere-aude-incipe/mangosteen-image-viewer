@@ -47,7 +47,7 @@ public partial class MainWindow : Window
     private const long CleanupThresholdBytes = 512L * ImageMemoryEstimator.Megabyte;
     private const int BalancedFullPreloadIdleDelayMilliseconds = 1_200;
     private const int DefaultPreloadBudgetGigabytes = 2;
-    private const double DefaultMenuHeightDips = 26.0;
+    private const double DefaultMenuHeightDips = 28.0;
     private const double DefaultToolbarHeightDips = 38.0;
     private static readonly SKColor LightViewerBackground = new(234, 244, 255);
     private static readonly SKColor DarkViewerBackground = new(32, 32, 32);
@@ -1883,12 +1883,9 @@ public partial class MainWindow : Window
         ToolbarHost.BorderBrush = isDarkMode
             ? CreateBrush(69, 75, 85)
             : CreateBrush(209, 213, 219);
-        MainMenu.Background = isDarkMode
-            ? CreateBrush(37, 41, 50)
-            : CreateBrush(255, 255, 255);
-        MainMenu.Foreground = isDarkMode
-            ? CreateBrush(225, 231, 239)
-            : CreateBrush(31, 41, 51);
+        MainMenu.Background = Resources["MenuBarBackground"] as Brush ?? Brushes.Transparent;
+        MainMenu.Foreground = Resources["MenuBarForeground"] as Brush ?? Brushes.Black;
+        MainMenu.BorderBrush = Resources["MenuBarBorder"] as Brush ?? Brushes.Transparent;
         ZoomText.Foreground = isDarkMode
             ? CreateBrush(215, 222, 232)
             : CreateBrush(51, 65, 85);
@@ -1957,6 +1954,48 @@ public partial class MainWindow : Window
         Resources["ToolbarComboPopupBackground"] = isDarkMode
             ? CreateBrush(30, 34, 42)
             : CreateBrush(255, 255, 255);
+        Resources["MenuBarBackground"] = isDarkMode
+            ? CreateBrush(37, 41, 50)
+            : CreateBrush(255, 255, 255);
+        Resources["MenuBarForeground"] = isDarkMode
+            ? CreateBrush(225, 231, 239)
+            : CreateBrush(31, 41, 51);
+        Resources["MenuBarBorder"] = isDarkMode
+            ? CreateBrush(69, 75, 85)
+            : CreateBrush(209, 213, 219);
+        Resources["MenuItemForeground"] = isDarkMode
+            ? CreateBrush(230, 236, 244)
+            : CreateBrush(31, 41, 51);
+        Resources["MenuItemDisabledForeground"] = isDarkMode
+            ? CreateBrush(132, 142, 156)
+            : CreateBrush(123, 132, 145);
+        Resources["MenuItemHoverBackground"] = isDarkMode
+            ? CreateBrush(51, 61, 76)
+            : CreateBrush(234, 243, 255);
+        Resources["MenuItemOpenBackground"] = isDarkMode
+            ? CreateBrush(59, 73, 91)
+            : CreateBrush(221, 238, 255);
+        Resources["MenuPopupBackground"] = isDarkMode
+            ? CreateBrush(38, 43, 52)
+            : CreateBrush(255, 255, 255);
+        Resources["MenuPopupBorder"] = isDarkMode
+            ? CreateBrush(88, 98, 114)
+            : CreateBrush(174, 183, 194);
+        Resources["MenuSeparatorBrush"] = isDarkMode
+            ? CreateBrush(61, 68, 80)
+            : CreateBrush(229, 231, 235);
+        Resources["MenuCheckBackground"] = isDarkMode
+            ? CreateBrush(49, 75, 98)
+            : CreateBrush(234, 243, 255);
+        Resources["MenuCheckBorder"] = isDarkMode
+            ? CreateBrush(116, 174, 230)
+            : CreateBrush(141, 188, 235);
+        Resources["ThemeSwitchSunStroke"] = isDarkMode
+            ? CreateBrush(213, 166, 83)
+            : CreateBrush(198, 123, 18);
+        Resources["ThemeSwitchMoonStroke"] = isDarkMode
+            ? CreateBrush(147, 197, 253)
+            : CreateBrush(107, 142, 184);
     }
 
     private Brush GetToolbarIconBrush()

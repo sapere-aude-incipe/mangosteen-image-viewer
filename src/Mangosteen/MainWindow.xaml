@@ -43,6 +43,170 @@
         <SolidColorBrush x:Key="ToolbarComboBorder" Color="#B6BDC6" />
         <SolidColorBrush x:Key="ToolbarComboPopupBackground" Color="#FFFFFF" />
 
+        <SolidColorBrush x:Key="MenuBarBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="MenuBarForeground" Color="#1F2933" />
+        <SolidColorBrush x:Key="MenuBarBorder" Color="#D1D5DB" />
+        <SolidColorBrush x:Key="MenuItemForeground" Color="#1F2933" />
+        <SolidColorBrush x:Key="MenuItemDisabledForeground" Color="#7B8491" />
+        <SolidColorBrush x:Key="MenuItemHoverBackground" Color="#EAF3FF" />
+        <SolidColorBrush x:Key="MenuItemOpenBackground" Color="#DDEEFF" />
+        <SolidColorBrush x:Key="MenuPopupBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="MenuPopupBorder" Color="#AEB7C2" />
+        <SolidColorBrush x:Key="MenuSeparatorBrush" Color="#E5E7EB" />
+        <SolidColorBrush x:Key="MenuCheckBackground" Color="#EAF3FF" />
+        <SolidColorBrush x:Key="MenuCheckBorder" Color="#8DBCEB" />
+        <SolidColorBrush x:Key="ThemeSwitchSunStroke" Color="#C67B12" />
+        <SolidColorBrush x:Key="ThemeSwitchMoonStroke" Color="#6B8EB8" />
+
+        <Style TargetType="Separator">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="1"
+                                Margin="30,4,8,4"
+                                Background="{DynamicResource MenuSeparatorBrush}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource MenuItemForeground}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border x:Name="TopLevelBorder"
+                                    MinHeight="28"
+                                    Padding="11,0"
+                                    Background="Transparent"
+                                    Visibility="Collapsed">
+                                <ContentPresenter ContentSource="Header"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True" />
+                            </Border>
+
+                            <Border x:Name="SubmenuBorder"
+                                    MinHeight="28"
+                                    Padding="0"
+                                    Background="Transparent">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="28" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="18" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border x:Name="CheckBox"
+                                            Grid.Column="0"
+                                            Width="22"
+                                            Height="22"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            BorderThickness="1">
+                                        <Path x:Name="CheckGlyph"
+                                              Data="M5.25,11.5 L9,15.25 L16.75,6.75"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                              StrokeThickness="1.8"
+                                              StrokeStartLineCap="Round"
+                                              StrokeEndLineCap="Round"
+                                              StrokeLineJoin="Round"
+                                              Visibility="Collapsed" />
+                                    </Border>
+
+                                    <ContentPresenter Grid.Column="1"
+                                                      Margin="2,0,22,0"
+                                                      VerticalAlignment="Center"
+                                                      ContentSource="Header"
+                                                      RecognizesAccessKey="True" />
+
+                                    <TextBlock Grid.Column="2"
+                                               Margin="14,0,8,0"
+                                               VerticalAlignment="Center"
+                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                               Text="{TemplateBinding InputGestureText}" />
+
+                                    <Path x:Name="SubmenuArrow"
+                                          Grid.Column="3"
+                                          Width="4"
+                                          Height="8"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Data="M0,0 L4,4 L0,8 Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                          Stretch="Fill" />
+                                </Grid>
+                            </Border>
+
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Right"
+                                   PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                   PopupAnimation="Fade">
+                                <Border MinWidth="220"
+                                        Padding="2"
+                                        Background="{DynamicResource MenuPopupBackground}"
+                                        BorderBrush="{DynamicResource MenuPopupBorder}"
+                                        BorderThickness="1"
+                                        SnapsToDevicePixels="True">
+                                    <ScrollViewer Focusable="False"
+                                                  CanContentScroll="True">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Role" Value="TopLevelHeader">
+                                <Setter Property="Foreground" Value="{DynamicResource MenuBarForeground}" />
+                                <Setter TargetName="TopLevelBorder" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="SubmenuBorder" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom" />
+                                <Setter TargetName="PART_Popup" Property="VerticalOffset" Value="-1" />
+                            </Trigger>
+                            <Trigger Property="Role" Value="TopLevelItem">
+                                <Setter Property="Foreground" Value="{DynamicResource MenuBarForeground}" />
+                                <Setter TargetName="TopLevelBorder" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="SubmenuBorder" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="Role" Value="SubmenuItem">
+                                <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="TopLevelBorder" Property="Background" Value="{DynamicResource MenuItemHoverBackground}" />
+                                <Setter TargetName="SubmenuBorder" Property="Background" Value="{DynamicResource MenuItemHoverBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsSubmenuOpen" Value="True">
+                                <Setter TargetName="TopLevelBorder" Property="Background" Value="{DynamicResource MenuItemOpenBackground}" />
+                                <Setter TargetName="SubmenuBorder" Property="Background" Value="{DynamicResource MenuItemOpenBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBox" Property="Background" Value="{DynamicResource MenuCheckBackground}" />
+                                <Setter TargetName="CheckBox" Property="BorderBrush" Value="{DynamicResource MenuCheckBorder}" />
+                                <Setter TargetName="CheckGlyph" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource MenuItemDisabledForeground}" />
+                                <Setter TargetName="CheckBox" Property="Opacity" Value="0.55" />
+                                <Setter TargetName="SubmenuArrow" Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ToolbarButtonStyle" TargetType="Button">
             <Setter Property="MinWidth" Value="42" />
             <Setter Property="Width" Value="42" />
@@ -244,7 +408,7 @@
         </Style>
 
         <Style x:Key="ThemeSwitchStyle" TargetType="ToggleButton">
-            <Setter Property="Width" Value="52" />
+            <Setter Property="Width" Value="56" />
             <Setter Property="Height" Value="26" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Focusable" Value="False" />
@@ -252,7 +416,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
-                        <Grid Width="52" Height="26">
+                        <Grid Width="56" Height="26">
                             <Border x:Name="SwitchTrack"
                                     CornerRadius="13"
                                     Background="{DynamicResource ToolbarButtonBackground}"
@@ -266,9 +430,35 @@
                                                       Opacity="0.16" />
                                 </Border.Effect>
                             </Border>
+
+                            <Path x:Name="SunTrackIcon"
+                                  Margin="8,0,0,0"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"
+                                  Data="M7,2.8 L7,4.1 M7,9.9 L7,11.2 M2.8,7 L4.1,7 M9.9,7 L11.2,7 M4,4 L4.9,4.9 M9.1,9.1 L10,10 M10,4 L9.1,4.9 M4.9,9.1 L4,10 M9,7 A2,2 0 1 1 5,7 A2,2 0 1 1 9,7"
+                                  Stroke="{DynamicResource ThemeSwitchSunStroke}"
+                                  StrokeThickness="1.05"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  Opacity="0.8" />
+
+                            <Path x:Name="MoonTrackIcon"
+                                  Margin="0,0,8,0"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  Data="M9.9,2.9 C8.2,3.5 7.3,5.3 7.9,7 C8.5,8.7 10.3,9.6 12.1,9 C11.3,11.1 9,12.3 6.8,11.7 C4.2,10.9 2.7,8.2 3.5,5.6 C4.1,3.8 5.8,2.6 7.7,2.5 C8.4,2.5 9.1,2.6 9.9,2.9 Z"
+                                  Stroke="{DynamicResource ThemeSwitchMoonStroke}"
+                                  Fill="Transparent"
+                                  StrokeThickness="1.05"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  Opacity="0.65" />
+
                             <Grid x:Name="SwitchThumb"
-                                  Width="20"
-                                  Height="20"
+                                  Width="22"
+                                  Height="22"
                                   Margin="3,0,0,0"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Center">
@@ -276,9 +466,9 @@
                                          Stroke="{DynamicResource ToolbarButtonBorder}"
                                          StrokeThickness="1" />
                                 <Path x:Name="SwitchMark"
-                                      Data="M10,4.5 L10,5.9 M10,14.1 L10,15.5 M4.5,10 L5.9,10 M14.1,10 L15.5,10 M6.1,6.1 L7.1,7.1 M12.9,12.9 L13.9,13.9 M13.9,6.1 L12.9,7.1 M7.1,12.9 L6.1,13.9 M12.4,10 A2.4,2.4 0 1 1 7.6,10 A2.4,2.4 0 1 1 12.4,10"
-                                      Stroke="{DynamicResource ToolbarControlForeground}"
-                                      StrokeThickness="1.25"
+                                      Data="M11,5 L11,6.6 M11,15.4 L11,17 M5,11 L6.6,11 M15.4,11 L17,11 M6.75,6.75 L7.85,7.85 M14.15,14.15 L15.25,15.25 M15.25,6.75 L14.15,7.85 M7.85,14.15 L6.75,15.25 M13.5,11 A2.5,2.5 0 1 1 8.5,11 A2.5,2.5 0 1 1 13.5,11"
+                                      Stroke="{DynamicResource ThemeSwitchSunStroke}"
+                                      StrokeThickness="1.2"
                                       StrokeStartLineCap="Round"
                                       StrokeEndLineCap="Round"
                                       StrokeLineJoin="Round" />
@@ -286,8 +476,11 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="SwitchThumb" Property="Margin" Value="29,0,0,0" />
-                                <Setter TargetName="SwitchMark" Property="Data" Value="M13.7,5.6 C12.1,6.7 11.6,9 12.6,10.8 C13.4,12.2 14.9,12.9 16.3,12.8 C15.5,15 12.9,16.4 10.4,15.8 C7.5,15.1 5.9,12.2 6.7,9.3 C7.3,7 9.4,5.5 13.7,5.6 Z" />
+                                <Setter TargetName="SwitchThumb" Property="Margin" Value="31,0,0,0" />
+                                <Setter TargetName="SwitchMark" Property="Data" Value="M14.7,6.2 C12.8,6.9 11.7,8.9 12.4,10.8 C13,12.6 15,13.7 16.9,13 C16,15.4 13.4,16.8 10.8,16.1 C7.8,15.2 6.1,12 7,9.1 C7.7,6.9 9.8,5.4 12.1,5.4 C13,5.4 13.9,5.7 14.7,6.2 Z" />
+                                <Setter TargetName="SwitchMark" Property="Stroke" Value="{DynamicResource ThemeSwitchMoonStroke}" />
+                                <Setter TargetName="SunTrackIcon" Property="Opacity" Value="0.45" />
+                                <Setter TargetName="MoonTrackIcon" Property="Opacity" Value="0.95" />
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="SwitchTrack" Property="BorderBrush" Value="#6A9ED6" />
@@ -301,16 +494,16 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="26" />
+            <RowDefinition Height="28" />
             <RowDefinition Height="*" />
             <RowDefinition Height="38" />
         </Grid.RowDefinitions>
 
         <Menu x:Name="MainMenu"
               Grid.Row="0"
-              Background="#FFFFFF"
-              Foreground="#1F2933"
-              BorderBrush="#D1D5DB"
+              Background="{DynamicResource MenuBarBackground}"
+              Foreground="{DynamicResource MenuBarForeground}"
+              BorderBrush="{DynamicResource MenuBarBorder}"
               BorderThickness="0,0,0,1">
             <MenuItem x:Name="FileMenuItem">
                 <MenuItem x:Name="OpenMenuItem"
