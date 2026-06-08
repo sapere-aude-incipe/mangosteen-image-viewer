@@ -125,7 +125,7 @@ jobs:
 
     steps:
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mangosteen-${{ needs.package.outputs.version }}-unsigned
           path: dist
