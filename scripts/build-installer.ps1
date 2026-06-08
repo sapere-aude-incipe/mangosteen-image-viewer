@@ -95,8 +95,8 @@ function Write-Sha256Checksums {
 }
 
 $projectRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
-$projectPath = Join-Path $projectRoot "ClassicPhotoViewer.csproj"
-$issPath = Join-Path $projectRoot "packaging\inno\ClassicPhotoViewer.iss"
+$projectPath = Join-Path $projectRoot "src\Mangosteen\Mangosteen.csproj"
+$issPath = Join-Path $projectRoot "packaging\inno\Mangosteen.iss"
 $distDir = Join-Path $projectRoot "dist"
 $installerInputDir = Join-Path $projectRoot "publish\installer-input"
 

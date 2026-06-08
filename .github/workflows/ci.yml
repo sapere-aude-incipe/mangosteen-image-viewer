@@ -23,10 +23,10 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore ClassicPhotoViewer.slnx
+        run: dotnet restore Mangosteen.slnx
 
       - name: Build
-        run: dotnet build ClassicPhotoViewer.slnx --configuration Release --no-restore
+        run: dotnet build Mangosteen.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test ClassicPhotoViewer.slnx --configuration Release --no-build
+        run: dotnet test Mangosteen.slnx --configuration Release --no-build
