@@ -106,6 +106,7 @@ public partial class MainWindow : Window
         DeleteMenuItem.Header = LocalizedText.Get(LocalizedText.DeleteImage);
         ExitMenuItem.Header = LocalizedText.Get(LocalizedText.Exit);
         OptionsMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsMenu);
+        HelpMenuItem.Header = LocalizedText.Get(LocalizedText.HelpMenu);
         SamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Upscaling);
         SmoothSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Smooth);
         NearestSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Nearest);
@@ -115,6 +116,22 @@ public partial class MainWindow : Window
         ConservativePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Conservative);
         BalancedPreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Balanced);
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
+        OptionsHelpMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsHelp);
+        SamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.UpscalingTooltip);
+        SmoothSamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.SmoothUpscalingTooltip);
+        NearestSamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.NearestUpscalingTooltip);
+        PreloadEnabledMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadNearbyImagesTooltip);
+        PreloadMemoryBudgetMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadMemoryBudgetTooltip);
+        PreloadAggressivenessMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadAggressivenessTooltip);
+        ConservativePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ConservativePreloadTooltip);
+        BalancedPreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.BalancedPreloadTooltip);
+        AggressivePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.AggressivePreloadTooltip);
+        OptionsHelpMenuItem.ToolTip = LocalizedText.Get(LocalizedText.OptionsHelpTooltip);
+        foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
+        {
+            item.ToolTip = LocalizedText.Get(LocalizedText.PreloadMemoryBudgetOptionTooltip);
+        }
+
         if (_image is null)
         {
             StatusText.Text = LocalizedText.Get(LocalizedText.NoImage);
@@ -132,6 +149,16 @@ public partial class MainWindow : Window
         DeleteMenuItem.InputGestureText = "Del";
         UpdateSettingsMenuChecks();
         UpdateZoomText();
+    }
+
+    private void OptionsHelpMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show(
+            this,
+            LocalizedText.Get(LocalizedText.OptionsHelpDialogText),
+            LocalizedText.Get(LocalizedText.OptionsHelpDialogTitle),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     private void UpdateWindowTitle(string? fileName = null)

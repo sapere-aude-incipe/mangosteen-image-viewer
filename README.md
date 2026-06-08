@@ -6,6 +6,12 @@
 
 Mangosteen is a simple and fast Windows image viewer inspired by the classic Windows Photo Viewer experience. It focuses on quick image navigation, smooth zooming, actual-pixel viewing, broad format support, animated GIF playback, and responsive handling of very large images.
 
+## Screenshots
+
+| Dark mode | Light mode |
+| --- | --- |
+| ![Mangosteen Image Viewer in dark mode](docs/screenshots/mangosteen-dark.png) | ![Mangosteen Image Viewer in light mode](docs/screenshots/mangosteen-light.png) |
+
 ## Features
 
 - Fast previous/next folder navigation.
@@ -98,6 +104,13 @@ This creates:
 - Left mouse drag: pan.
 - `F`: fit to window.
 - `Ctrl+O`: open an image.
+
+## Options
+
+- Upscaling: `Smooth` uses interpolation when zooming in; `Nearest` keeps hard pixel edges for pixel art and similar images.
+- Preload nearby images: decodes likely next and previous images in the background so folder navigation can feel instant.
+- Preload memory: limits how much RAM Mangosteen may use for decoded-image cache entries.
+- Preload aggressiveness: controls how far ahead Mangosteen scans and how eagerly it warms likely next images.
 
 ## Release Process
 

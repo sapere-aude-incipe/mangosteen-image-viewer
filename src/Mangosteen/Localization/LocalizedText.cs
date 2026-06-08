@@ -10,7 +10,9 @@ internal static class LocalizedText
     public const string Aggressive = nameof(Aggressive);
     public const string AppTitle = nameof(AppTitle);
     public const string Balanced = nameof(Balanced);
+    public const string BalancedPreloadTooltip = nameof(BalancedPreloadTooltip);
     public const string Conservative = nameof(Conservative);
+    public const string ConservativePreloadTooltip = nameof(ConservativePreloadTooltip);
     public const string DeleteImage = nameof(DeleteImage);
     public const string DeleteImageConfirmationFormat = nameof(DeleteImageConfirmationFormat);
     public const string Exit = nameof(Exit);
@@ -18,28 +20,40 @@ internal static class LocalizedText
     public const string FileMenu = nameof(FileMenu);
     public const string FullResolutionDecodeFailed = nameof(FullResolutionDecodeFailed);
     public const string FullResolutionDecodeFailedFormat = nameof(FullResolutionDecodeFailedFormat);
+    public const string AggressivePreloadTooltip = nameof(AggressivePreloadTooltip);
+    public const string HelpMenu = nameof(HelpMenu);
     public const string ImageFiles = nameof(ImageFiles);
     public const string Loading = nameof(Loading);
     public const string Manual = nameof(Manual);
     public const string Nearest = nameof(Nearest);
+    public const string NearestUpscalingTooltip = nameof(NearestUpscalingTooltip);
     public const string NextImage = nameof(NextImage);
     public const string NoImage = nameof(NoImage);
     public const string OpenCommand = nameof(OpenCommand);
     public const string OpenImage = nameof(OpenImage);
+    public const string OptionsHelp = nameof(OptionsHelp);
+    public const string OptionsHelpDialogText = nameof(OptionsHelpDialogText);
+    public const string OptionsHelpDialogTitle = nameof(OptionsHelpDialogTitle);
+    public const string OptionsHelpTooltip = nameof(OptionsHelpTooltip);
     public const string OptionsMenu = nameof(OptionsMenu);
     public const string Preload = nameof(Preload);
     public const string PreloadAggressiveness = nameof(PreloadAggressiveness);
+    public const string PreloadAggressivenessTooltip = nameof(PreloadAggressivenessTooltip);
     public const string PreloadMemoryBudget = nameof(PreloadMemoryBudget);
+    public const string PreloadMemoryBudgetOptionTooltip = nameof(PreloadMemoryBudgetOptionTooltip);
     public const string PreloadMemoryBudgetTooltip = nameof(PreloadMemoryBudgetTooltip);
     public const string PreloadNearbyImages = nameof(PreloadNearbyImages);
+    public const string PreloadNearbyImagesTooltip = nameof(PreloadNearbyImagesTooltip);
     public const string PreviewOnly = nameof(PreviewOnly);
     public const string PreviousImage = nameof(PreviousImage);
     public const string Smooth = nameof(Smooth);
+    public const string SmoothUpscalingTooltip = nameof(SmoothUpscalingTooltip);
     public const string ToggleActualPixels = nameof(ToggleActualPixels);
     public const string ToggleDarkMode = nameof(ToggleDarkMode);
     public const string ToggleSmoothNearestUpscaling = nameof(ToggleSmoothNearestUpscaling);
     public const string UnexpectedError = nameof(UnexpectedError);
     public const string Upscaling = nameof(Upscaling);
+    public const string UpscalingTooltip = nameof(UpscalingTooltip);
     public const string UseDarkMode = nameof(UseDarkMode);
     public const string UseLightMode = nameof(UseLightMode);
     public const string Zoom = nameof(Zoom);
@@ -69,9 +83,12 @@ internal static class LocalizedText
     [
         AllFiles,
         Aggressive,
+        AggressivePreloadTooltip,
         AppTitle,
         Balanced,
+        BalancedPreloadTooltip,
         Conservative,
+        ConservativePreloadTooltip,
         DeleteImage,
         DeleteImageConfirmationFormat,
         Exit,
@@ -79,28 +96,39 @@ internal static class LocalizedText
         FileMenu,
         FullResolutionDecodeFailed,
         FullResolutionDecodeFailedFormat,
+        HelpMenu,
         ImageFiles,
         Loading,
         Manual,
         Nearest,
+        NearestUpscalingTooltip,
         NextImage,
         NoImage,
         OpenCommand,
         OpenImage,
+        OptionsHelp,
+        OptionsHelpDialogText,
+        OptionsHelpDialogTitle,
+        OptionsHelpTooltip,
         OptionsMenu,
         Preload,
         PreloadAggressiveness,
+        PreloadAggressivenessTooltip,
         PreloadMemoryBudget,
+        PreloadMemoryBudgetOptionTooltip,
         PreloadMemoryBudgetTooltip,
         PreloadNearbyImages,
+        PreloadNearbyImagesTooltip,
         PreviewOnly,
         PreviousImage,
         Smooth,
+        SmoothUpscalingTooltip,
         ToggleActualPixels,
         ToggleDarkMode,
         ToggleSmoothNearestUpscaling,
         UnexpectedError,
         Upscaling,
+        UpscalingTooltip,
         UseDarkMode,
         UseLightMode,
         Zoom
