@@ -16,7 +16,7 @@
     <value>All files</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
-    <value>Mangosteen</value>
+    <value>Mangosteen Image Viewer</value>
   </data>
   <data name="FileNotFoundFormat" xml:space="preserve">
     <value>File not found: {0}</value>

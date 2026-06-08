@@ -10,6 +10,7 @@
 #define OutputDir "..\..\dist"
 #endif
 
+#define AppIconFile "..\..\src\Mangosteen\Assets\mangosteen.ico"
 #define AppName "Mangosteen"
 #define AppPublisher "sapere-aude-incipe"
 #define AppExeName "Mangosteen.exe"
@@ -28,6 +29,7 @@ DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
 OutputBaseFilename=Mangosteen-Setup-{#AppVersion}-x64
+SetupIconFile={#AppIconFile}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -64,6 +66,7 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Registry]
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"",0"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".jpg"; ValueData: ""
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".jpeg"; ValueData: ""

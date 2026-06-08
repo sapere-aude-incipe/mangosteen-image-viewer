@@ -16,6 +16,7 @@
         AllowDrop="True"
         DragOver="Window_DragOver"
         Drop="Window_Drop"
+        Icon="Assets/mangosteen.ico"
         SizeChanged="Window_SizeChanged"
         KeyDown="Window_KeyDown">
     <Window.Resources>
