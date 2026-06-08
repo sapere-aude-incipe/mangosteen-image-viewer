@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -83,5 +83,44 @@
   </data>
   <data name="UseLightMode" xml:space="preserve">
     <value>ä½¿ç”¨æ·ºè‰²æ¨¡å¼</value>
+  </data>
+  <data name="Aggressive" xml:space="preserve">
+    <value>積極</value>
+  </data>
+  <data name="Balanced" xml:space="preserve">
+    <value>均衡</value>
+  </data>
+  <data name="Conservative" xml:space="preserve">
+    <value>保守</value>
+  </data>
+  <data name="DeleteImage" xml:space="preserve">
+    <value>刪除影像</value>
+  </data>
+  <data name="DeleteImageConfirmationFormat" xml:space="preserve">
+    <value>將 {0} 移到資源回收筒嗎？</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>結束</value>
+  </data>
+  <data name="FileMenu" xml:space="preserve">
+    <value>檔案</value>
+  </data>
+  <data name="OpenCommand" xml:space="preserve">
+    <value>開啟...</value>
+  </data>
+  <data name="OptionsMenu" xml:space="preserve">
+    <value>選項</value>
+  </data>
+  <data name="PreloadAggressiveness" xml:space="preserve">
+    <value>預載積極度</value>
+  </data>
+  <data name="PreloadMemoryBudget" xml:space="preserve">
+    <value>預載記憶體</value>
+  </data>
+  <data name="Upscaling" xml:space="preserve">
+    <value>放大方式</value>
+  </data>
+  <data name="Zoom" xml:space="preserve">
+    <value>縮放</value>
   </data>
 </root>

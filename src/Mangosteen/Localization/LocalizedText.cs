@@ -7,8 +7,15 @@ namespace Mangosteen.Localization;
 internal static class LocalizedText
 {
     public const string AllFiles = nameof(AllFiles);
+    public const string Aggressive = nameof(Aggressive);
     public const string AppTitle = nameof(AppTitle);
+    public const string Balanced = nameof(Balanced);
+    public const string Conservative = nameof(Conservative);
+    public const string DeleteImage = nameof(DeleteImage);
+    public const string DeleteImageConfirmationFormat = nameof(DeleteImageConfirmationFormat);
+    public const string Exit = nameof(Exit);
     public const string FileNotFoundFormat = nameof(FileNotFoundFormat);
+    public const string FileMenu = nameof(FileMenu);
     public const string FullResolutionDecodeFailed = nameof(FullResolutionDecodeFailed);
     public const string FullResolutionDecodeFailedFormat = nameof(FullResolutionDecodeFailedFormat);
     public const string ImageFiles = nameof(ImageFiles);
@@ -17,8 +24,12 @@ internal static class LocalizedText
     public const string Nearest = nameof(Nearest);
     public const string NextImage = nameof(NextImage);
     public const string NoImage = nameof(NoImage);
+    public const string OpenCommand = nameof(OpenCommand);
     public const string OpenImage = nameof(OpenImage);
+    public const string OptionsMenu = nameof(OptionsMenu);
     public const string Preload = nameof(Preload);
+    public const string PreloadAggressiveness = nameof(PreloadAggressiveness);
+    public const string PreloadMemoryBudget = nameof(PreloadMemoryBudget);
     public const string PreloadMemoryBudgetTooltip = nameof(PreloadMemoryBudgetTooltip);
     public const string PreloadNearbyImages = nameof(PreloadNearbyImages);
     public const string PreviewOnly = nameof(PreviewOnly);
@@ -28,8 +39,10 @@ internal static class LocalizedText
     public const string ToggleDarkMode = nameof(ToggleDarkMode);
     public const string ToggleSmoothNearestUpscaling = nameof(ToggleSmoothNearestUpscaling);
     public const string UnexpectedError = nameof(UnexpectedError);
+    public const string Upscaling = nameof(Upscaling);
     public const string UseDarkMode = nameof(UseDarkMode);
     public const string UseLightMode = nameof(UseLightMode);
+    public const string Zoom = nameof(Zoom);
 
     private static readonly ResourceManager Resources = new(
         "Mangosteen.Localization.Strings",
@@ -55,8 +68,15 @@ internal static class LocalizedText
     public static readonly string[] Keys =
     [
         AllFiles,
+        Aggressive,
         AppTitle,
+        Balanced,
+        Conservative,
+        DeleteImage,
+        DeleteImageConfirmationFormat,
+        Exit,
         FileNotFoundFormat,
+        FileMenu,
         FullResolutionDecodeFailed,
         FullResolutionDecodeFailedFormat,
         ImageFiles,
@@ -65,8 +85,12 @@ internal static class LocalizedText
         Nearest,
         NextImage,
         NoImage,
+        OpenCommand,
         OpenImage,
+        OptionsMenu,
         Preload,
+        PreloadAggressiveness,
+        PreloadMemoryBudget,
         PreloadMemoryBudgetTooltip,
         PreloadNearbyImages,
         PreviewOnly,
@@ -76,8 +100,10 @@ internal static class LocalizedText
         ToggleDarkMode,
         ToggleSmoothNearestUpscaling,
         UnexpectedError,
+        Upscaling,
         UseDarkMode,
-        UseLightMode
+        UseLightMode,
+        Zoom
     ];
 
     public static string Get(string key)

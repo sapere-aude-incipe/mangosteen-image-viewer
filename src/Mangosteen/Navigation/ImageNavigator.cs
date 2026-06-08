@@ -135,6 +135,25 @@ public sealed class ImageNavigator
         return CurrentPath;
     }
 
+    public string? RemoveCurrent()
+    {
+        if (!HasCurrent) return null;
+
+        _files.RemoveAt(CurrentIndex);
+        if (_files.Count == 0)
+        {
+            CurrentIndex = -1;
+            return null;
+        }
+
+        if (CurrentIndex >= _files.Count)
+        {
+            CurrentIndex = 0;
+        }
+
+        return CurrentPath;
+    }
+
     public IReadOnlyList<string> GetAdjacentPaths()
     {
         if (_files.Count <= 1 || !HasCurrent) return [];

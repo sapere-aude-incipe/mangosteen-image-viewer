@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -83,5 +83,44 @@
   </data>
   <data name="UseLightMode" xml:space="preserve">
     <value>Bruk lys modus</value>
+  </data>
+  <data name="Aggressive" xml:space="preserve">
+    <value>Aggressiv</value>
+  </data>
+  <data name="Balanced" xml:space="preserve">
+    <value>Balansert</value>
+  </data>
+  <data name="Conservative" xml:space="preserve">
+    <value>Konservativ</value>
+  </data>
+  <data name="DeleteImage" xml:space="preserve">
+    <value>Slett bilde</value>
+  </data>
+  <data name="DeleteImageConfirmationFormat" xml:space="preserve">
+    <value>Flytt {0} til papirkurven?</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Avslutt</value>
+  </data>
+  <data name="FileMenu" xml:space="preserve">
+    <value>Fil</value>
+  </data>
+  <data name="OpenCommand" xml:space="preserve">
+    <value>Åpne...</value>
+  </data>
+  <data name="OptionsMenu" xml:space="preserve">
+    <value>Alternativer</value>
+  </data>
+  <data name="PreloadAggressiveness" xml:space="preserve">
+    <value>Forhåndslastingsgrad</value>
+  </data>
+  <data name="PreloadMemoryBudget" xml:space="preserve">
+    <value>Forhåndslastingsminne</value>
+  </data>
+  <data name="Upscaling" xml:space="preserve">
+    <value>Oppskalering</value>
+  </data>
+  <data name="Zoom" xml:space="preserve">
+    <value>Zoom</value>
   </data>
 </root>
