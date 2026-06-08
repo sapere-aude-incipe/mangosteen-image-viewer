@@ -160,10 +160,7 @@
                                         BorderBrush="{DynamicResource MenuPopupBorder}"
                                         BorderThickness="1"
                                         SnapsToDevicePixels="True">
-                                    <ScrollViewer Focusable="False"
-                                                  CanContentScroll="True">
-                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
-                                    </ScrollViewer>
+                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
                                 </Border>
                             </Popup>
                         </Grid>
