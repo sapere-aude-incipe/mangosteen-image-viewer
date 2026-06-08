@@ -1,6 +1,7 @@
 param(
     [string] $Version,
     [string] $Configuration = "Release",
+    [ValidateSet("win-x64")]
     [string] $Runtime = "win-x64",
     [string] $InnoCompilerPath,
     [switch] $FrameworkDependent,
@@ -10,6 +11,15 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+function Assert-ReleaseVersion {
+    param([string] $Value)
+
+    $pattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$'
+    if ([string]::IsNullOrWhiteSpace($Value) -or $Value -notmatch $pattern) {
+        throw "Release version '$Value' must be SemVer like 0.1.0 or 0.1.0-preview.1."
+    }
+}
 
 function Get-ProjectVersion {
     param([string] $ProjectPath)
@@ -103,6 +113,8 @@ $installerInputDir = Join-Path $projectRoot "publish\installer-input"
 if ([string]::IsNullOrWhiteSpace($Version)) {
     $Version = Get-ProjectVersion $projectPath
 }
+
+Assert-ReleaseVersion $Version
 
 Clear-GeneratedDirectory -Path $distDir -AllowedRoot $projectRoot
 Clear-GeneratedDirectory -Path $installerInputDir -AllowedRoot $projectRoot

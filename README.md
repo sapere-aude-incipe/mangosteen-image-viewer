@@ -68,7 +68,7 @@ Requirements:
 Build and test:
 
 ```powershell
-dotnet restore Mangosteen.slnx
+dotnet restore Mangosteen.slnx --locked-mode
 dotnet build Mangosteen.slnx --configuration Release --no-restore
 dotnet test Mangosteen.slnx --configuration Release --no-build
 ```
@@ -82,6 +82,7 @@ dotnet run --project .\src\Mangosteen\Mangosteen.csproj -- "C:\path\to\image.jpg
 Build release artifacts:
 
 ```powershell
+dotnet restore .\src\Mangosteen\Mangosteen.csproj --runtime win-x64 --locked-mode
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1
 ```
 
@@ -101,7 +102,7 @@ This creates:
 
 ## Release Process
 
-CI builds and tests every push and pull request on Windows. Tagged releases named like `v0.1.0` run the release workflow, build unsigned Windows artifacts, generate `SHA256SUMS.txt`, upload artifacts, and create a prerelease.
+CI builds and tests every push and pull request on Windows using NuGet lock files. Tagged releases named like `v0.1.0` run the release workflow, validate the version, build unsigned Windows artifacts, verify `SHA256SUMS.txt`, upload artifacts, and create a prerelease.
 
 The intended signing path is SignPath Foundation once the project has enough public reputation for open-source code signing.
 

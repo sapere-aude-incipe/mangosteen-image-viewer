@@ -8,6 +8,13 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
     name: Build and test
@@ -23,7 +30,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore Mangosteen.slnx
+        run: dotnet restore Mangosteen.slnx --locked-mode
 
       - name: Build
         run: dotnet build Mangosteen.slnx --configuration Release --no-restore
