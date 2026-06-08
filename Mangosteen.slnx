@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Mangosteen/Mangosteen.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Mangosteen.Tests/Mangosteen.Tests.csproj" />
+  </Folder>
+</Solution>

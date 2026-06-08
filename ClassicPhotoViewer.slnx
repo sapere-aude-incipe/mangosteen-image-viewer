@@ -1,6 +1,0 @@
-<Solution>
-  <Folder Name="/tests/">
-    <Project Path="tests/ClassicPhotoViewer.Tests/ClassicPhotoViewer.Tests.csproj" />
-  </Folder>
-  <Project Path="ClassicPhotoViewer.csproj" />
-</Solution>

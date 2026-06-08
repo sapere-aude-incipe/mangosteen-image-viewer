@@ -6,4 +6,4 @@ Mangosteen toolbar icons are original app-native vector geometry. They are not c
 
 ## NuGet dependencies
 
-Mangosteen uses third-party NuGet packages listed in `ClassicPhotoViewer.csproj`. Package license metadata is provided by NuGet for each dependency.
+Mangosteen uses third-party NuGet packages listed in `src/Mangosteen/Mangosteen.csproj`. Package license metadata is provided by NuGet for each dependency.
