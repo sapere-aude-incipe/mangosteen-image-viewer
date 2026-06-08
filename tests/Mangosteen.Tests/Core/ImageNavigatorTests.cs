@@ -120,6 +120,55 @@ public sealed class ImageNavigatorTests
     }
 
     [TestMethod]
+    public void RemoveCurrent_Selects_Next_Image()
+    {
+        var first = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "classic-viewer-remove-1.jpg"));
+        var second = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "classic-viewer-remove-2.jpg"));
+        var third = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "classic-viewer-remove-3.jpg"));
+        var nav = new ImageNavigator();
+        nav.Apply(new ImageFolderSnapshot([first, second, third], 1));
+
+        var selected = nav.RemoveCurrent();
+
+        Assert.AreEqual(third, selected);
+        Assert.AreEqual(third, nav.CurrentPath);
+        CollectionAssert.AreEqual(new[] { first, third }, nav.Files.ToArray());
+    }
+
+    [TestMethod]
+    public void RemoveCurrent_Wraps_To_First_When_Removing_Last_Image()
+    {
+        var first = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "classic-viewer-remove-last-1.jpg"));
+        var second = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "classic-viewer-remove-last-2.jpg"));
+        var nav = new ImageNavigator();
+        nav.Apply(new ImageFolderSnapshot([first, second], 1));
+
+        var selected = nav.RemoveCurrent();
+
+        Assert.AreEqual(first, selected);
+        Assert.AreEqual(first, nav.CurrentPath);
+        Assert.AreEqual(0, nav.CurrentIndex);
+        CollectionAssert.AreEqual(new[] { first }, nav.Files.ToArray());
+    }
+
+    [TestMethod]
+    public void RemoveCurrent_Clears_When_Removing_Only_Image()
+    {
+        var path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "classic-viewer-remove-only.jpg"));
+        var nav = new ImageNavigator();
+        nav.LoadSingle(path);
+
+        var selected = nav.RemoveCurrent();
+
+        Assert.IsNull(selected);
+        Assert.IsNull(nav.CurrentPath);
+        Assert.AreEqual(-1, nav.CurrentIndex);
+        Assert.IsEmpty(nav.Files);
+        Assert.IsFalse(nav.CanMovePrevious);
+        Assert.IsFalse(nav.CanMoveNext);
+    }
+
+    [TestMethod]
     public void LoadFolderFor_Normalizes_Dotless_Supported_Extensions()
     {
         var dir = Directory.CreateTempSubdirectory("classic-viewer-dotless-ext-");

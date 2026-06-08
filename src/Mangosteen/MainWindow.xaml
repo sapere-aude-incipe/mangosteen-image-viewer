@@ -301,11 +301,83 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="26" />
             <RowDefinition Height="*" />
             <RowDefinition Height="38" />
         </Grid.RowDefinitions>
 
+        <Menu x:Name="MainMenu"
+              Grid.Row="0"
+              Background="#FFFFFF"
+              Foreground="#1F2933"
+              BorderBrush="#D1D5DB"
+              BorderThickness="0,0,0,1">
+            <MenuItem x:Name="FileMenuItem">
+                <MenuItem x:Name="OpenMenuItem"
+                          Click="OpenMenuItem_Click" />
+                <MenuItem x:Name="DeleteMenuItem"
+                          Click="DeleteMenuItem_Click" />
+                <Separator />
+                <MenuItem x:Name="ExitMenuItem"
+                          Click="ExitMenuItem_Click" />
+            </MenuItem>
+            <MenuItem x:Name="OptionsMenuItem">
+                <MenuItem x:Name="SamplingMenuItem">
+                    <MenuItem x:Name="SmoothSamplingMenuItem"
+                              IsCheckable="True"
+                              IsChecked="True"
+                              Click="SmoothSamplingMenuItem_Click" />
+                    <MenuItem x:Name="NearestSamplingMenuItem"
+                              IsCheckable="True"
+                              Click="NearestSamplingMenuItem_Click" />
+                </MenuItem>
+                <MenuItem x:Name="PreloadEnabledMenuItem"
+                          IsCheckable="True"
+                          IsChecked="True"
+                          Click="PreloadEnabledMenuItem_Click" />
+                <MenuItem x:Name="PreloadMemoryBudgetMenuItem">
+                    <MenuItem IsCheckable="True"
+                              Header="1 GB"
+                              Tag="1"
+                              Click="PreloadBudgetMenuItem_Click" />
+                    <MenuItem IsCheckable="True"
+                              Header="2 GB"
+                              Tag="2"
+                              IsChecked="True"
+                              Click="PreloadBudgetMenuItem_Click" />
+                    <MenuItem IsCheckable="True"
+                              Header="5 GB"
+                              Tag="5"
+                              Click="PreloadBudgetMenuItem_Click" />
+                    <MenuItem IsCheckable="True"
+                              Header="10 GB"
+                              Tag="10"
+                              Click="PreloadBudgetMenuItem_Click" />
+                    <MenuItem IsCheckable="True"
+                              Header="15 GB"
+                              Tag="15"
+                              Click="PreloadBudgetMenuItem_Click" />
+                </MenuItem>
+                <MenuItem x:Name="PreloadAggressivenessMenuItem">
+                    <MenuItem x:Name="ConservativePreloadMenuItem"
+                              IsCheckable="True"
+                              Tag="Conservative"
+                              Click="PreloadAggressivenessMenuItem_Click" />
+                    <MenuItem x:Name="BalancedPreloadMenuItem"
+                              IsCheckable="True"
+                              Tag="Balanced"
+                              IsChecked="True"
+                              Click="PreloadAggressivenessMenuItem_Click" />
+                    <MenuItem x:Name="AggressivePreloadMenuItem"
+                              IsCheckable="True"
+                              Tag="Aggressive"
+                              Click="PreloadAggressivenessMenuItem_Click" />
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
         <skia:SKElement x:Name="ImageSurface"
+                        Grid.Row="1"
                         PaintSurface="ImageSurface_PaintSurface"
                         MouseWheel="ImageSurface_MouseWheel"
                         MouseDown="ImageSurface_MouseDown"
@@ -316,7 +388,7 @@
                         Focusable="True" />
 
         <Border x:Name="StatusOverlay"
-                Grid.Row="0"
+                Grid.Row="1"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Background="#DDEAF6FF"
@@ -334,7 +406,7 @@
         </Border>
 
         <Border x:Name="PreviewOnlyBadge"
-                Grid.Row="0"
+                Grid.Row="1"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Margin="12,12,0,0"
@@ -350,16 +422,8 @@
                        FontSize="12" />
         </Border>
 
-        <ToggleButton x:Name="ThemeToggleButton"
-                      Grid.Row="0"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Top"
-                      Margin="0,10,12,0"
-                      Style="{StaticResource ThemeSwitchStyle}"
-                      Click="ThemeToggleButton_Click" />
-
         <Border x:Name="ToolbarHost"
-                Grid.Row="1"
+                Grid.Row="2"
                 Background="#FFFFFF"
                 BorderBrush="#D1D5DB"
                 BorderThickness="1,1,1,0">
@@ -387,14 +451,19 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <Button x:Name="ActualPixelsButton"
-                            Grid.Column="0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource ToolbarButtonStyle}"
-                            Click="ActualPixelsButton_Click" />
+                    <StackPanel Grid.Column="0"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center">
+                        <Button x:Name="ActualPixelsButton"
+                                Style="{StaticResource ToolbarButtonStyle}"
+                                Click="ActualPixelsButton_Click" />
+                        <Button x:Name="DeleteButton"
+                                Style="{StaticResource ToolbarButtonStyle}"
+                                Click="DeleteButton_Click" />
+                    </StackPanel>
 
-                    <StackPanel x:Name="AdvancedControlsPanel"
+                    <StackPanel x:Name="RightStatusPanel"
                                 Grid.Column="1"
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right"
@@ -404,24 +473,9 @@
                                    VerticalAlignment="Center"
                                    Foreground="#334155"
                                    FontSize="12" />
-                        <ToggleButton x:Name="SamplingToggleButton"
-                                      Style="{StaticResource ToolbarToggleStyle}"
-                                      IsChecked="True"
-                                      Click="SamplingToggleButton_Click" />
-                        <ToggleButton x:Name="PreloadToggleButton"
-                                      Style="{StaticResource ToolbarToggleStyle}"
-                                      IsChecked="True"
-                                      Click="PreloadToggleButton_Click" />
-                        <ComboBox x:Name="PreloadBudgetComboBox"
-                                  Style="{StaticResource ToolbarComboBoxStyle}"
-                                  SelectedIndex="1"
-                                  SelectionChanged="PreloadBudgetComboBox_SelectionChanged">
-                            <ComboBoxItem Content="1 GB" Tag="1" />
-                            <ComboBoxItem Content="2 GB" Tag="2" />
-                            <ComboBoxItem Content="5 GB" Tag="5" />
-                            <ComboBoxItem Content="10 GB" Tag="10" />
-                            <ComboBoxItem Content="15 GB" Tag="15" />
-                        </ComboBox>
+                        <ToggleButton x:Name="ThemeToggleButton"
+                                      Style="{StaticResource ThemeSwitchStyle}"
+                                      Click="ThemeToggleButton_Click" />
                     </StackPanel>
                 </Grid>
             </Grid>

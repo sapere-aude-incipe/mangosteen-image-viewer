@@ -5,6 +5,7 @@ using Mangosteen.Icons;
 using Mangosteen.Localization;
 using Mangosteen.Navigation;
 using Mangosteen.Rendering;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
@@ -19,16 +20,34 @@ using WpfPoint = System.Windows.Point;
 
 namespace Mangosteen;
 
+internal enum PreloadAggressiveness
+{
+    Conservative,
+    Balanced,
+    Aggressive
+}
+
+internal readonly record struct PreloadProfile(
+    int ForwardCount,
+    int BackwardCount,
+    int FullPreloadLikelyPathLimit,
+    int SmallFullPreloadCount,
+    int FullPreloadIdleDelayMilliseconds,
+    int LargeFullPreloadLimitAdjustment);
+
 public partial class MainWindow : Window
 {
-    private const int ForwardPreloadCount = 50;
-    private const int BackwardPreloadCount = 10;
-    private const int FullPreloadLikelyPathLimit = 4;
+    private const int BalancedForwardPreloadCount = 50;
+    private const int BalancedBackwardPreloadCount = 10;
+    private const int BalancedFullPreloadLikelyPathLimit = 4;
+    private const int BalancedSmallFullPreloadCount = 5;
     private const long SmallFullPreloadLimitBytes = 128L * ImageMemoryEstimator.Megabyte;
     private const long LargeImageThresholdBytes = 512L * ImageMemoryEstimator.Megabyte;
     private const long AutoFullDecodeLimitBytes = 512L * ImageMemoryEstimator.Megabyte;
     private const long CleanupThresholdBytes = 512L * ImageMemoryEstimator.Megabyte;
-    private const int FullPreloadIdleDelayMilliseconds = 1_200;
+    private const int BalancedFullPreloadIdleDelayMilliseconds = 1_200;
+    private const int DefaultPreloadBudgetGigabytes = 2;
+    private const double DefaultMenuHeightDips = 26.0;
     private const double DefaultToolbarHeightDips = 38.0;
     private static readonly SKColor LightViewerBackground = new(234, 244, 255);
     private static readonly SKColor DarkViewerBackground = new(32, 32, 32);
@@ -58,6 +77,10 @@ public partial class MainWindow : Window
     private bool _isPanning;
     private bool _isCurrentPreviewAwaitingFullResolution;
     private bool _setActualPixelsAfterFullLoad;
+    private bool _useSmoothSampling = true;
+    private bool _isPreloadEnabled = true;
+    private int _preloadBudgetGigabytes = DefaultPreloadBudgetGigabytes;
+    private PreloadAggressiveness _preloadAggressiveness = PreloadAggressiveness.Balanced;
     private SKColor _viewerBackgroundColor = LightViewerBackground;
     private SKPoint _lastPanPoint;
 
@@ -78,6 +101,20 @@ public partial class MainWindow : Window
     private void ApplyLocalization()
     {
         UpdateWindowTitle(_navigator.CurrentPath is null ? null : Path.GetFileName(_navigator.CurrentPath));
+        FileMenuItem.Header = LocalizedText.Get(LocalizedText.FileMenu);
+        OpenMenuItem.Header = LocalizedText.Get(LocalizedText.OpenCommand);
+        DeleteMenuItem.Header = LocalizedText.Get(LocalizedText.DeleteImage);
+        ExitMenuItem.Header = LocalizedText.Get(LocalizedText.Exit);
+        OptionsMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsMenu);
+        SamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Upscaling);
+        SmoothSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Smooth);
+        NearestSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Nearest);
+        PreloadEnabledMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadNearbyImages);
+        PreloadMemoryBudgetMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadMemoryBudget);
+        PreloadAggressivenessMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadAggressiveness);
+        ConservativePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Conservative);
+        BalancedPreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Balanced);
+        AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
         if (_image is null)
         {
             StatusText.Text = LocalizedText.Get(LocalizedText.NoImage);
@@ -90,31 +127,17 @@ public partial class MainWindow : Window
         PreviousButton.ToolTip = LocalizedText.Get(LocalizedText.PreviousImage);
         NextButton.ToolTip = LocalizedText.Get(LocalizedText.NextImage);
         ActualPixelsButton.ToolTip = LocalizedText.Get(LocalizedText.ToggleActualPixels);
-        SamplingToggleButton.ToolTip = LocalizedText.Get(LocalizedText.ToggleSmoothNearestUpscaling);
-        PreloadToggleButton.ToolTip = LocalizedText.Get(LocalizedText.PreloadNearbyImages);
-        PreloadBudgetComboBox.ToolTip = LocalizedText.Get(LocalizedText.PreloadMemoryBudgetTooltip);
-        UpdateSamplingToggleText();
-        UpdatePreloadToggleText();
+        DeleteButton.ToolTip = LocalizedText.Get(LocalizedText.DeleteImage);
+        OpenMenuItem.InputGestureText = "Ctrl+O";
+        DeleteMenuItem.InputGestureText = "Del";
+        UpdateSettingsMenuChecks();
+        UpdateZoomText();
     }
 
     private void UpdateWindowTitle(string? fileName = null)
     {
         var appTitle = LocalizedText.Get(LocalizedText.AppTitle);
         Title = string.IsNullOrWhiteSpace(fileName) ? appTitle : $"{fileName} - {appTitle}";
-    }
-
-    private void UpdateSamplingToggleText()
-    {
-        SamplingToggleButton.Content = SamplingToggleButton.IsChecked == true
-            ? LocalizedText.Get(LocalizedText.Smooth)
-            : LocalizedText.Get(LocalizedText.Nearest);
-    }
-
-    private void UpdatePreloadToggleText()
-    {
-        PreloadToggleButton.Content = PreloadToggleButton.IsChecked == true
-            ? LocalizedText.Get(LocalizedText.Preload)
-            : LocalizedText.Get(LocalizedText.Manual);
     }
 
     public async Task OpenPathAsync(string path)
@@ -474,7 +497,7 @@ public partial class MainWindow : Window
         }
 
         var releasedBytes = image.EstimatedBytes;
-        if (PreloadToggleButton.IsChecked == true &&
+        if (_isPreloadEnabled &&
             (!image.Metadata.Path.Equals(replacementPath, StringComparison.OrdinalIgnoreCase) ||
                 !image.IsFullResolution))
         {
@@ -644,6 +667,26 @@ public partial class MainWindow : Window
         ToggleActualPixels();
     }
 
+    private async void DeleteButton_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(DeleteCurrentImageAsync);
+    }
+
+    private async void OpenMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(ShowOpenDialogAsync);
+    }
+
+    private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(DeleteCurrentImageAsync);
+    }
+
+    private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
     private async void Window_KeyDown(object sender, KeyEventArgs e)
     {
         await RunUiCommandAsync(async () =>
@@ -682,6 +725,11 @@ public partial class MainWindow : Window
                 UpdateZoomText();
                 ImageSurface.InvalidateVisual();
             }
+            else if (e.Key == Key.Delete && CanDeleteCurrentImage())
+            {
+                e.Handled = true;
+                await DeleteCurrentImageAsync();
+            }
         });
     }
 
@@ -716,22 +764,62 @@ public partial class MainWindow : Window
         UpdateToolbarDensity();
     }
 
-    private void SamplingToggleButton_Click(object sender, RoutedEventArgs e)
-    {
-        UpdateSamplingToggleText();
-        ImageSurface.InvalidateVisual();
-    }
-
     private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
     {
         ApplyTheme(ThemeToggleButton.IsChecked == true);
     }
 
-    private void PreloadToggleButton_Click(object sender, RoutedEventArgs e)
+    private void SmoothSamplingMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        UpdatePreloadToggleText();
+        SetSmoothSampling(true);
+    }
 
-        if (PreloadToggleButton.IsChecked == true)
+    private void NearestSamplingMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        SetSmoothSampling(false);
+    }
+
+    private void PreloadEnabledMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        SetPreloadEnabled(PreloadEnabledMenuItem.IsChecked == true);
+    }
+
+    private void PreloadBudgetMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: string tag } || !int.TryParse(tag, out var gigabytes))
+        {
+            UpdateSettingsMenuChecks();
+            return;
+        }
+
+        SetPreloadBudgetGigabytes(gigabytes);
+    }
+
+    private void PreloadAggressivenessMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: string tag } ||
+            !Enum.TryParse<PreloadAggressiveness>(tag, out var aggressiveness))
+        {
+            UpdateSettingsMenuChecks();
+            return;
+        }
+
+        SetPreloadAggressiveness(aggressiveness);
+    }
+
+    private void SetSmoothSampling(bool useSmoothSampling)
+    {
+        _useSmoothSampling = useSmoothSampling;
+        UpdateSettingsMenuChecks();
+        ImageSurface.InvalidateVisual();
+    }
+
+    private void SetPreloadEnabled(bool isEnabled)
+    {
+        _isPreloadEnabled = isEnabled;
+        UpdateSettingsMenuChecks();
+
+        if (_isPreloadEnabled)
         {
             ScheduleSmartPreloads(allowFullPreloads: !IsFullDecodeInProgress);
         }
@@ -742,8 +830,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PreloadBudgetComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private void SetPreloadBudgetGigabytes(int gigabytes)
     {
+        _preloadBudgetGigabytes = Math.Clamp(gigabytes, 1, 15);
+        UpdateSettingsMenuChecks();
         ApplyPreloadCacheBudget();
 
         if (RestartFullResolutionLoadForCurrentPreview())
@@ -751,10 +841,39 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (PreloadToggleButton?.IsChecked == true)
+        if (_isPreloadEnabled)
         {
             ScheduleSmartPreloads(allowFullPreloads: !IsFullDecodeInProgress);
         }
+    }
+
+    private void SetPreloadAggressiveness(PreloadAggressiveness aggressiveness)
+    {
+        _preloadAggressiveness = aggressiveness;
+        UpdateSettingsMenuChecks();
+
+        if (_isPreloadEnabled)
+        {
+            ScheduleSmartPreloads(allowFullPreloads: !IsFullDecodeInProgress);
+        }
+    }
+
+    private void UpdateSettingsMenuChecks()
+    {
+        SmoothSamplingMenuItem.IsChecked = _useSmoothSampling;
+        NearestSamplingMenuItem.IsChecked = !_useSmoothSampling;
+        PreloadEnabledMenuItem.IsChecked = _isPreloadEnabled;
+
+        foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
+        {
+            item.IsChecked = item.Tag is string tag &&
+                int.TryParse(tag, out var gigabytes) &&
+                gigabytes == _preloadBudgetGigabytes;
+        }
+
+        ConservativePreloadMenuItem.IsChecked = _preloadAggressiveness == PreloadAggressiveness.Conservative;
+        BalancedPreloadMenuItem.IsChecked = _preloadAggressiveness == PreloadAggressiveness.Balanced;
+        AggressivePreloadMenuItem.IsChecked = _preloadAggressiveness == PreloadAggressiveness.Aggressive;
     }
 
     private async Task ShowOpenDialogAsync()
@@ -772,6 +891,53 @@ public partial class MainWindow : Window
         {
             await OpenPathAsync(dialog.FileName);
         }
+    }
+
+    private async Task DeleteCurrentImageAsync()
+    {
+        var path = _navigator.CurrentPath;
+        if (path is null || !File.Exists(path))
+        {
+            UpdateNavigationButtons();
+            return;
+        }
+
+        var fileName = Path.GetFileName(path);
+        var result = MessageBox.Show(
+            this,
+            LocalizedText.Format(LocalizedText.DeleteImageConfirmationFormat, fileName),
+            LocalizedText.Get(LocalizedText.DeleteImage),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+        if (result != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        StopCurrentImageInteraction();
+        _loadGeneration++;
+        _openGeneration++;
+        _setActualPixelsAfterFullLoad = false;
+        _loadSession?.CancelAndDisposeWhenInactive();
+        _loadSession = null;
+        CancelPreloadWorker();
+        CancelFolderIndexing();
+        CancelBackgroundFullWarmups();
+        ClearPreloadCaches();
+        ClearImage();
+
+        FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+
+        if (_navigator.RemoveCurrent() is null)
+        {
+            UpdateWindowTitle();
+            ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
+            UpdateNavigationButtons();
+            return;
+        }
+
+        await LoadCurrentImageAsync(fitToWindow: true);
     }
 
     private void UpdateViewport()
@@ -800,12 +966,16 @@ public partial class MainWindow : Window
 
     private double GetFallbackViewportHeightDips()
     {
+        var menuHeight = MainMenu is { ActualHeight: > 1.0 }
+            ? MainMenu.ActualHeight
+            : DefaultMenuHeightDips;
         var toolbarHeight = ToolbarHost is { ActualHeight: > 1.0 }
             ? ToolbarHost.ActualHeight
             : DefaultToolbarHeightDips;
-        if (ActualHeight > toolbarHeight + 1.0) return ActualHeight - toolbarHeight;
-        if (!double.IsNaN(Height) && Height > toolbarHeight + 1.0) return Height - toolbarHeight;
-        return Math.Max(1.0, MinHeight - toolbarHeight);
+        var chromeHeight = menuHeight + toolbarHeight;
+        if (ActualHeight > chromeHeight + 1.0) return ActualHeight - chromeHeight;
+        if (!double.IsNaN(Height) && Height > chromeHeight + 1.0) return Height - chromeHeight;
+        return Math.Max(1.0, MinHeight - chromeHeight);
     }
 
     private SKPoint ToPixelPoint(WpfPoint point)
@@ -816,7 +986,7 @@ public partial class MainWindow : Window
 
     private SKSamplingOptions GetRenderSamplingOptions()
     {
-        return SamplingToggleButton.IsChecked == false && _viewerState.Zoom > 1.0
+        return !_useSmoothSampling && _viewerState.Zoom > 1.0
             ? new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.None)
             : new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
     }
@@ -1273,10 +1443,13 @@ public partial class MainWindow : Window
     private void ScheduleSmartPreloads(bool allowFullPreloads)
     {
         if (_isClosing) return;
-        if (PreloadToggleButton.IsChecked != true) return;
+        if (!_isPreloadEnabled) return;
 
         var budgetBytes = GetSelectedPreloadBudgetBytes();
-        var largeFullLimit = DecodeMemoryPolicy.GetLargeFullPreloadLimit(budgetBytes);
+        var profile = GetSelectedPreloadProfile();
+        var largeFullLimit = Math.Max(
+            0,
+            DecodeMemoryPolicy.GetLargeFullPreloadLimit(budgetBytes) + profile.LargeFullPreloadLimitAdjustment);
         var previewDecodeLimit = DecodeMemoryPolicy.GetPreloadDecodeLimit(budgetBytes);
         var fullDecodeLimit = DecodeMemoryPolicy.GetFullPreloadDecodeLimit(budgetBytes);
         ApplyPreloadCacheBudget(budgetBytes);
@@ -1284,7 +1457,7 @@ public partial class MainWindow : Window
         var previewSize = GetViewportPixelSize();
         var currentPath = _navigator.CurrentPath;
         var scheduledLoadGeneration = _loadGeneration;
-        var paths = _navigator.GetLookaroundPaths(ForwardPreloadCount, BackwardPreloadCount)
+        var paths = _navigator.GetLookaroundPaths(profile.ForwardCount, profile.BackwardCount)
             .Where(path => currentPath is null || !path.Equals(currentPath, StringComparison.OrdinalIgnoreCase))
             .ToArray();
         if (paths.Length == 0) return;
@@ -1319,6 +1492,9 @@ public partial class MainWindow : Window
                         largeFullLimit,
                         previewDecodeLimit,
                         fullDecodeLimit,
+                        profile.FullPreloadLikelyPathLimit,
+                        profile.SmallFullPreloadCount,
+                        profile.FullPreloadIdleDelayMilliseconds,
                         scheduledLoadGeneration,
                         token);
                 }
@@ -1353,6 +1529,9 @@ public partial class MainWindow : Window
         int largeFullLimit,
         long previewDecodeLimit,
         long fullDecodeLimit,
+        int fullPreloadLikelyPathLimit,
+        int smallFullPreloadCount,
+        int fullPreloadIdleDelayMilliseconds,
         int scheduledLoadGeneration,
         CancellationToken token)
     {
@@ -1404,7 +1583,7 @@ public partial class MainWindow : Window
             if (!allowFullPreloads ||
                 IsFullDecodeInProgress ||
                 scheduledLoadGeneration != Volatile.Read(ref _loadGeneration) ||
-                priority >= FullPreloadLikelyPathLimit)
+                priority >= fullPreloadLikelyPathLimit)
             {
                 continue;
             }
@@ -1413,7 +1592,7 @@ public partial class MainWindow : Window
             var isSmall = fullBytes <= SmallFullPreloadLimitBytes;
             var isLarge = fullBytes >= LargeImageThresholdBytes;
             var shouldPreloadFull =
-                (isSmall && smallFullPreloads < 5) ||
+                (isSmall && smallFullPreloads < smallFullPreloadCount) ||
                 (isLarge && largeFullPreloads < largeFullLimit);
 
             if (!shouldPreloadFull ||
@@ -1428,7 +1607,7 @@ public partial class MainWindow : Window
                 continue;
             }
 
-            await Task.Delay(FullPreloadIdleDelayMilliseconds, token);
+            await Task.Delay(fullPreloadIdleDelayMilliseconds, token);
             if (scheduledLoadGeneration != Volatile.Read(ref _loadGeneration) ||
                 IsFullDecodeInProgress ||
                 _fullPreloadCache.ContainsFullResolution(path) ||
@@ -1545,14 +1724,35 @@ public partial class MainWindow : Window
 
     private long GetSelectedPreloadBudgetBytes()
     {
-        if (PreloadBudgetComboBox?.SelectedItem is System.Windows.Controls.ComboBoxItem item &&
-            item.Tag is string tag &&
-            int.TryParse(tag, out var gigabytes))
-        {
-            return Math.Max(1, gigabytes) * ImageMemoryEstimator.Gigabyte;
-        }
+        return Math.Max(1, _preloadBudgetGigabytes) * ImageMemoryEstimator.Gigabyte;
+    }
 
-        return 2L * ImageMemoryEstimator.Gigabyte;
+    private PreloadProfile GetSelectedPreloadProfile()
+    {
+        return _preloadAggressiveness switch
+        {
+            PreloadAggressiveness.Conservative => new(
+                ForwardCount: 20,
+                BackwardCount: 4,
+                FullPreloadLikelyPathLimit: 2,
+                SmallFullPreloadCount: 2,
+                FullPreloadIdleDelayMilliseconds: 1_800,
+                LargeFullPreloadLimitAdjustment: -1),
+            PreloadAggressiveness.Aggressive => new(
+                ForwardCount: 100,
+                BackwardCount: 20,
+                FullPreloadLikelyPathLimit: 8,
+                SmallFullPreloadCount: 10,
+                FullPreloadIdleDelayMilliseconds: 400,
+                LargeFullPreloadLimitAdjustment: 2),
+            _ => new(
+                ForwardCount: BalancedForwardPreloadCount,
+                BackwardCount: BalancedBackwardPreloadCount,
+                FullPreloadLikelyPathLimit: BalancedFullPreloadLikelyPathLimit,
+                SmallFullPreloadCount: BalancedSmallFullPreloadCount,
+                FullPreloadIdleDelayMilliseconds: BalancedFullPreloadIdleDelayMilliseconds,
+                LargeFullPreloadLimitAdjustment: 0)
+        };
     }
 
     private void ApplyPreloadCacheBudget(long? selectedBudgetBytes = null)
@@ -1661,6 +1861,7 @@ public partial class MainWindow : Window
         var iconBrush = GetToolbarIconBrush();
         PreviousButton.Content = ToolbarIcon.Create(ToolbarIconKind.Previous, iconBrush);
         NextButton.Content = ToolbarIcon.Create(ToolbarIconKind.Next, iconBrush);
+        DeleteButton.Content = ToolbarIcon.Create(ToolbarIconKind.Delete, Brushes.Firebrick);
         UpdateActualPixelsIcon();
     }
 
@@ -1682,6 +1883,12 @@ public partial class MainWindow : Window
         ToolbarHost.BorderBrush = isDarkMode
             ? CreateBrush(69, 75, 85)
             : CreateBrush(209, 213, 219);
+        MainMenu.Background = isDarkMode
+            ? CreateBrush(37, 41, 50)
+            : CreateBrush(255, 255, 255);
+        MainMenu.Foreground = isDarkMode
+            ? CreateBrush(225, 231, 239)
+            : CreateBrush(31, 41, 51);
         ZoomText.Foreground = isDarkMode
             ? CreateBrush(215, 222, 232)
             : CreateBrush(51, 65, 85);
@@ -1799,13 +2006,19 @@ public partial class MainWindow : Window
         PreviousButton.IsEnabled = _navigator.CanMovePrevious;
         NextButton.IsEnabled = _navigator.CanMoveNext;
         ActualPixelsButton.IsEnabled = CanToggleActualPixels();
+        var canDelete = CanDeleteCurrentImage();
+        DeleteButton.IsEnabled = canDelete;
+        DeleteMenuItem.IsEnabled = canDelete;
     }
 
     private void UpdateZoomText()
     {
-        ZoomText.Text = _image is null ? string.Empty : $"{_viewerState.Zoom * 100:0}%";
+        ZoomText.Text = _image is null
+            ? string.Empty
+            : $"{LocalizedText.Get(LocalizedText.Zoom)}: {_viewerState.Zoom * 100:0}%";
         ActualPixelsButton.IsEnabled = CanToggleActualPixels();
         UpdateActualPixelsIcon();
+        UpdateToolbarDensity();
     }
 
     private bool CanToggleActualPixels()
@@ -1813,14 +2026,20 @@ public partial class MainWindow : Window
         return _image is not null && !_viewerState.FitsAtActualPixels;
     }
 
+    private bool CanDeleteCurrentImage()
+    {
+        var path = _navigator.CurrentPath;
+        return path is not null && File.Exists(path);
+    }
+
     private void UpdateToolbarDensity()
     {
-        if (AdvancedControlsPanel is null)
+        if (ZoomText is null)
         {
             return;
         }
 
-        AdvancedControlsPanel.Visibility = ActualWidth >= 760
+        ZoomText.Visibility = ActualWidth >= 680 && _image is not null
             ? Visibility.Visible
             : Visibility.Collapsed;
     }

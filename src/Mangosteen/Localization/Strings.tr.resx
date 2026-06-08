@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -83,5 +83,44 @@
   </data>
   <data name="UseLightMode" xml:space="preserve">
     <value>AÃ§Ä±k modu kullan</value>
+  </data>
+  <data name="Aggressive" xml:space="preserve">
+    <value>Agresif</value>
+  </data>
+  <data name="Balanced" xml:space="preserve">
+    <value>Dengeli</value>
+  </data>
+  <data name="Conservative" xml:space="preserve">
+    <value>Temkinli</value>
+  </data>
+  <data name="DeleteImage" xml:space="preserve">
+    <value>Görüntüyü sil</value>
+  </data>
+  <data name="DeleteImageConfirmationFormat" xml:space="preserve">
+    <value>{0} Geri Dönüşüm Kutusuna taşınsın mı?</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Çıkış</value>
+  </data>
+  <data name="FileMenu" xml:space="preserve">
+    <value>Dosya</value>
+  </data>
+  <data name="OpenCommand" xml:space="preserve">
+    <value>Aç...</value>
+  </data>
+  <data name="OptionsMenu" xml:space="preserve">
+    <value>Seçenekler</value>
+  </data>
+  <data name="PreloadAggressiveness" xml:space="preserve">
+    <value>Ön yükleme yoğunluğu</value>
+  </data>
+  <data name="PreloadMemoryBudget" xml:space="preserve">
+    <value>Ön yükleme belleği</value>
+  </data>
+  <data name="Upscaling" xml:space="preserve">
+    <value>Büyütme</value>
+  </data>
+  <data name="Zoom" xml:space="preserve">
+    <value>Yakınlaştırma</value>
   </data>
 </root>

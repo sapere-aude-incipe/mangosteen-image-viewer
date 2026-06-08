@@ -1,9 +1,6 @@
 # Mangosteen Image Viewer
 
-<!--
-When the final project banner or logo is ready, place it at docs/assets/mangosteen-banner.png
-and add it above this paragraph.
--->
+![Mangosteen Image Viewer banner](docs/assets/mangosteen-banner.png)
 
 [![CI](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/actions/workflows/ci.yml)
 
