@@ -16,7 +16,7 @@
     <value>Wszystkie pliki</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
-    <value>Mangosteen</value>
+    <value>Mangosteen Image Viewer</value>
   </data>
   <data name="FileNotFoundFormat" xml:space="preserve">
     <value>Nie znaleziono pliku: {0}</value>
