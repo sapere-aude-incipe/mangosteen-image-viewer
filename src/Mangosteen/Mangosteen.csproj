@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>Mangosteen</AssemblyName>
     <RootNamespace>Mangosteen</RootNamespace>
+    <ApplicationIcon>Assets\mangosteen.ico</ApplicationIcon>
     <Product>Mangosteen Image Viewer</Product>
     <Authors>sapere-aude-incipe</Authors>
     <Description>A simple and fast Windows image viewer inspired by the classic Windows Photo Viewer experience.</Description>
@@ -26,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\mangosteen.ico" />
     <None Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
