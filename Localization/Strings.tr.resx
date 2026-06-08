@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllFiles" xml:space="preserve">
+    <value>TÃ¼m dosyalar</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Mangosteen</value>
+  </data>
+  <data name="FileNotFoundFormat" xml:space="preserve">
+    <value>Dosya bulunamadÄ±: {0}</value>
+  </data>
+  <data name="FullResolutionDecodeFailed" xml:space="preserve">
+    <value>Tam Ã§Ã¶zÃ¼nÃ¼rlÃ¼kte Ã§Ã¶zme baÅŸarÄ±sÄ±z oldu.</value>
+  </data>
+  <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
+    <value>Tam Ã§Ã¶zÃ¼nÃ¼rlÃ¼kte Ã§Ã¶zme baÅŸarÄ±sÄ±z oldu: {0}</value>
+  </data>
+  <data name="ImageFiles" xml:space="preserve">
+    <value>GÃ¶rÃ¼ntÃ¼ dosyalarÄ±</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>YÃ¼kleniyor...</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>Manuel</value>
+  </data>
+  <data name="Nearest" xml:space="preserve">
+    <value>Piksel</value>
+  </data>
+  <data name="NextImage" xml:space="preserve">
+    <value>Sonraki gÃ¶rÃ¼ntÃ¼</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>GÃ¶rÃ¼ntÃ¼ yok</value>
+  </data>
+  <data name="OpenImage" xml:space="preserve">
+    <value>GÃ¶rÃ¼ntÃ¼ aÃ§</value>
+  </data>
+  <data name="Preload" xml:space="preserve">
+    <value>Ã–n yÃ¼kle</value>
+  </data>
+  <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
+    <value>Tam Ã§Ã¶zme ve Ã¶n yÃ¼kleme iÃ§in bellek bÃ¼tÃ§esi</value>
+  </data>
+  <data name="PreloadNearbyImages" xml:space="preserve">
+    <value>YakÄ±ndaki gÃ¶rÃ¼ntÃ¼leri Ã¶nceden yÃ¼kle</value>
+  </data>
+  <data name="PreviewOnly" xml:space="preserve">
+    <value>YalnÄ±zca Ã¶nizleme</value>
+  </data>
+  <data name="PreviousImage" xml:space="preserve">
+    <value>Ã–nceki gÃ¶rÃ¼ntÃ¼</value>
+  </data>
+  <data name="Smooth" xml:space="preserve">
+    <value>YumuÅŸak</value>
+  </data>
+  <data name="ToggleActualPixels" xml:space="preserve">
+    <value>GerÃ§ek pikselleri deÄŸiÅŸtir</value>
+  </data>
+  <data name="ToggleDarkMode" xml:space="preserve">
+    <value>Koyu modu aÃ§/kapat</value>
+  </data>
+  <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
+    <value>YumuÅŸak veya en yakÄ±n komÅŸu bÃ¼yÃ¼tmeyi deÄŸiÅŸtir</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Beklenmeyen bir hata oluÅŸtu.</value>
+  </data>
+  <data name="UseDarkMode" xml:space="preserve">
+    <value>Koyu modu kullan</value>
+  </data>
+  <data name="UseLightMode" xml:space="preserve">
+    <value>AÃ§Ä±k modu kullan</value>
+  </data>
+</root>

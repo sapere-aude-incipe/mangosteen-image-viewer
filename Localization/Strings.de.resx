@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllFiles" xml:space="preserve">
+    <value>Alle Dateien</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Mangosteen</value>
+  </data>
+  <data name="FileNotFoundFormat" xml:space="preserve">
+    <value>Datei nicht gefunden: {0}</value>
+  </data>
+  <data name="FullResolutionDecodeFailed" xml:space="preserve">
+    <value>Dekodierung in voller AuflÃ¶sung fehlgeschlagen.</value>
+  </data>
+  <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
+    <value>Dekodierung in voller AuflÃ¶sung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="ImageFiles" xml:space="preserve">
+    <value>Bilddateien</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Wird geladen...</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>Manuell</value>
+  </data>
+  <data name="Nearest" xml:space="preserve">
+    <value>Pixel</value>
+  </data>
+  <data name="NextImage" xml:space="preserve">
+    <value>NÃ¤chstes Bild</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>Kein Bild</value>
+  </data>
+  <data name="OpenImage" xml:space="preserve">
+    <value>Bild Ã¶ffnen</value>
+  </data>
+  <data name="Preload" xml:space="preserve">
+    <value>Vorab</value>
+  </data>
+  <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
+    <value>Speicherbudget fÃ¼r vollstÃ¤ndige Dekodierung und Vorladen</value>
+  </data>
+  <data name="PreloadNearbyImages" xml:space="preserve">
+    <value>Bilder in der NÃ¤he vorladen</value>
+  </data>
+  <data name="PreviewOnly" xml:space="preserve">
+    <value>Nur Vorschau</value>
+  </data>
+  <data name="PreviousImage" xml:space="preserve">
+    <value>Vorheriges Bild</value>
+  </data>
+  <data name="Smooth" xml:space="preserve">
+    <value>Glatt</value>
+  </data>
+  <data name="ToggleActualPixels" xml:space="preserve">
+    <value>TatsÃ¤chliche Pixel umschalten</value>
+  </data>
+  <data name="ToggleDarkMode" xml:space="preserve">
+    <value>Dunkelmodus umschalten</value>
+  </data>
+  <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
+    <value>Glatte oder pixelgenaue Hochskalierung umschalten</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Ein unerwarteter Fehler ist aufgetreten.</value>
+  </data>
+  <data name="UseDarkMode" xml:space="preserve">
+    <value>Dunkelmodus verwenden</value>
+  </data>
+  <data name="UseLightMode" xml:space="preserve">
+    <value>Hellen Modus verwenden</value>
+  </data>
+</root>

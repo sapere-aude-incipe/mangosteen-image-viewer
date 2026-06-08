@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllFiles" xml:space="preserve">
+    <value>Wszystkie pliki</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Mangosteen</value>
+  </data>
+  <data name="FileNotFoundFormat" xml:space="preserve">
+    <value>Nie znaleziono pliku: {0}</value>
+  </data>
+  <data name="FullResolutionDecodeFailed" xml:space="preserve">
+    <value>Dekodowanie w peÅ‚nej rozdzielczoÅ›ci nie powiodÅ‚o siÄ™.</value>
+  </data>
+  <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
+    <value>Dekodowanie w peÅ‚nej rozdzielczoÅ›ci nie powiodÅ‚o siÄ™: {0}</value>
+  </data>
+  <data name="ImageFiles" xml:space="preserve">
+    <value>Pliki obrazÃ³w</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Åadowanie...</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>RÄ™cznie</value>
+  </data>
+  <data name="Nearest" xml:space="preserve">
+    <value>Piksel</value>
+  </data>
+  <data name="NextImage" xml:space="preserve">
+    <value>NastÄ™pny obraz</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>Brak obrazu</value>
+  </data>
+  <data name="OpenImage" xml:space="preserve">
+    <value>OtwÃ³rz obraz</value>
+  </data>
+  <data name="Preload" xml:space="preserve">
+    <value>Wczytaj</value>
+  </data>
+  <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
+    <value>Limit pamiÄ™ci na peÅ‚ne dekodowanie i wczytywanie z wyprzedzeniem</value>
+  </data>
+  <data name="PreloadNearbyImages" xml:space="preserve">
+    <value>Wczytuj pobliskie obrazy</value>
+  </data>
+  <data name="PreviewOnly" xml:space="preserve">
+    <value>Tylko podglÄ…d</value>
+  </data>
+  <data name="PreviousImage" xml:space="preserve">
+    <value>Poprzedni obraz</value>
+  </data>
+  <data name="Smooth" xml:space="preserve">
+    <value>GÅ‚adko</value>
+  </data>
+  <data name="ToggleActualPixels" xml:space="preserve">
+    <value>PrzeÅ‚Ä…cz rzeczywiste piksele</value>
+  </data>
+  <data name="ToggleDarkMode" xml:space="preserve">
+    <value>PrzeÅ‚Ä…cz tryb ciemny</value>
+  </data>
+  <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
+    <value>PrzeÅ‚Ä…cz gÅ‚adkie lub najbliÅ¼sze skalowanie</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>WystÄ…piÅ‚ nieoczekiwany bÅ‚Ä…d.</value>
+  </data>
+  <data name="UseDarkMode" xml:space="preserve">
+    <value>UÅ¼yj trybu ciemnego</value>
+  </data>
+  <data name="UseLightMode" xml:space="preserve">
+    <value>UÅ¼yj trybu jasnego</value>
+  </data>
+</root>

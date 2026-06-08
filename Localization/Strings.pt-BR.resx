@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllFiles" xml:space="preserve">
+    <value>Todos os arquivos</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Mangosteen</value>
+  </data>
+  <data name="FileNotFoundFormat" xml:space="preserve">
+    <value>Arquivo nÃ£o encontrado: {0}</value>
+  </data>
+  <data name="FullResolutionDecodeFailed" xml:space="preserve">
+    <value>Falha na decodificaÃ§Ã£o em resoluÃ§Ã£o completa.</value>
+  </data>
+  <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
+    <value>Falha na decodificaÃ§Ã£o em resoluÃ§Ã£o completa: {0}</value>
+  </data>
+  <data name="ImageFiles" xml:space="preserve">
+    <value>Arquivos de imagem</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Carregando...</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>Manual</value>
+  </data>
+  <data name="Nearest" xml:space="preserve">
+    <value>Pixel</value>
+  </data>
+  <data name="NextImage" xml:space="preserve">
+    <value>PrÃ³xima imagem</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>Sem imagem</value>
+  </data>
+  <data name="OpenImage" xml:space="preserve">
+    <value>Abrir imagem</value>
+  </data>
+  <data name="Preload" xml:space="preserve">
+    <value>PrÃ©-carga</value>
+  </data>
+  <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
+    <value>OrÃ§amento de memÃ³ria para decodificaÃ§Ã£o completa e prÃ©-carregamento</value>
+  </data>
+  <data name="PreloadNearbyImages" xml:space="preserve">
+    <value>PrÃ©-carregar imagens prÃ³ximas</value>
+  </data>
+  <data name="PreviewOnly" xml:space="preserve">
+    <value>Somente prÃ©via</value>
+  </data>
+  <data name="PreviousImage" xml:space="preserve">
+    <value>Imagem anterior</value>
+  </data>
+  <data name="Smooth" xml:space="preserve">
+    <value>Suave</value>
+  </data>
+  <data name="ToggleActualPixels" xml:space="preserve">
+    <value>Alternar pixels reais</value>
+  </data>
+  <data name="ToggleDarkMode" xml:space="preserve">
+    <value>Alternar modo escuro</value>
+  </data>
+  <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
+    <value>Alternar ampliaÃ§Ã£o suave ou por vizinho mais prÃ³ximo</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Ocorreu um erro inesperado.</value>
+  </data>
+  <data name="UseDarkMode" xml:space="preserve">
+    <value>Usar modo escuro</value>
+  </data>
+  <data name="UseLightMode" xml:space="preserve">
+    <value>Usar modo claro</value>
+  </data>
+</root>

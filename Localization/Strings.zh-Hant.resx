@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AllFiles" xml:space="preserve">
+    <value>æ‰€æœ‰æª”æ¡ˆ</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>Mangosteen</value>
+  </data>
+  <data name="FileNotFoundFormat" xml:space="preserve">
+    <value>æ‰¾ä¸åˆ°æª”æ¡ˆï¼š{0}</value>
+  </data>
+  <data name="FullResolutionDecodeFailed" xml:space="preserve">
+    <value>å…¨è§£æžåº¦è§£ç¢¼å¤±æ•—ã€‚</value>
+  </data>
+  <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
+    <value>å…¨è§£æžåº¦è§£ç¢¼å¤±æ•—ï¼š{0}</value>
+  </data>
+  <data name="ImageFiles" xml:space="preserve">
+    <value>å½±åƒæª”æ¡ˆ</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>æ­£åœ¨è¼‰å…¥...</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>æ‰‹å‹•</value>
+  </data>
+  <data name="Nearest" xml:space="preserve">
+    <value>æœ€è¿‘é„°</value>
+  </data>
+  <data name="NextImage" xml:space="preserve">
+    <value>ä¸‹ä¸€å¼µå½±åƒ</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>ç„¡å½±åƒ</value>
+  </data>
+  <data name="OpenImage" xml:space="preserve">
+    <value>é–‹å•Ÿå½±åƒ</value>
+  </data>
+  <data name="Preload" xml:space="preserve">
+    <value>é è¼‰</value>
+  </data>
+  <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
+    <value>ç”¨æ–¼å®Œæ•´è§£ç¢¼å’Œé è¼‰çš„è¨˜æ†¶é«”é ç®—</value>
+  </data>
+  <data name="PreloadNearbyImages" xml:space="preserve">
+    <value>é è¼‰é™„è¿‘å½±åƒ</value>
+  </data>
+  <data name="PreviewOnly" xml:space="preserve">
+    <value>åƒ…é è¦½</value>
+  </data>
+  <data name="PreviousImage" xml:space="preserve">
+    <value>ä¸Šä¸€å¼µå½±åƒ</value>
+  </data>
+  <data name="Smooth" xml:space="preserve">
+    <value>å¹³æ»‘</value>
+  </data>
+  <data name="ToggleActualPixels" xml:space="preserve">
+    <value>åˆ‡æ›å¯¦éš›åƒç´ </value>
+  </data>
+  <data name="ToggleDarkMode" xml:space="preserve">
+    <value>åˆ‡æ›æ·±è‰²æ¨¡å¼</value>
+  </data>
+  <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
+    <value>åˆ‡æ›å¹³æ»‘æˆ–æœ€è¿‘é„°æ”¾å¤§</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>ç™¼ç”Ÿæœªé æœŸçš„éŒ¯èª¤ã€‚</value>
+  </data>
+  <data name="UseDarkMode" xml:space="preserve">
+    <value>ä½¿ç”¨æ·±è‰²æ¨¡å¼</value>
+  </data>
+  <data name="UseLightMode" xml:space="preserve">
+    <value>ä½¿ç”¨æ·ºè‰²æ¨¡å¼</value>
+  </data>
+</root>

@@ -1,0 +1,17 @@
+bin/
+obj/
+publish/
+dist/
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+artifacts/
+*.nupkg
+*.snupkg
+*.log
+Thumbs.db
+Desktop.ini
