@@ -77,6 +77,8 @@
             <Setter Property="Height" Value="28" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="ToolTipService.InitialShowDelay" Value="350" />
+            <Setter Property="ToolTipService.ShowDuration" Value="12000" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="MenuItem">
@@ -151,9 +153,10 @@
                                    AllowsTransparency="True"
                                    Focusable="False"
                                    IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   HorizontalOffset="3"
                                    Placement="Right"
                                    PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
-                                   PopupAnimation="Fade">
+                                   PopupAnimation="None">
                                 <Border MinWidth="220"
                                         Padding="2"
                                         Background="{DynamicResource MenuPopupBackground}"
@@ -169,8 +172,9 @@
                                 <Setter Property="Foreground" Value="{DynamicResource MenuBarForeground}" />
                                 <Setter TargetName="TopLevelBorder" Property="Visibility" Value="Visible" />
                                 <Setter TargetName="SubmenuBorder" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="PART_Popup" Property="HorizontalOffset" Value="0" />
                                 <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom" />
-                                <Setter TargetName="PART_Popup" Property="VerticalOffset" Value="-1" />
+                                <Setter TargetName="PART_Popup" Property="VerticalOffset" Value="0" />
                             </Trigger>
                             <Trigger Property="Role" Value="TopLevelItem">
                                 <Setter Property="Foreground" Value="{DynamicResource MenuBarForeground}" />
@@ -387,7 +391,7 @@
                                    AllowsTransparency="True"
                                    Placement="Bottom"
                                    Focusable="False"
-                                   PopupAnimation="Fade">
+                                   PopupAnimation="None">
                                 <Border Background="{DynamicResource ToolbarComboPopupBackground}"
                                         BorderBrush="{DynamicResource ToolbarComboBorder}"
                                         BorderThickness="1"
@@ -563,6 +567,10 @@
                               Tag="Aggressive"
                               Click="PreloadAggressivenessMenuItem_Click" />
                 </MenuItem>
+            </MenuItem>
+            <MenuItem x:Name="HelpMenuItem">
+                <MenuItem x:Name="OptionsHelpMenuItem"
+                          Click="OptionsHelpMenuItem_Click" />
             </MenuItem>
         </Menu>
 

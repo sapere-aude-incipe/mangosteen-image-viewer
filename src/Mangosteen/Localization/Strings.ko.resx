@@ -123,4 +123,52 @@
   <data name="Zoom" xml:space="preserve">
     <value>확대</value>
   </data>
+  <data name="AggressivePreloadTooltip" xml:space="preserve">
+    <value>Preload farther ahead and use more background work.</value>
+  </data>
+  <data name="BalancedPreloadTooltip" xml:space="preserve">
+    <value>A middle ground between speed and memory use.</value>
+  </data>
+  <data name="ConservativePreloadTooltip" xml:space="preserve">
+    <value>Use less background work and memory.</value>
+  </data>
+  <data name="HelpMenu" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="NearestUpscalingTooltip" xml:space="preserve">
+    <value>Use sharp, pixelated scaling when zooming in.</value>
+  </data>
+  <data name="OptionsHelp" xml:space="preserve">
+    <value>Options help</value>
+  </data>
+  <data name="OptionsHelpDialogText" xml:space="preserve">
+    <value>Upscaling controls how images are enlarged past their natural size. Smooth looks softer; nearest keeps hard pixel edges.
+
+Preload nearby images decodes likely next and previous images in the background.
+
+Preload memory limits how much RAM cached images may use.
+
+Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly it warms images.</value>
+  </data>
+  <data name="OptionsHelpDialogTitle" xml:space="preserve">
+    <value>Options help</value>
+  </data>
+  <data name="OptionsHelpTooltip" xml:space="preserve">
+    <value>Explain image display and preloading options.</value>
+  </data>
+  <data name="PreloadAggressivenessTooltip" xml:space="preserve">
+    <value>Choose how far ahead Mangosteen looks and how eagerly it warms images.</value>
+  </data>
+  <data name="PreloadMemoryBudgetOptionTooltip" xml:space="preserve">
+    <value>Choose the decoded-image cache memory budget.</value>
+  </data>
+  <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
+    <value>Decode likely next and previous images in the background.</value>
+  </data>
+  <data name="SmoothUpscalingTooltip" xml:space="preserve">
+    <value>Use smoother interpolation when zooming in.</value>
+  </data>
+  <data name="UpscalingTooltip" xml:space="preserve">
+    <value>Choose how images are enlarged when zoomed past actual size.</value>
+  </data>
 </root>
