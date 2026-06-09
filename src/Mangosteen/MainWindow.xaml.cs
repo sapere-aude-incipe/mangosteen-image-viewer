@@ -49,7 +49,7 @@ public partial class MainWindow : Window
     private const int DefaultPreloadBudgetGigabytes = 2;
     private const double DefaultMenuHeightDips = 28.0;
     private const double DefaultToolbarHeightDips = 38.0;
-    private static readonly SKColor LightViewerBackground = new(234, 244, 255);
+    private static readonly SKColor LightViewerBackground = new(241, 248, 253);
     private static readonly SKColor DarkViewerBackground = new(32, 32, 32);
 
     private readonly DecoderRegistry _decoders = DecoderRegistry.CreateDefault();
@@ -116,6 +116,7 @@ public partial class MainWindow : Window
         ConservativePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Conservative);
         BalancedPreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Balanced);
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
+        DarkModeMenuItem.Header = LocalizedText.Get(LocalizedText.ToggleDarkMode);
         OptionsHelpMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsHelp);
         SamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.UpscalingTooltip);
         SmoothSamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.SmoothUpscalingTooltip);
@@ -138,7 +139,7 @@ public partial class MainWindow : Window
         }
 
         PreviewOnlyText.Text = LocalizedText.Get(LocalizedText.PreviewOnly);
-        ThemeToggleButton.ToolTip = ThemeToggleButton.IsChecked == true
+        DarkModeMenuItem.ToolTip = DarkModeMenuItem.IsChecked
             ? LocalizedText.Get(LocalizedText.UseLightMode)
             : LocalizedText.Get(LocalizedText.UseDarkMode);
         PreviousButton.ToolTip = LocalizedText.Get(LocalizedText.PreviousImage);
@@ -791,9 +792,9 @@ public partial class MainWindow : Window
         UpdateToolbarDensity();
     }
 
-    private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+    private void DarkModeMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        ApplyTheme(ThemeToggleButton.IsChecked == true);
+        ApplyTheme(DarkModeMenuItem.IsChecked);
     }
 
     private void SmoothSamplingMenuItem_Click(object sender, RoutedEventArgs e)
@@ -1895,15 +1896,15 @@ public partial class MainWindow : Window
     private void ApplyTheme(bool isDarkMode)
     {
         _viewerBackgroundColor = isDarkMode ? DarkViewerBackground : LightViewerBackground;
-        ThemeToggleButton.IsChecked = isDarkMode;
-        ThemeToggleButton.ToolTip = isDarkMode
+        DarkModeMenuItem.IsChecked = isDarkMode;
+        DarkModeMenuItem.ToolTip = isDarkMode
             ? LocalizedText.Get(LocalizedText.UseLightMode)
             : LocalizedText.Get(LocalizedText.UseDarkMode);
         ApplyToolbarThemeResources(isDarkMode);
 
         Background = isDarkMode
             ? CreateBrush(32, 32, 32)
-            : CreateBrush(234, 244, 255);
+            : CreateBrush(241, 248, 253);
         ToolbarHost.Background = isDarkMode
             ? CreateBrush(37, 41, 50)
             : CreateBrush(255, 255, 255);
@@ -1935,7 +1936,22 @@ public partial class MainWindow : Window
     {
         Resources["ToolbarControlForeground"] = isDarkMode
             ? CreateBrush(225, 231, 239)
-            : CreateBrush(31, 41, 51);
+            : CreateBrush(29, 85, 124);
+        Resources["NavigationButtonBackground"] = isDarkMode
+            ? CreateGradientBrush((57, 69, 84), (48, 59, 74), (39, 50, 64))
+            : CreateGradientBrush((251, 253, 255), (232, 244, 255), (211, 233, 250));
+        Resources["NavigationButtonBorder"] = isDarkMode
+            ? CreateBrush(104, 130, 158)
+            : CreateBrush(110, 155, 194);
+        Resources["ToolbarGroupBackground"] = isDarkMode
+            ? CreateBrush(38, 43, 52)
+            : CreateBrush(248, 251, 255);
+        Resources["ToolbarGroupBorder"] = isDarkMode
+            ? CreateBrush(73, 82, 96)
+            : CreateBrush(184, 202, 219);
+        Resources["ToolbarGroupSeparator"] = isDarkMode
+            ? CreateBrush(72, 81, 94)
+            : CreateBrush(205, 217, 228);
         Resources["ToolbarButtonBackground"] = isDarkMode
             ? CreateGradientBrush((50, 56, 66), (42, 47, 56), (34, 38, 46))
             : CreateGradientBrush((255, 255, 255), (243, 246, 249), (228, 234, 240));
@@ -1982,8 +1998,8 @@ public partial class MainWindow : Window
             ? CreateBrush(30, 34, 42)
             : CreateBrush(255, 255, 255);
         Resources["MenuBarBackground"] = isDarkMode
-            ? CreateBrush(37, 41, 50)
-            : CreateBrush(255, 255, 255);
+            ? CreateGradientBrush((48, 55, 67), (40, 46, 57), (31, 36, 46))
+            : CreateGradientBrush((233, 245, 253), (220, 236, 248), (201, 223, 239));
         Resources["MenuBarForeground"] = isDarkMode
             ? CreateBrush(225, 231, 239)
             : CreateBrush(31, 41, 51);
@@ -2017,12 +2033,6 @@ public partial class MainWindow : Window
         Resources["MenuCheckBorder"] = isDarkMode
             ? CreateBrush(116, 174, 230)
             : CreateBrush(141, 188, 235);
-        Resources["ThemeSwitchSunStroke"] = isDarkMode
-            ? CreateBrush(213, 166, 83)
-            : CreateBrush(198, 123, 18);
-        Resources["ThemeSwitchMoonStroke"] = isDarkMode
-            ? CreateBrush(147, 197, 253)
-            : CreateBrush(107, 142, 184);
     }
 
     private Brush GetToolbarIconBrush()

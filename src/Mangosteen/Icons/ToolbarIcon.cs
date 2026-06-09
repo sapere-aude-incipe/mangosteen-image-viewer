@@ -16,7 +16,7 @@ internal enum ToolbarIconKind
 internal static class ToolbarIcon
 {
     private const double ViewBoxSize = 24.0;
-    private const double StrokeThickness = 1.85;
+    private const double StrokeThickness = 2.25;
 
     private static readonly IReadOnlyDictionary<ToolbarIconKind, string> PathData =
         new Dictionary<ToolbarIconKind, string>
@@ -28,7 +28,7 @@ internal static class ToolbarIcon
             [ToolbarIconKind.Delete] = "M7.25,7.25 L16.75,16.75 M16.75,7.25 L7.25,16.75"
         };
 
-    internal static Viewbox Create(ToolbarIconKind kind, Brush stroke, double size = 19.0)
+    internal static Viewbox Create(ToolbarIconKind kind, Brush stroke, double size = 20.5)
     {
         ArgumentNullException.ThrowIfNull(stroke);
 
