@@ -15,13 +15,13 @@ Mangosteen is a simple and fast Windows image viewer inspired by the classic Win
 ## Features
 
 - Fast previous/next folder navigation.
-- Mouse-wheel zoom anchored under the cursor.
+- Mouse-wheel zoom.
 - Left-button drag panning for oversized images.
 - Actual-pixel viewing for `1:1` physical pixel mapping.
 - Smooth or nearest-neighbor upscaling.
 - Light and dark themes.
 - Smart preloading with a configurable memory budget.
-- Preview-first loading for very large images and RAW-family files.
+- RAW support with initial preview loading.
 - Animated GIF support.
 - Installer and portable zip builds for Windows x64.
 
