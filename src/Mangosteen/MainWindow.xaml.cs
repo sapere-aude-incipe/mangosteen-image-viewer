@@ -48,7 +48,7 @@ public partial class MainWindow : Window
     private const int BalancedFullPreloadIdleDelayMilliseconds = 1_200;
     private const int DefaultPreloadBudgetGigabytes = 2;
     private const double DefaultMenuHeightDips = 28.0;
-    private const double DefaultToolbarHeightDips = 38.0;
+    private const double DefaultToolbarHeightDips = 48.0;
     private static readonly SKColor LightViewerBackground = new(241, 248, 253);
     private static readonly SKColor DarkViewerBackground = new(32, 32, 32);
 
@@ -1881,14 +1881,14 @@ public partial class MainWindow : Window
         var icon = _viewerState.Mode != ViewerFitMode.Fit
             ? ToolbarIconKind.FitToWindow
             : ToolbarIconKind.ActualPixels;
-        ActualPixelsButton.Content = ToolbarIcon.Create(icon, GetToolbarIconBrush());
+        ActualPixelsButton.Content = ToolbarIcon.Create(icon, GetToolbarIconBrush(), 22.0);
     }
 
     private void UpdateToolbarIcons()
     {
         var iconBrush = GetToolbarIconBrush();
-        PreviousButton.Content = ToolbarIcon.Create(ToolbarIconKind.Previous, iconBrush);
-        NextButton.Content = ToolbarIcon.Create(ToolbarIconKind.Next, iconBrush);
+        PreviousButton.Content = ToolbarIcon.Create(ToolbarIconKind.Previous, iconBrush, 21.5);
+        NextButton.Content = ToolbarIcon.Create(ToolbarIconKind.Next, iconBrush, 21.5);
         DeleteButton.Content = ToolbarIcon.Create(ToolbarIconKind.Delete, Brushes.Firebrick);
         UpdateActualPixelsIcon();
     }
@@ -1905,12 +1905,8 @@ public partial class MainWindow : Window
         Background = isDarkMode
             ? CreateBrush(32, 32, 32)
             : CreateBrush(241, 248, 253);
-        ToolbarHost.Background = isDarkMode
-            ? CreateBrush(37, 41, 50)
-            : CreateBrush(255, 255, 255);
-        ToolbarHost.BorderBrush = isDarkMode
-            ? CreateBrush(69, 75, 85)
-            : CreateBrush(209, 213, 219);
+        ToolbarHost.Background = Brushes.Transparent;
+        ToolbarHost.BorderBrush = Brushes.Transparent;
         MainMenu.Background = Resources["MenuBarBackground"] as Brush ?? Brushes.Transparent;
         MainMenu.Foreground = Resources["MenuBarForeground"] as Brush ?? Brushes.Black;
         MainMenu.BorderBrush = Resources["MenuBarBorder"] as Brush ?? Brushes.Transparent;
@@ -1952,6 +1948,27 @@ public partial class MainWindow : Window
         Resources["ToolbarGroupSeparator"] = isDarkMode
             ? CreateBrush(72, 81, 94)
             : CreateBrush(205, 217, 228);
+        Resources["ToolbarDockBackground"] = isDarkMode
+            ? CreateGradientBrush((53, 59, 70), (43, 49, 59), (33, 38, 47))
+            : CreateGradientBrush((253, 254, 255), (235, 245, 252), (212, 230, 243));
+        Resources["ToolbarDockBorder"] = isDarkMode
+            ? CreateBrush(81, 92, 109)
+            : CreateBrush(159, 185, 206);
+        Resources["ToolbarDockSeparator"] = isDarkMode
+            ? CreateBrush(76, 86, 101)
+            : CreateBrush(184, 202, 219);
+        Resources["ToolbarDockButtonHover"] = isDarkMode
+            ? CreateBrush(53, 70, 88)
+            : CreateBrush(220, 238, 255);
+        Resources["ToolbarDockButtonPressed"] = isDarkMode
+            ? CreateBrush(45, 63, 82)
+            : CreateBrush(201, 229, 250);
+        Resources["ToolbarPrimaryButtonBackground"] = isDarkMode
+            ? CreateGradientBrush((66, 82, 100), (51, 68, 87), (39, 56, 75))
+            : CreateGradientBrush((255, 255, 255), (226, 242, 255), (191, 221, 244));
+        Resources["ToolbarPrimaryButtonBorder"] = isDarkMode
+            ? CreateBrush(124, 171, 211)
+            : CreateBrush(110, 164, 208);
         Resources["ToolbarButtonBackground"] = isDarkMode
             ? CreateGradientBrush((50, 56, 66), (42, 47, 56), (34, 38, 46))
             : CreateGradientBrush((255, 255, 255), (243, 246, 249), (228, 234, 240));

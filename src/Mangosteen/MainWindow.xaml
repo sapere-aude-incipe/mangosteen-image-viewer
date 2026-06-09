@@ -30,6 +30,21 @@
         <SolidColorBrush x:Key="ToolbarGroupBackground" Color="#F8FBFF" />
         <SolidColorBrush x:Key="ToolbarGroupBorder" Color="#B8CADB" />
         <SolidColorBrush x:Key="ToolbarGroupSeparator" Color="#CDD9E4" />
+        <LinearGradientBrush x:Key="ToolbarDockBackground" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#FDFEFF" Offset="0" />
+            <GradientStop Color="#EBF5FC" Offset="0.55" />
+            <GradientStop Color="#D4E6F3" Offset="1" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="ToolbarDockBorder" Color="#9FB9CE" />
+        <SolidColorBrush x:Key="ToolbarDockSeparator" Color="#B8CADB" />
+        <SolidColorBrush x:Key="ToolbarDockButtonHover" Color="#DCEEFF" />
+        <SolidColorBrush x:Key="ToolbarDockButtonPressed" Color="#C9E5FA" />
+        <LinearGradientBrush x:Key="ToolbarPrimaryButtonBackground" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#FFFFFF" Offset="0" />
+            <GradientStop Color="#E2F2FF" Offset="0.55" />
+            <GradientStop Color="#BFDDF4" Offset="1" />
+        </LinearGradientBrush>
+        <SolidColorBrush x:Key="ToolbarPrimaryButtonBorder" Color="#6EA4D0" />
         <LinearGradientBrush x:Key="ToolbarButtonBackground" StartPoint="0,0" EndPoint="0,1">
             <GradientStop Color="#FFFFFF" Offset="0" />
             <GradientStop Color="#F3F6F9" Offset="0.52" />
@@ -288,6 +303,106 @@
             <Setter Property="BorderBrush" Value="{DynamicResource NavigationButtonBorder}" />
         </Style>
 
+        <Style x:Key="DockButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="38" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Margin" Value="1,0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="16"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter x:Name="ButtonContent"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ToolbarDockButtonHover}" />
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonHoverBorder}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ToolbarDockButtonPressed}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonContent" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DockNavigationButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource DockButtonStyle}">
+            <Setter Property="Width" Value="42" />
+        </Style>
+
+        <Style x:Key="DockPrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="43" />
+            <Setter Property="Height" Value="43" />
+            <Setter Property="Margin" Value="4,-7" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
+            <Setter Property="Background" Value="{DynamicResource ToolbarPrimaryButtonBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ToolbarPrimaryButtonBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="PrimaryShadow"
+                                     Margin="1,2,1,0"
+                                     Fill="#44FFFFFF">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect Color="{Binding Color, Source={StaticResource ToolbarButtonShadow}}"
+                                                      Direction="270"
+                                                      ShadowDepth="1"
+                                                      BlurRadius="3"
+                                                      Opacity="0.22" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse x:Name="PrimaryBorder"
+                                     Fill="{TemplateBinding Background}"
+                                     Stroke="{TemplateBinding BorderBrush}"
+                                     StrokeThickness="1" />
+                            <ContentPresenter x:Name="PrimaryContent"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PrimaryBorder" Property="Stroke" Value="{DynamicResource ToolbarButtonHoverBorder}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="PrimaryBorder" Property="Fill" Value="{DynamicResource ToolbarDockButtonPressed}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="PrimaryShadow" Property="Opacity" Value="0" />
+                                <Setter TargetName="PrimaryContent" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ToolbarToggleStyle" TargetType="ToggleButton">
             <Setter Property="MinWidth" Value="74" />
             <Setter Property="Height" Value="27" />
@@ -434,7 +549,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="28" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="38" />
+            <RowDefinition Height="48" />
         </Grid.RowDefinitions>
 
         <Menu x:Name="MainMenu"
@@ -563,9 +678,8 @@
 
         <Border x:Name="ToolbarHost"
                 Grid.Row="2"
-                Background="#FFFFFF"
-                BorderBrush="#D1D5DB"
-                BorderThickness="1,1,1,0">
+                Background="Transparent"
+                BorderThickness="0">
             <Grid Margin="10,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -573,69 +687,51 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Border x:Name="NavigationGroupShell"
+                <Border x:Name="CommandDock"
                         Grid.Column="1"
-                        Padding="4,3"
+                        Padding="7,4"
                         VerticalAlignment="Center"
-                        Background="{DynamicResource ToolbarGroupBackground}"
-                        BorderBrush="{DynamicResource ToolbarGroupBorder}"
+                        Background="{DynamicResource ToolbarDockBackground}"
+                        BorderBrush="{DynamicResource ToolbarDockBorder}"
                         BorderThickness="1"
-                        CornerRadius="18"
+                        CornerRadius="22"
                         SnapsToDevicePixels="True">
-                    <StackPanel Orientation="Horizontal">
+                    <Border.Effect>
+                        <DropShadowEffect Color="{Binding Color, Source={StaticResource ToolbarButtonShadow}}"
+                                          Direction="270"
+                                          ShadowDepth="1"
+                                          BlurRadius="5"
+                                          Opacity="0.20" />
+                    </Border.Effect>
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
                         <Button x:Name="PreviousButton"
-                                Style="{StaticResource NavigationToolbarButtonStyle}"
+                                Style="{StaticResource DockNavigationButtonStyle}"
                                 Click="PreviousButton_Click" />
+                        <Button x:Name="ActualPixelsButton"
+                                Style="{StaticResource DockPrimaryButtonStyle}"
+                                Click="ActualPixelsButton_Click" />
                         <Button x:Name="NextButton"
-                                Style="{StaticResource NavigationToolbarButtonStyle}"
+                                Style="{StaticResource DockNavigationButtonStyle}"
                                 Click="NextButton_Click" />
+                        <Rectangle Width="1"
+                                   Height="22"
+                                   Margin="8,0,6,0"
+                                   VerticalAlignment="Center"
+                                   Fill="{DynamicResource ToolbarDockSeparator}" />
+                        <Button x:Name="DeleteButton"
+                                Style="{StaticResource DockButtonStyle}"
+                                Click="DeleteButton_Click" />
                     </StackPanel>
                 </Border>
 
-                <Grid Grid.Column="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border x:Name="UtilityGroupShell"
-                            Grid.Column="0"
-                            Margin="8,0,0,0"
-                            Padding="4,3"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            Background="{DynamicResource ToolbarGroupBackground}"
-                            BorderBrush="{DynamicResource ToolbarGroupBorder}"
-                            BorderThickness="1"
-                            CornerRadius="18"
-                            SnapsToDevicePixels="True">
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="ActualPixelsButton"
-                                    Style="{StaticResource ToolbarButtonStyle}"
-                                    Click="ActualPixelsButton_Click" />
-                            <Rectangle Width="1"
-                                       Height="18"
-                                       Margin="4,0"
-                                       VerticalAlignment="Center"
-                                       Fill="{DynamicResource ToolbarGroupSeparator}" />
-                            <Button x:Name="DeleteButton"
-                                    Style="{StaticResource ToolbarButtonStyle}"
-                                    Click="DeleteButton_Click" />
-                        </StackPanel>
-                    </Border>
-
-                    <StackPanel x:Name="RightStatusPanel"
-                                Grid.Column="1"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center">
-                        <TextBlock x:Name="ZoomText"
-                                   Margin="0"
-                                   VerticalAlignment="Center"
-                                   Foreground="#334155"
-                                   FontSize="12" />
-                    </StackPanel>
-                </Grid>
+                <TextBlock x:Name="ZoomText"
+                           Grid.Column="2"
+                           Margin="12,0,0,0"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Foreground="#334155"
+                           FontSize="12" />
             </Grid>
         </Border>
     </Grid>
