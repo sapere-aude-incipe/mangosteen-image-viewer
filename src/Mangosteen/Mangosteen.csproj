@@ -7,6 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- Precompile on publish for faster startup; only valid when a runtime is targeted. -->
+    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
     <AssemblyName>Mangosteen</AssemblyName>
     <RootNamespace>Mangosteen</RootNamespace>
     <ApplicationIcon>Assets\mangosteen.ico</ApplicationIcon>
