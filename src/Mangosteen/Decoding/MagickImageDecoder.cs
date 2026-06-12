@@ -10,9 +10,19 @@ public sealed class MagickImageDecoder : IImageDecoder
 {
     private static readonly SemaphoreSlim ResourceLimitGate = new(1, 1);
 
-    public MagickImageDecoder()
+    // Initializing Magick.NET loads its ~25 MB native library; deferred to first decode
+    // so app startup does not pay for it.
+    private static readonly Lazy<bool> NativeRuntime = new(
+        static () =>
+        {
+            MagickNET.Initialize();
+            return true;
+        },
+        LazyThreadSafetyMode.ExecutionAndPublication);
+
+    private static void EnsureNativeRuntime()
     {
-        MagickNET.Initialize();
+        _ = NativeRuntime.Value;
     }
 
     public string Name => "Magick.NET";
@@ -31,7 +41,11 @@ public sealed class MagickImageDecoder : IImageDecoder
         await ResourceLimitGate.WaitAsync(token).ConfigureAwait(false);
         try
         {
-            return await Task.Run(() => LoadMetadata(path, token), token).ConfigureAwait(false);
+            return await Task.Run(() =>
+            {
+                EnsureNativeRuntime();
+                return LoadMetadata(path, token);
+            }, token).ConfigureAwait(false);
         }
         finally
         {
@@ -46,6 +60,7 @@ public sealed class MagickImageDecoder : IImageDecoder
         {
             return await Task.Run(() =>
             {
+                EnsureNativeRuntime();
                 using var resourceLimits = MagickResourceLimitScope.Enter(request.MaxDecodedBytes);
                 token.ThrowIfCancellationRequested();
                 var animated = IsAnimatedFormat(request.Path);
