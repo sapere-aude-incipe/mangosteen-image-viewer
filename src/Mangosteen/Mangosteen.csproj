@@ -18,7 +18,7 @@
     <RepositoryUrl>https://github.com/sapere-aude-incipe/mangosteen-image-viewer</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2026 sapere-aude-incipe and contributors</Copyright>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
