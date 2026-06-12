@@ -7,8 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
-    <!-- Precompile on publish for faster startup; only valid when a runtime is targeted. -->
-    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
+    <!-- Precompile on publish for faster startup. Must be unconditional so restore
+         records the crossgen2 pack in the lock file; publish always targets a RID here. -->
+    <PublishReadyToRun>true</PublishReadyToRun>
     <AssemblyName>Mangosteen</AssemblyName>
     <RootNamespace>Mangosteen</RootNamespace>
     <ApplicationIcon>Assets\mangosteen.ico</ApplicationIcon>
