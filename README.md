@@ -3,6 +3,10 @@
 ![Mangosteen Image Viewer banner](docs/assets/mangosteen-banner.png)
 
 [![CI](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/sapere-aude-incipe/mangosteen-image-viewer?include_prereleases&label=release)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+### [💾 Download Portable (.zip)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) · [📦 Download Installer (.exe)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases)
 
 Mangosteen is a simple and fast Windows image viewer inspired by the classic Windows Photo Viewer experience. It focuses on quick image navigation, smooth zooming, actual-pixel viewing, broad format support, animated GIF playback, and responsive handling of very large images.
 
@@ -49,12 +53,14 @@ The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, 
 
 ## Download
 
+Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
+
+- **Portable**: `Mangosteen-Portable-<version>-x64.zip` — extract anywhere and run `Mangosteen.exe`. No installation and no separate .NET runtime required.
+- **Installer**: `Mangosteen-Setup-<version>-x64.exe` — classic setup with Start menu shortcut.
+
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 
-1. Open the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page.
-2. Download either the setup `.exe` or the portable `.zip`.
-3. Download `SHA256SUMS.txt`.
-4. Verify the file before running it:
+To verify a download, also grab `SHA256SUMS.txt` and compare hashes before running:
 
 ```powershell
 Get-FileHash .\Mangosteen-Setup-0.1.0-x64.exe -Algorithm SHA256
