@@ -10,7 +10,7 @@
         Height="720"
         MinWidth="520"
         MinHeight="360"
-        Background="#F1F8FD"
+        Background="#F4F6F8"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         AllowDrop="True"
@@ -20,83 +20,36 @@
         SizeChanged="Window_SizeChanged"
         KeyDown="Window_KeyDown">
     <Window.Resources>
-        <SolidColorBrush x:Key="ToolbarControlForeground" Color="#1D557C" />
-        <LinearGradientBrush x:Key="NavigationButtonBackground" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#FBFDFF" Offset="0" />
-            <GradientStop Color="#E8F4FF" Offset="0.52" />
-            <GradientStop Color="#D3E9FA" Offset="1" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="NavigationButtonBorder" Color="#6E9BC2" />
-        <SolidColorBrush x:Key="ToolbarGroupBackground" Color="#F8FBFF" />
-        <SolidColorBrush x:Key="ToolbarGroupBorder" Color="#B8CADB" />
-        <SolidColorBrush x:Key="ToolbarGroupSeparator" Color="#CDD9E4" />
-        <LinearGradientBrush x:Key="ToolbarDockBackground" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#FDFEFF" Offset="0" />
-            <GradientStop Color="#EBF5FC" Offset="0.55" />
-            <GradientStop Color="#D4E6F3" Offset="1" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="ToolbarDockBorder" Color="#9FB9CE" />
-        <SolidColorBrush x:Key="ToolbarDockSeparator" Color="#B8CADB" />
-        <SolidColorBrush x:Key="ToolbarDockButtonHover" Color="#DCEEFF" />
-        <SolidColorBrush x:Key="ToolbarDockButtonPressed" Color="#C9E5FA" />
-        <LinearGradientBrush x:Key="ToolbarPrimaryButtonBackground" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#FFFFFF" Offset="0" />
-            <GradientStop Color="#E2F2FF" Offset="0.55" />
-            <GradientStop Color="#BFDDF4" Offset="1" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="ToolbarPrimaryButtonBorder" Color="#6EA4D0" />
-        <LinearGradientBrush x:Key="ToolbarButtonBackground" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#FFFFFF" Offset="0" />
-            <GradientStop Color="#F3F6F9" Offset="0.52" />
-            <GradientStop Color="#E4EAF0" Offset="1" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="ToolbarButtonBorder" Color="#9AA7B5" />
-        <SolidColorBrush x:Key="ToolbarButtonHoverBorder" Color="#6A9ED6" />
-        <SolidColorBrush x:Key="ToolbarButtonPressedBackground" Color="#DCEEFF" />
-        <SolidColorBrush x:Key="ToolbarButtonDisabledBackground" Color="#F6F8FA" />
-        <SolidColorBrush x:Key="ToolbarButtonDisabledBorder" Color="#CFD6DE" />
-        <SolidColorBrush x:Key="ToolbarButtonShadow" Color="#6F7F91" />
-        <SolidColorBrush x:Key="ToolbarButtonShell" Color="#55FFFFFF" />
-
-        <SolidColorBrush x:Key="ToolbarToggleBackground" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="ToolbarToggleCheckedBackground" Color="#EAF4FF" />
-        <SolidColorBrush x:Key="ToolbarToggleBorder" Color="#B6BDC6" />
-        <SolidColorBrush x:Key="ToolbarToggleCheckedBorder" Color="#6A9ED6" />
-
-        <SolidColorBrush x:Key="ToolbarComboBackground" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="ToolbarComboBorder" Color="#B6BDC6" />
-        <SolidColorBrush x:Key="ToolbarComboPopupBackground" Color="#FFFFFF" />
-
-        <LinearGradientBrush x:Key="MenuBarBackground" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#E9F5FD" Offset="0" />
-            <GradientStop Color="#DCECF8" Offset="0.55" />
-            <GradientStop Color="#C9DFEF" Offset="1" />
-        </LinearGradientBrush>
-        <SolidColorBrush x:Key="MenuBarForeground" Color="#1F2933" />
-        <SolidColorBrush x:Key="MenuBarBorder" Color="#D1D5DB" />
-        <SolidColorBrush x:Key="MenuItemForeground" Color="#1F2933" />
-        <SolidColorBrush x:Key="MenuItemDisabledForeground" Color="#7B8491" />
-        <SolidColorBrush x:Key="MenuItemHoverBackground" Color="#EAF3FF" />
-        <SolidColorBrush x:Key="MenuItemOpenBackground" Color="#DDEEFF" />
-        <SolidColorBrush x:Key="MenuPopupBackground" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="MenuPopupBorder" Color="#AEB7C2" />
-        <SolidColorBrush x:Key="MenuSeparatorBrush" Color="#E5E7EB" />
-        <SolidColorBrush x:Key="MenuCheckBackground" Color="#EAF3FF" />
-        <SolidColorBrush x:Key="MenuCheckBorder" Color="#8DBCEB" />
-        <Style TargetType="Separator">
+        <!-- Shared design tokens: one surface language for menu bar, menus, dock, and overlays.
+             Values here are the light theme; ApplyToolbarThemeResources swaps them per theme. -->
+        <SolidColorBrush x:Key="PanelBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="PanelBorder" Color="#D4DBE3" />
+        <SolidColorBrush x:Key="PanelSeparator" Color="#E2E8EE" />
+        <SolidColorBrush x:Key="ControlHoverBackground" Color="#EBF1F7" />
+        <SolidColorBrush x:Key="ControlPressedBackground" Color="#DDE6EF" />
+        <SolidColorBrush x:Key="TextPrimary" Color="#243240" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#5E6C7A" />
+        <SolidColorBrush x:Key="TextDisabled" Color="#93A0AD" />
+        <SolidColorBrush x:Key="TextDanger" Color="#B23730" />
+        <SolidColorBrush x:Key="AccentCheckBackground" Color="#E8F1FB" />
+        <SolidColorBrush x:Key="AccentCheckBorder" Color="#7FA8D1" />
+        <SolidColorBrush x:Key="BadgeBackground" Color="#FFF7E4" />
+        <SolidColorBrush x:Key="BadgeBorder" Color="#D9A03F" />
+        <SolidColorBrush x:Key="BadgeForeground" Color="#6B4A00" />
+        <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Separator">
                         <Border Height="1"
                                 Margin="30,4,8,4"
-                                Background="{DynamicResource MenuSeparatorBrush}" />
+                                Background="{DynamicResource PanelSeparator}" />
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
         <Style TargetType="MenuItem">
-            <Setter Property="Foreground" Value="{DynamicResource MenuItemForeground}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Height" Value="28" />
@@ -109,9 +62,10 @@
                     <ControlTemplate TargetType="MenuItem">
                         <Grid SnapsToDevicePixels="True">
                             <Border x:Name="TopLevelBorder"
-                                    MinHeight="28"
+                                    Margin="2,2"
                                     Padding="11,0"
                                     Background="Transparent"
+                                    CornerRadius="6"
                                     Visibility="Collapsed">
                                 <ContentPresenter ContentSource="Header"
                                                   HorizontalAlignment="Center"
@@ -121,8 +75,10 @@
 
                             <Border x:Name="SubmenuBorder"
                                     MinHeight="28"
+                                    Margin="3,1"
                                     Padding="0"
-                                    Background="Transparent">
+                                    Background="Transparent"
+                                    CornerRadius="5">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="28" />
@@ -183,10 +139,11 @@
                                    PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
                                    PopupAnimation="None">
                                 <Border MinWidth="220"
-                                        Padding="2"
-                                        Background="{DynamicResource MenuPopupBackground}"
-                                        BorderBrush="{DynamicResource MenuPopupBorder}"
+                                        Padding="1,3"
+                                        Background="{DynamicResource PanelBackground}"
+                                        BorderBrush="{DynamicResource PanelBorder}"
                                         BorderThickness="1"
+                                        CornerRadius="8"
                                         SnapsToDevicePixels="True">
                                     <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
                                 </Border>
@@ -194,7 +151,7 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="Role" Value="TopLevelHeader">
-                                <Setter Property="Foreground" Value="{DynamicResource MenuBarForeground}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
                                 <Setter TargetName="TopLevelBorder" Property="Visibility" Value="Visible" />
                                 <Setter TargetName="SubmenuBorder" Property="Visibility" Value="Collapsed" />
                                 <Setter TargetName="PART_Popup" Property="HorizontalOffset" Value="0" />
@@ -202,7 +159,7 @@
                                 <Setter TargetName="PART_Popup" Property="VerticalOffset" Value="0" />
                             </Trigger>
                             <Trigger Property="Role" Value="TopLevelItem">
-                                <Setter Property="Foreground" Value="{DynamicResource MenuBarForeground}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
                                 <Setter TargetName="TopLevelBorder" Property="Visibility" Value="Visible" />
                                 <Setter TargetName="SubmenuBorder" Property="Visibility" Value="Collapsed" />
                             </Trigger>
@@ -210,20 +167,20 @@
                                 <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Collapsed" />
                             </Trigger>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="TopLevelBorder" Property="Background" Value="{DynamicResource MenuItemHoverBackground}" />
-                                <Setter TargetName="SubmenuBorder" Property="Background" Value="{DynamicResource MenuItemHoverBackground}" />
+                                <Setter TargetName="TopLevelBorder" Property="Background" Value="{DynamicResource ControlHoverBackground}" />
+                                <Setter TargetName="SubmenuBorder" Property="Background" Value="{DynamicResource ControlHoverBackground}" />
                             </Trigger>
                             <Trigger Property="IsSubmenuOpen" Value="True">
-                                <Setter TargetName="TopLevelBorder" Property="Background" Value="{DynamicResource MenuItemOpenBackground}" />
-                                <Setter TargetName="SubmenuBorder" Property="Background" Value="{DynamicResource MenuItemOpenBackground}" />
+                                <Setter TargetName="TopLevelBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
+                                <Setter TargetName="SubmenuBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="CheckBox" Property="Background" Value="{DynamicResource MenuCheckBackground}" />
-                                <Setter TargetName="CheckBox" Property="BorderBrush" Value="{DynamicResource MenuCheckBorder}" />
+                                <Setter TargetName="CheckBox" Property="Background" Value="{DynamicResource AccentCheckBackground}" />
+                                <Setter TargetName="CheckBox" Property="BorderBrush" Value="{DynamicResource AccentCheckBorder}" />
                                 <Setter TargetName="CheckGlyph" Property="Visibility" Value="Visible" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource MenuItemDisabledForeground}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextDisabled}" />
                                 <Setter TargetName="CheckBox" Property="Opacity" Value="0.55" />
                                 <Setter TargetName="SubmenuArrow" Property="Opacity" Value="0.55" />
                             </Trigger>
@@ -233,96 +190,23 @@
             </Setter>
         </Style>
 
-        <Style x:Key="ToolbarButtonStyle" TargetType="Button">
-            <Setter Property="MinWidth" Value="40" />
-            <Setter Property="Width" Value="40" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Margin" Value="2,0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
-            <Setter Property="Background" Value="{DynamicResource ToolbarButtonBackground}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ToolbarButtonBorder}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="SnapsToDevicePixels" Value="True" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid>
-                            <Border x:Name="ButtonShell"
-                                    CornerRadius="14"
-                                    Background="{DynamicResource ToolbarButtonShell}"
-                                    Margin="0,1,0,0">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="{Binding Color, Source={StaticResource ToolbarButtonShadow}}"
-                                                      Direction="270"
-                                                      ShadowDepth="1"
-                                                      BlurRadius="2"
-                                                      Opacity="0.16" />
-                                </Border.Effect>
-                            </Border>
-                            <Border x:Name="ButtonBorder"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="14"
-                                    Background="{TemplateBinding Background}"
-                                    SnapsToDevicePixels="True">
-                                <ContentPresenter x:Name="ButtonContent"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center"
-                                                  RecognizesAccessKey="True" />
-                            </Border>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonHoverBorder}" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ToolbarButtonPressedBackground}" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ToolbarButtonDisabledBackground}" />
-                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonDisabledBorder}" />
-                                <Setter TargetName="ButtonShell" Property="Opacity" Value="0" />
-                                <Setter TargetName="ButtonContent" Property="Opacity" Value="0.55" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="NavigationToolbarButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource ToolbarButtonStyle}">
-            <Setter Property="MinWidth" Value="46" />
-            <Setter Property="Width" Value="46" />
-            <Setter Property="Height" Value="28" />
-            <Setter Property="Background" Value="{DynamicResource NavigationButtonBackground}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource NavigationButtonBorder}" />
-        </Style>
-
         <Style x:Key="DockButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="38" />
             <Setter Property="Height" Value="32" />
             <Setter Property="Margin" Value="1,0" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Focusable" Value="False" />
+            <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="ButtonBorder"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="16"
+                                CornerRadius="6"
                                 SnapsToDevicePixels="True">
                             <ContentPresenter x:Name="ButtonContent"
                                               HorizontalAlignment="Center"
@@ -330,214 +214,15 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ToolbarDockButtonHover}" />
-                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonHoverBorder}" />
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlHoverBackground}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ToolbarDockButtonPressed}" />
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="ButtonContent" Property="Opacity" Value="0.45" />
                             </Trigger>
                         </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="DockNavigationButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource DockButtonStyle}">
-            <Setter Property="Width" Value="42" />
-        </Style>
-
-        <Style x:Key="DockPrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="43" />
-            <Setter Property="Height" Value="43" />
-            <Setter Property="Margin" Value="4,-7" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
-            <Setter Property="Background" Value="{DynamicResource ToolbarPrimaryButtonBackground}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ToolbarPrimaryButtonBorder}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Focusable" Value="False" />
-            <Setter Property="SnapsToDevicePixels" Value="True" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid>
-                            <Ellipse x:Name="PrimaryShadow"
-                                     Margin="1,2,1,0"
-                                     Fill="#44FFFFFF">
-                                <Ellipse.Effect>
-                                    <DropShadowEffect Color="{Binding Color, Source={StaticResource ToolbarButtonShadow}}"
-                                                      Direction="270"
-                                                      ShadowDepth="1"
-                                                      BlurRadius="3"
-                                                      Opacity="0.22" />
-                                </Ellipse.Effect>
-                            </Ellipse>
-                            <Ellipse x:Name="PrimaryBorder"
-                                     Fill="{TemplateBinding Background}"
-                                     Stroke="{TemplateBinding BorderBrush}"
-                                     StrokeThickness="1" />
-                            <ContentPresenter x:Name="PrimaryContent"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center" />
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="PrimaryBorder" Property="Stroke" Value="{DynamicResource ToolbarButtonHoverBorder}" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="PrimaryBorder" Property="Fill" Value="{DynamicResource ToolbarDockButtonPressed}" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="PrimaryShadow" Property="Opacity" Value="0" />
-                                <Setter TargetName="PrimaryContent" Property="Opacity" Value="0.45" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ToolbarToggleStyle" TargetType="ToggleButton">
-            <Setter Property="MinWidth" Value="74" />
-            <Setter Property="Height" Value="27" />
-            <Setter Property="Margin" Value="4,0" />
-            <Setter Property="Padding" Value="10,0" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
-            <Setter Property="Background" Value="{DynamicResource ToolbarButtonBackground}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ToolbarButtonBorder}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="SnapsToDevicePixels" Value="True" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Grid>
-                            <Border x:Name="ToggleShell"
-                                    Background="{DynamicResource ToolbarButtonShell}"
-                                    CornerRadius="13"
-                                    Margin="0,1,0,0">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="{Binding Color, Source={StaticResource ToolbarButtonShadow}}"
-                                                      Direction="270"
-                                                      ShadowDepth="1"
-                                                      BlurRadius="2"
-                                                      Opacity="0.14" />
-                                </Border.Effect>
-                            </Border>
-                            <Border x:Name="ToggleBorder"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="13"
-                                    SnapsToDevicePixels="True">
-                                <ContentPresenter x:Name="ToggleContent"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center" />
-                            </Border>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource ToolbarButtonPressedBackground}" />
-                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonBorder}" />
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonHoverBorder}" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource ToolbarButtonDisabledBackground}" />
-                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonDisabledBorder}" />
-                                <Setter TargetName="ToggleShell" Property="Opacity" Value="0" />
-                                <Setter TargetName="ToggleContent" Property="Opacity" Value="0.55" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ToolbarComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Width" Value="66" />
-            <Setter Property="Height" Value="27" />
-            <Setter Property="Margin" Value="4,0" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
-            <Setter Property="Background" Value="{DynamicResource ToolbarButtonBackground}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ToolbarButtonBorder}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="SnapsToDevicePixels" Value="True" />
-            <Setter Property="ItemContainerStyle">
-                <Setter.Value>
-                    <Style TargetType="ComboBoxItem">
-                        <Setter Property="Foreground" Value="{DynamicResource ToolbarControlForeground}" />
-                        <Setter Property="Background" Value="{DynamicResource ToolbarComboPopupBackground}" />
-                    </Style>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
-                            <ToggleButton x:Name="ComboToggle"
-                                          Focusable="False"
-                                          Foreground="{TemplateBinding Foreground}"
-                                          Background="{TemplateBinding Background}"
-                                          BorderBrush="{TemplateBinding BorderBrush}"
-                                          BorderThickness="{TemplateBinding BorderThickness}"
-                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                          ClickMode="Press">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="ComboBorder"
-                                                Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="13"
-                                                SnapsToDevicePixels="True">
-                                            <Grid>
-                                                <ContentPresenter Margin="8,0,20,0"
-                                                                  HorizontalAlignment="Left"
-                                                                  VerticalAlignment="Center"
-                                                                  Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
-                                                <Path HorizontalAlignment="Right"
-                                                      VerticalAlignment="Center"
-                                                      Margin="0,0,7,0"
-                                                      Data="M0,0 L4,4 L8,0 Z"
-                                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
-                                            </Grid>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="{DynamicResource ToolbarButtonHoverBorder}" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                            <Popup x:Name="Popup"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   AllowsTransparency="True"
-                                   Placement="Bottom"
-                                   Focusable="False"
-                                   PopupAnimation="None">
-                                <Border Background="{DynamicResource ToolbarComboPopupBackground}"
-                                        BorderBrush="{DynamicResource ToolbarComboBorder}"
-                                        BorderThickness="1"
-                                        CornerRadius="4"
-                                        MinWidth="{TemplateBinding ActualWidth}">
-                                    <ScrollViewer SnapsToDevicePixels="True">
-                                        <ItemsPresenter />
-                                    </ScrollViewer>
-                                </Border>
-                            </Popup>
-                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -554,9 +239,9 @@
 
         <Menu x:Name="MainMenu"
               Grid.Row="0"
-              Background="{DynamicResource MenuBarBackground}"
-              Foreground="{DynamicResource MenuBarForeground}"
-              BorderBrush="{DynamicResource MenuBarBorder}"
+              Background="{DynamicResource PanelBackground}"
+              Foreground="{DynamicResource TextPrimary}"
+              BorderBrush="{DynamicResource PanelBorder}"
               BorderThickness="0,0,0,1">
             <MenuItem x:Name="FileMenuItem">
                 <MenuItem x:Name="OpenMenuItem"
@@ -632,6 +317,7 @@
 
         <skia:SKElement x:Name="ImageSurface"
                         Grid.Row="1"
+                        Margin="0,8,0,0"
                         PaintSurface="ImageSurface_PaintSurface"
                         MouseWheel="ImageSurface_MouseWheel"
                         MouseDown="ImageSurface_MouseDown"
@@ -645,14 +331,14 @@
                 Grid.Row="1"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Background="#DDEAF6FF"
-                BorderBrush="#8EA9C7"
+                Background="{DynamicResource PanelBackground}"
+                BorderBrush="{DynamicResource PanelBorder}"
                 BorderThickness="1"
-                CornerRadius="3"
+                CornerRadius="8"
                 Padding="18,12">
             <TextBlock x:Name="StatusText"
                        Text=""
-                       Foreground="#1F2933"
+                       Foreground="{DynamicResource TextPrimary}"
                        FontSize="14"
                        TextAlignment="Center"
                        TextTrimming="CharacterEllipsis"
@@ -664,15 +350,15 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Margin="12,12,0,0"
-                Background="#EFFFFFFF"
-                BorderBrush="#D6A245"
+                Background="{DynamicResource BadgeBackground}"
+                BorderBrush="{DynamicResource BadgeBorder}"
                 BorderThickness="1"
-                CornerRadius="3"
+                CornerRadius="6"
                 Padding="9,5"
                 Visibility="Collapsed">
             <TextBlock x:Name="PreviewOnlyText"
                        Text=""
-                       Foreground="#664500"
+                       Foreground="{DynamicResource BadgeForeground}"
                        FontSize="12" />
         </Border>
 
@@ -680,59 +366,56 @@
                 Grid.Row="2"
                 Background="Transparent"
                 BorderThickness="0">
-            <Grid Margin="10,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <Border x:Name="CommandDock"
-                        Grid.Column="1"
-                        Padding="7,4"
-                        VerticalAlignment="Center"
-                        Background="{DynamicResource ToolbarDockBackground}"
-                        BorderBrush="{DynamicResource ToolbarDockBorder}"
-                        BorderThickness="1"
-                        CornerRadius="22"
-                        SnapsToDevicePixels="True">
-                    <Border.Effect>
-                        <DropShadowEffect Color="{Binding Color, Source={StaticResource ToolbarButtonShadow}}"
-                                          Direction="270"
-                                          ShadowDepth="1"
-                                          BlurRadius="5"
-                                          Opacity="0.20" />
-                    </Border.Effect>
-                    <StackPanel Orientation="Horizontal"
-                                VerticalAlignment="Center">
-                        <Button x:Name="PreviousButton"
-                                Style="{StaticResource DockNavigationButtonStyle}"
-                                Click="PreviousButton_Click" />
-                        <Button x:Name="ActualPixelsButton"
-                                Style="{StaticResource DockPrimaryButtonStyle}"
-                                Click="ActualPixelsButton_Click" />
-                        <Button x:Name="NextButton"
-                                Style="{StaticResource DockNavigationButtonStyle}"
-                                Click="NextButton_Click" />
-                        <Rectangle Width="1"
-                                   Height="22"
-                                   Margin="8,0,6,0"
-                                   VerticalAlignment="Center"
-                                   Fill="{DynamicResource ToolbarDockSeparator}" />
-                        <Button x:Name="DeleteButton"
-                                Style="{StaticResource DockButtonStyle}"
-                                Click="DeleteButton_Click" />
-                    </StackPanel>
-                </Border>
-
-                <TextBlock x:Name="ZoomText"
-                           Grid.Column="2"
-                           Margin="12,0,0,0"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Center"
-                           Foreground="#334155"
-                           FontSize="12" />
-            </Grid>
+            <Border x:Name="CommandDock"
+                    Margin="10,0"
+                    Padding="5,4"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource PanelBackground}"
+                    BorderBrush="{DynamicResource PanelBorder}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    SnapsToDevicePixels="True">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000"
+                                      Direction="270"
+                                      ShadowDepth="1"
+                                      BlurRadius="8"
+                                      Opacity="0.10" />
+                </Border.Effect>
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Button x:Name="PreviousButton"
+                            Style="{StaticResource DockButtonStyle}"
+                            Click="PreviousButton_Click" />
+                    <Button x:Name="NextButton"
+                            Style="{StaticResource DockButtonStyle}"
+                            Click="NextButton_Click" />
+                    <Rectangle Width="1"
+                               Height="18"
+                               Margin="6,0"
+                               VerticalAlignment="Center"
+                               Fill="{DynamicResource PanelSeparator}" />
+                    <Button x:Name="ActualPixelsButton"
+                            Style="{StaticResource DockButtonStyle}"
+                            Click="ActualPixelsButton_Click" />
+                    <TextBlock x:Name="ZoomText"
+                               MinWidth="44"
+                               Margin="2,0"
+                               VerticalAlignment="Center"
+                               TextAlignment="Center"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondary}" />
+                    <Rectangle Width="1"
+                               Height="18"
+                               Margin="6,0"
+                               VerticalAlignment="Center"
+                               Fill="{DynamicResource PanelSeparator}" />
+                    <Button x:Name="DeleteButton"
+                            Style="{StaticResource DockButtonStyle}"
+                            Click="DeleteButton_Click" />
+                </StackPanel>
+            </Border>
         </Border>
     </Grid>
 </Window>

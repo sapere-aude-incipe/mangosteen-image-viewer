@@ -49,8 +49,8 @@ public partial class MainWindow : Window
     private const int DefaultPreloadBudgetGigabytes = 2;
     private const double DefaultMenuHeightDips = 28.0;
     private const double DefaultToolbarHeightDips = 48.0;
-    private static readonly SKColor LightViewerBackground = new(241, 248, 253);
-    private static readonly SKColor DarkViewerBackground = new(32, 32, 32);
+    private static readonly SKColor LightViewerBackground = new(244, 246, 248);
+    private static readonly SKColor DarkViewerBackground = new(30, 33, 38);
 
     private readonly DecoderRegistry _decoders = DecoderRegistry.CreateDefault();
     private readonly ImageNavigator _navigator = new();
@@ -142,10 +142,11 @@ public partial class MainWindow : Window
         DarkModeMenuItem.ToolTip = DarkModeMenuItem.IsChecked
             ? LocalizedText.Get(LocalizedText.UseLightMode)
             : LocalizedText.Get(LocalizedText.UseDarkMode);
-        PreviousButton.ToolTip = LocalizedText.Get(LocalizedText.PreviousImage);
-        NextButton.ToolTip = LocalizedText.Get(LocalizedText.NextImage);
-        ActualPixelsButton.ToolTip = LocalizedText.Get(LocalizedText.ToggleActualPixels);
-        DeleteButton.ToolTip = LocalizedText.Get(LocalizedText.DeleteImage);
+        PreviousButton.ToolTip = $"{LocalizedText.Get(LocalizedText.PreviousImage)} (←)";
+        NextButton.ToolTip = $"{LocalizedText.Get(LocalizedText.NextImage)} (→)";
+        ActualPixelsButton.ToolTip = $"{LocalizedText.Get(LocalizedText.ToggleActualPixels)} (1 / F)";
+        DeleteButton.ToolTip = $"{LocalizedText.Get(LocalizedText.DeleteImage)} (Del)";
+        ZoomText.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
         OpenMenuItem.InputGestureText = "Ctrl+O";
         DeleteMenuItem.InputGestureText = "Del";
         UpdateSettingsMenuChecks();
@@ -1881,15 +1882,15 @@ public partial class MainWindow : Window
         var icon = _viewerState.Mode != ViewerFitMode.Fit
             ? ToolbarIconKind.FitToWindow
             : ToolbarIconKind.ActualPixels;
-        ActualPixelsButton.Content = ToolbarIcon.Create(icon, GetToolbarIconBrush(), 22.0);
+        ActualPixelsButton.Content = ToolbarIcon.Create(icon, GetToolbarIconBrush());
     }
 
     private void UpdateToolbarIcons()
     {
         var iconBrush = GetToolbarIconBrush();
-        PreviousButton.Content = ToolbarIcon.Create(ToolbarIconKind.Previous, iconBrush, 21.5);
-        NextButton.Content = ToolbarIcon.Create(ToolbarIconKind.Next, iconBrush, 21.5);
-        DeleteButton.Content = ToolbarIcon.Create(ToolbarIconKind.Delete, Brushes.Firebrick);
+        PreviousButton.Content = ToolbarIcon.Create(ToolbarIconKind.Previous, iconBrush);
+        NextButton.Content = ToolbarIcon.Create(ToolbarIconKind.Next, iconBrush);
+        DeleteButton.Content = ToolbarIcon.Create(ToolbarIconKind.Delete, GetToolbarDangerBrush());
         UpdateActualPixelsIcon();
     }
 
@@ -1903,26 +1904,8 @@ public partial class MainWindow : Window
         ApplyToolbarThemeResources(isDarkMode);
 
         Background = isDarkMode
-            ? CreateBrush(32, 32, 32)
-            : CreateBrush(241, 248, 253);
-        ToolbarHost.Background = Brushes.Transparent;
-        ToolbarHost.BorderBrush = Brushes.Transparent;
-        MainMenu.Background = Resources["MenuBarBackground"] as Brush ?? Brushes.Transparent;
-        MainMenu.Foreground = Resources["MenuBarForeground"] as Brush ?? Brushes.Black;
-        MainMenu.BorderBrush = Resources["MenuBarBorder"] as Brush ?? Brushes.Transparent;
-        ZoomText.Foreground = isDarkMode
-            ? CreateBrush(215, 222, 232)
-            : CreateBrush(51, 65, 85);
-
-        StatusOverlay.Background = isDarkMode
-            ? CreateBrush(224, 38, 45, 54)
-            : CreateBrush(221, 234, 246, 255);
-        StatusOverlay.BorderBrush = isDarkMode
-            ? CreateBrush(107, 114, 128)
-            : CreateBrush(142, 169, 199);
-        StatusText.Foreground = isDarkMode
-            ? CreateBrush(243, 246, 249)
-            : CreateBrush(31, 41, 51);
+            ? CreateBrush(30, 33, 38)
+            : CreateBrush(244, 246, 248);
 
         ImageSurface.InvalidateVisual();
         UpdateToolbarIcons();
@@ -1930,152 +1913,58 @@ public partial class MainWindow : Window
 
     private void ApplyToolbarThemeResources(bool isDarkMode)
     {
-        Resources["ToolbarControlForeground"] = isDarkMode
-            ? CreateBrush(225, 231, 239)
-            : CreateBrush(29, 85, 124);
-        Resources["NavigationButtonBackground"] = isDarkMode
-            ? CreateGradientBrush((57, 69, 84), (48, 59, 74), (39, 50, 64))
-            : CreateGradientBrush((251, 253, 255), (232, 244, 255), (211, 233, 250));
-        Resources["NavigationButtonBorder"] = isDarkMode
-            ? CreateBrush(104, 130, 158)
-            : CreateBrush(110, 155, 194);
-        Resources["ToolbarGroupBackground"] = isDarkMode
-            ? CreateBrush(38, 43, 52)
-            : CreateBrush(248, 251, 255);
-        Resources["ToolbarGroupBorder"] = isDarkMode
-            ? CreateBrush(73, 82, 96)
-            : CreateBrush(184, 202, 219);
-        Resources["ToolbarGroupSeparator"] = isDarkMode
-            ? CreateBrush(72, 81, 94)
-            : CreateBrush(205, 217, 228);
-        Resources["ToolbarDockBackground"] = isDarkMode
-            ? CreateGradientBrush((53, 59, 70), (43, 49, 59), (33, 38, 47))
-            : CreateGradientBrush((253, 254, 255), (235, 245, 252), (212, 230, 243));
-        Resources["ToolbarDockBorder"] = isDarkMode
-            ? CreateBrush(81, 92, 109)
-            : CreateBrush(159, 185, 206);
-        Resources["ToolbarDockSeparator"] = isDarkMode
-            ? CreateBrush(76, 86, 101)
-            : CreateBrush(184, 202, 219);
-        Resources["ToolbarDockButtonHover"] = isDarkMode
-            ? CreateBrush(53, 70, 88)
-            : CreateBrush(220, 238, 255);
-        Resources["ToolbarDockButtonPressed"] = isDarkMode
-            ? CreateBrush(45, 63, 82)
-            : CreateBrush(201, 229, 250);
-        Resources["ToolbarPrimaryButtonBackground"] = isDarkMode
-            ? CreateGradientBrush((66, 82, 100), (51, 68, 87), (39, 56, 75))
-            : CreateGradientBrush((255, 255, 255), (226, 242, 255), (191, 221, 244));
-        Resources["ToolbarPrimaryButtonBorder"] = isDarkMode
-            ? CreateBrush(124, 171, 211)
-            : CreateBrush(110, 164, 208);
-        Resources["ToolbarButtonBackground"] = isDarkMode
-            ? CreateGradientBrush((50, 56, 66), (42, 47, 56), (34, 38, 46))
-            : CreateGradientBrush((255, 255, 255), (243, 246, 249), (228, 234, 240));
-        Resources["ToolbarButtonBorder"] = isDarkMode
-            ? CreateBrush(85, 94, 108)
-            : CreateBrush(154, 167, 181);
-        Resources["ToolbarButtonHoverBorder"] = isDarkMode
-            ? CreateBrush(111, 163, 214)
-            : CreateBrush(106, 158, 214);
-        Resources["ToolbarButtonPressedBackground"] = isDarkMode
-            ? CreateBrush(55, 69, 86)
-            : CreateBrush(220, 238, 255);
-        Resources["ToolbarButtonDisabledBackground"] = isDarkMode
-            ? CreateBrush(39, 44, 53)
-            : CreateBrush(246, 248, 250);
-        Resources["ToolbarButtonDisabledBorder"] = isDarkMode
-            ? CreateBrush(67, 75, 88)
-            : CreateBrush(207, 214, 222);
-        Resources["ToolbarButtonShadow"] = isDarkMode
-            ? CreateBrush(8, 10, 14)
-            : CreateBrush(111, 127, 145);
-        Resources["ToolbarButtonShell"] = isDarkMode
-            ? CreateBrush(80, 255, 255, 255)
-            : CreateBrush(85, 255, 255, 255);
-        Resources["ToolbarToggleBackground"] = isDarkMode
-            ? CreateBrush(34, 38, 46)
+        Resources["PanelBackground"] = isDarkMode
+            ? CreateBrush(43, 47, 54)
             : CreateBrush(255, 255, 255);
-        Resources["ToolbarToggleCheckedBackground"] = isDarkMode
-            ? CreateBrush(42, 57, 74)
-            : CreateBrush(234, 244, 255);
-        Resources["ToolbarToggleBorder"] = isDarkMode
-            ? CreateBrush(86, 95, 109)
-            : CreateBrush(182, 189, 198);
-        Resources["ToolbarToggleCheckedBorder"] = isDarkMode
-            ? CreateBrush(116, 174, 230)
-            : CreateBrush(106, 158, 214);
-        Resources["ToolbarComboBackground"] = isDarkMode
-            ? CreateBrush(34, 38, 46)
-            : CreateBrush(255, 255, 255);
-        Resources["ToolbarComboBorder"] = isDarkMode
-            ? CreateBrush(86, 95, 109)
-            : CreateBrush(182, 189, 198);
-        Resources["ToolbarComboPopupBackground"] = isDarkMode
-            ? CreateBrush(30, 34, 42)
-            : CreateBrush(255, 255, 255);
-        Resources["MenuBarBackground"] = isDarkMode
-            ? CreateGradientBrush((48, 55, 67), (40, 46, 57), (31, 36, 46))
-            : CreateGradientBrush((233, 245, 253), (220, 236, 248), (201, 223, 239));
-        Resources["MenuBarForeground"] = isDarkMode
-            ? CreateBrush(225, 231, 239)
-            : CreateBrush(31, 41, 51);
-        Resources["MenuBarBorder"] = isDarkMode
-            ? CreateBrush(69, 75, 85)
-            : CreateBrush(209, 213, 219);
-        Resources["MenuItemForeground"] = isDarkMode
-            ? CreateBrush(230, 236, 244)
-            : CreateBrush(31, 41, 51);
-        Resources["MenuItemDisabledForeground"] = isDarkMode
-            ? CreateBrush(132, 142, 156)
-            : CreateBrush(123, 132, 145);
-        Resources["MenuItemHoverBackground"] = isDarkMode
-            ? CreateBrush(51, 61, 76)
-            : CreateBrush(234, 243, 255);
-        Resources["MenuItemOpenBackground"] = isDarkMode
-            ? CreateBrush(59, 73, 91)
-            : CreateBrush(221, 238, 255);
-        Resources["MenuPopupBackground"] = isDarkMode
-            ? CreateBrush(38, 43, 52)
-            : CreateBrush(255, 255, 255);
-        Resources["MenuPopupBorder"] = isDarkMode
-            ? CreateBrush(88, 98, 114)
-            : CreateBrush(174, 183, 194);
-        Resources["MenuSeparatorBrush"] = isDarkMode
-            ? CreateBrush(61, 68, 80)
-            : CreateBrush(229, 231, 235);
-        Resources["MenuCheckBackground"] = isDarkMode
-            ? CreateBrush(49, 75, 98)
-            : CreateBrush(234, 243, 255);
-        Resources["MenuCheckBorder"] = isDarkMode
-            ? CreateBrush(116, 174, 230)
-            : CreateBrush(141, 188, 235);
+        Resources["PanelBorder"] = isDarkMode
+            ? CreateBrush(70, 76, 86)
+            : CreateBrush(212, 219, 227);
+        Resources["PanelSeparator"] = isDarkMode
+            ? CreateBrush(62, 68, 78)
+            : CreateBrush(226, 232, 238);
+        Resources["ControlHoverBackground"] = isDarkMode
+            ? CreateBrush(60, 67, 77)
+            : CreateBrush(235, 241, 247);
+        Resources["ControlPressedBackground"] = isDarkMode
+            ? CreateBrush(72, 80, 92)
+            : CreateBrush(221, 230, 239);
+        Resources["TextPrimary"] = isDarkMode
+            ? CreateBrush(236, 240, 245)
+            : CreateBrush(36, 50, 64);
+        Resources["TextSecondary"] = isDarkMode
+            ? CreateBrush(160, 170, 182)
+            : CreateBrush(94, 108, 122);
+        Resources["TextDisabled"] = isDarkMode
+            ? CreateBrush(122, 132, 144)
+            : CreateBrush(147, 160, 173);
+        Resources["TextDanger"] = isDarkMode
+            ? CreateBrush(235, 135, 128)
+            : CreateBrush(178, 55, 48);
+        Resources["AccentCheckBackground"] = isDarkMode
+            ? CreateBrush(52, 72, 94)
+            : CreateBrush(232, 241, 251);
+        Resources["AccentCheckBorder"] = isDarkMode
+            ? CreateBrush(120, 170, 220)
+            : CreateBrush(127, 168, 209);
+        Resources["BadgeBackground"] = isDarkMode
+            ? CreateBrush(58, 53, 38)
+            : CreateBrush(255, 247, 228);
+        Resources["BadgeBorder"] = isDarkMode
+            ? CreateBrush(138, 109, 47)
+            : CreateBrush(217, 160, 63);
+        Resources["BadgeForeground"] = isDarkMode
+            ? CreateBrush(232, 201, 122)
+            : CreateBrush(107, 74, 0);
     }
 
     private Brush GetToolbarIconBrush()
     {
-        return Resources["ToolbarControlForeground"] as Brush ?? Brushes.Black;
+        return Resources["TextPrimary"] as Brush ?? Brushes.Black;
     }
 
-    private static LinearGradientBrush CreateGradientBrush(
-        (byte Red, byte Green, byte Blue) top,
-        (byte Red, byte Green, byte Blue) middle,
-        (byte Red, byte Green, byte Blue) bottom)
+    private Brush GetToolbarDangerBrush()
     {
-        var brush = new LinearGradientBrush
-        {
-            StartPoint = new WpfPoint(0, 0),
-            EndPoint = new WpfPoint(0, 1)
-        };
-        brush.GradientStops.Add(new GradientStop(Color.FromRgb(top.Red, top.Green, top.Blue), 0));
-        brush.GradientStops.Add(new GradientStop(Color.FromRgb(middle.Red, middle.Green, middle.Blue), 0.52));
-        brush.GradientStops.Add(new GradientStop(Color.FromRgb(bottom.Red, bottom.Green, bottom.Blue), 1));
-        if (brush.CanFreeze)
-        {
-            brush.Freeze();
-        }
-
-        return brush;
+        return Resources["TextDanger"] as Brush ?? Brushes.Firebrick;
     }
 
     private static SolidColorBrush CreateBrush(byte red, byte green, byte blue)
@@ -2108,7 +1997,7 @@ public partial class MainWindow : Window
     {
         ZoomText.Text = _image is null
             ? string.Empty
-            : $"{LocalizedText.Get(LocalizedText.Zoom)}: {_viewerState.Zoom * 100:0}%";
+            : $"{_viewerState.Zoom * 100:0}%";
         ActualPixelsButton.IsEnabled = CanToggleActualPixels();
         UpdateActualPixelsIcon();
         UpdateToolbarDensity();
