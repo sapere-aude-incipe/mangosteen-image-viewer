@@ -431,90 +431,83 @@
                            Height="18"
                            Margin="4,0,8,0"
                            Source="Assets/mangosteen.ico" />
-                    <Border Height="34"
-                            Padding="3,0"
-                            Background="{DynamicResource ChromeSurfaceBackground}"
-                            BorderBrush="{DynamicResource ChromeSurfaceBorder}"
-                            BorderThickness="1"
-                            CornerRadius="10">
-                        <Menu x:Name="MainMenu"
-                              Height="32"
-                              Background="Transparent"
-                              Foreground="{DynamicResource TextPrimary}"
-                              BorderThickness="0"
-                              shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                            <MenuItem x:Name="FileMenuItem">
-                                <MenuItem x:Name="OpenMenuItem"
-                                          Click="OpenMenuItem_Click" />
-                                <MenuItem x:Name="DeleteMenuItem"
-                                          Click="DeleteMenuItem_Click" />
-                                <Separator />
-                                <MenuItem x:Name="ExitMenuItem"
-                                          Click="ExitMenuItem_Click" />
-                            </MenuItem>
-                            <MenuItem x:Name="OptionsMenuItem">
-                                <MenuItem x:Name="SamplingMenuItem">
-                                    <MenuItem x:Name="SmoothSamplingMenuItem"
-                                              IsCheckable="True"
-                                              IsChecked="True"
-                                              Click="SmoothSamplingMenuItem_Click" />
-                                    <MenuItem x:Name="NearestSamplingMenuItem"
-                                              IsCheckable="True"
-                                              Click="NearestSamplingMenuItem_Click" />
-                                </MenuItem>
-                                <MenuItem x:Name="PreloadEnabledMenuItem"
+                    <Menu x:Name="MainMenu"
+                          Height="34"
+                          Background="Transparent"
+                          Foreground="{DynamicResource TextPrimary}"
+                          BorderThickness="0"
+                          shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <MenuItem x:Name="FileMenuItem">
+                            <MenuItem x:Name="OpenMenuItem"
+                                      Click="OpenMenuItem_Click" />
+                            <MenuItem x:Name="DeleteMenuItem"
+                                      Click="DeleteMenuItem_Click" />
+                            <Separator />
+                            <MenuItem x:Name="ExitMenuItem"
+                                      Click="ExitMenuItem_Click" />
+                        </MenuItem>
+                        <MenuItem x:Name="OptionsMenuItem">
+                            <MenuItem x:Name="SamplingMenuItem">
+                                <MenuItem x:Name="SmoothSamplingMenuItem"
                                           IsCheckable="True"
                                           IsChecked="True"
-                                          Click="PreloadEnabledMenuItem_Click" />
-                                <MenuItem x:Name="PreloadMemoryBudgetMenuItem">
-                                    <MenuItem IsCheckable="True"
-                                              Header="1 GB"
-                                              Tag="1"
-                                              Click="PreloadBudgetMenuItem_Click" />
-                                    <MenuItem IsCheckable="True"
-                                              Header="2 GB"
-                                              Tag="2"
-                                              IsChecked="True"
-                                              Click="PreloadBudgetMenuItem_Click" />
-                                    <MenuItem IsCheckable="True"
-                                              Header="5 GB"
-                                              Tag="5"
-                                              Click="PreloadBudgetMenuItem_Click" />
-                                    <MenuItem IsCheckable="True"
-                                              Header="10 GB"
-                                              Tag="10"
-                                              Click="PreloadBudgetMenuItem_Click" />
-                                    <MenuItem IsCheckable="True"
-                                              Header="15 GB"
-                                              Tag="15"
-                                              Click="PreloadBudgetMenuItem_Click" />
-                                </MenuItem>
-                                <MenuItem x:Name="PreloadAggressivenessMenuItem">
-                                    <MenuItem x:Name="ConservativePreloadMenuItem"
-                                              IsCheckable="True"
-                                              Tag="Conservative"
-                                              Click="PreloadAggressivenessMenuItem_Click" />
-                                    <MenuItem x:Name="BalancedPreloadMenuItem"
-                                              IsCheckable="True"
-                                              Tag="Balanced"
-                                              IsChecked="True"
-                                              Click="PreloadAggressivenessMenuItem_Click" />
-                                    <MenuItem x:Name="AggressivePreloadMenuItem"
-                                              IsCheckable="True"
-                                              Tag="Aggressive"
-                                              Click="PreloadAggressivenessMenuItem_Click" />
-                                </MenuItem>
-                                <Separator />
-                                <MenuItem x:Name="DarkModeMenuItem"
+                                          Click="SmoothSamplingMenuItem_Click" />
+                                <MenuItem x:Name="NearestSamplingMenuItem"
                                           IsCheckable="True"
-                                          Click="DarkModeMenuItem_Click" />
+                                          Click="NearestSamplingMenuItem_Click" />
                             </MenuItem>
-                            <MenuItem x:Name="HelpMenuItem">
-                                <MenuItem x:Name="OptionsHelpMenuItem"
-                                          Click="OptionsHelpMenuItem_Click" />
+                            <MenuItem x:Name="PreloadEnabledMenuItem"
+                                      IsCheckable="True"
+                                      IsChecked="True"
+                                      Click="PreloadEnabledMenuItem_Click" />
+                            <MenuItem x:Name="PreloadMemoryBudgetMenuItem">
+                                <MenuItem IsCheckable="True"
+                                          Header="1 GB"
+                                          Tag="1"
+                                          Click="PreloadBudgetMenuItem_Click" />
+                                <MenuItem IsCheckable="True"
+                                          Header="2 GB"
+                                          Tag="2"
+                                          IsChecked="True"
+                                          Click="PreloadBudgetMenuItem_Click" />
+                                <MenuItem IsCheckable="True"
+                                          Header="5 GB"
+                                          Tag="5"
+                                          Click="PreloadBudgetMenuItem_Click" />
+                                <MenuItem IsCheckable="True"
+                                          Header="10 GB"
+                                          Tag="10"
+                                          Click="PreloadBudgetMenuItem_Click" />
+                                <MenuItem IsCheckable="True"
+                                          Header="15 GB"
+                                          Tag="15"
+                                          Click="PreloadBudgetMenuItem_Click" />
                             </MenuItem>
-                        </Menu>
-                    </Border>
+                            <MenuItem x:Name="PreloadAggressivenessMenuItem">
+                                <MenuItem x:Name="ConservativePreloadMenuItem"
+                                          IsCheckable="True"
+                                          Tag="Conservative"
+                                          Click="PreloadAggressivenessMenuItem_Click" />
+                                <MenuItem x:Name="BalancedPreloadMenuItem"
+                                          IsCheckable="True"
+                                          Tag="Balanced"
+                                          IsChecked="True"
+                                          Click="PreloadAggressivenessMenuItem_Click" />
+                                <MenuItem x:Name="AggressivePreloadMenuItem"
+                                          IsCheckable="True"
+                                          Tag="Aggressive"
+                                          Click="PreloadAggressivenessMenuItem_Click" />
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem x:Name="DarkModeMenuItem"
+                                      IsCheckable="True"
+                                      Click="DarkModeMenuItem_Click" />
+                        </MenuItem>
+                        <MenuItem x:Name="HelpMenuItem">
+                            <MenuItem x:Name="OptionsHelpMenuItem"
+                                      Click="OptionsHelpMenuItem_Click" />
+                        </MenuItem>
+                    </Menu>
                 </StackPanel>
 
                 <StackPanel HorizontalAlignment="Right"

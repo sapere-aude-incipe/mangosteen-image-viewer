@@ -8,20 +8,23 @@
 
 ### [Download Portable (.zip)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) | [Download Installer (.exe)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases)
 
-Mangosteen is a simple and fast Windows image viewer inspired by the classic Windows Photo Viewer experience. It focuses on quick image navigation, smooth zooming, actual-pixel viewing, broad format support, animated GIF playback, and responsive handling of very large images.
+Mangosteen Image Viewer is a simple, fast Windows image viewer inspired by the classic Windows Photo Viewer experience. It keeps the interface quiet and focused: open an image, move through the folder, zoom, pan, inspect actual pixels, and get out of the way.
 
 ## Screenshots
 
 | Dark theme | Light theme |
 | --- | --- |
-| ![Mangosteen Image Viewer showing an image in dark theme](docs/screenshots/mangosteen-dark.png) | ![Mangosteen Image Viewer showing an image in light theme](docs/screenshots/mangosteen-light.png) |
+| ![Mangosteen Image Viewer empty state in dark theme](docs/screenshots/mangosteen-dark.png) | ![Mangosteen Image Viewer empty state in light theme](docs/screenshots/mangosteen-light.png) |
 
 ## Features
 
 - Fast previous/next folder navigation.
+- Drag and drop, click-to-open, and Open With friendly startup.
 - Mouse-wheel zoom.
 - Left-button drag panning for oversized images.
 - Actual-pixel viewing for `1:1` physical pixel mapping.
+- Show the current image in File Explorer.
+- Recycle-bin delete with confirmation.
 - Smooth or nearest-neighbor upscaling.
 - Light and dark themes.
 - Smart preloading with a configurable memory budget.
@@ -55,8 +58,8 @@ The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, 
 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
-- **Portable**: `Mangosteen-Portable-<version>-x64.zip` — extract anywhere and run `Mangosteen.exe`. No installation and no separate .NET runtime required.
-- **Installer**: `Mangosteen-Setup-<version>-x64.exe` — classic setup with Start menu shortcut.
+- **Portable**: `Mangosteen-Portable-<version>-x64.zip` - extract anywhere and run `Mangosteen.exe`. No installation and no separate .NET runtime required.
+- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - classic setup with Start menu shortcut.
 
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 
@@ -111,6 +114,7 @@ This creates:
 - Left mouse drag: pan.
 - `F`: fit to window.
 - `Ctrl+O`: open an image.
+- `Del`: move the current image to the recycle bin after confirmation.
 
 ## Options
 
