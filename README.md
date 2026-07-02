@@ -8,7 +8,9 @@
 
 ### [Download Portable (.zip)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) | [Download Installer (.exe)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases)
 
-Mangosteen Image Viewer is a simple, fast Windows image viewer inspired by the classic Windows Photo Viewer experience. It keeps the interface quiet and focused: open an image, move through the folder, zoom, pan, inspect actual pixels, and get out of the way.
+Mangosteen Image Viewer is a simple, fast, privacy-respecting Windows image viewer inspired by the classic Windows Photo Viewer experience. It is built for the everyday flow of opening an image, moving through a folder, zooming, panning, checking actual pixels, and getting back to what you were doing.
+
+Mangosteen keeps the interface quiet, starts quickly, supports modern image formats, and does not include telemetry, tracking, accounts, cloud sync, or background data collection. It is free and open source under the MIT License.
 
 ## Screenshots
 
@@ -18,6 +20,8 @@ Mangosteen Image Viewer is a simple, fast Windows image viewer inspired by the c
 
 ## Features
 
+- Privacy-respecting by design: no telemetry, tracking, accounts, or cloud services.
+- Free and open source under the MIT License.
 - Fast previous/next folder navigation.
 - Drag and drop, click-to-open, and Open With friendly startup.
 - Mouse-wheel zoom.
@@ -126,6 +130,8 @@ This creates:
 ## Release Process
 
 CI builds and tests every push and pull request on Windows using NuGet lock files. Tagged releases named like `v0.1.0` run the release workflow, validate the version, build unsigned Windows artifacts, verify `SHA256SUMS.txt`, upload artifacts, and create a prerelease.
+
+Generated installers, portable zip files, and checksums are published as GitHub Release assets. They are not committed to the repository.
 
 The intended signing path is SignPath Foundation once the project has enough public reputation for open-source code signing.
 
