@@ -131,6 +131,8 @@ This creates:
 
 CI builds and tests every push and pull request on Windows using NuGet lock files. Tagged releases named like `v0.1.0` run the release workflow, validate the version, build unsigned Windows artifacts, verify `SHA256SUMS.txt`, upload artifacts, and create a prerelease.
 
+Generated installers, portable zip files, and checksums are published as GitHub Release assets. They are not committed to the repository.
+
 The intended signing path is SignPath Foundation once the project has enough public reputation for open-source code signing.
 
 ## License
