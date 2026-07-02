@@ -174,4 +174,13 @@
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>실제 크기를 넘어 확대할 때 이미지를 확대하는 방식을 선택합니다.</value>
   </data>
+  <data name="AutoRefreshCurrentImage" xml:space="preserve">
+    <value>현재 이미지 자동 새로 고침</value>
+  </data>
+  <data name="AutoRefreshCurrentImageTooltip" xml:space="preserve">
+    <value>디스크의 파일이 변경되면 현재 이미지를 다시 불러옵니다.</value>
+  </data>
+  <data name="ImagePositionFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

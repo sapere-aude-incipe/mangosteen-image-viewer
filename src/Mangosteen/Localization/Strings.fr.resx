@@ -174,4 +174,13 @@ L'agressivité du préchargement contrôle jusqu'où Mangosteen analyse et avec 
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Choisit comment les images sont agrandies au-delà de leur taille réelle.</value>
   </data>
+  <data name="AutoRefreshCurrentImage" xml:space="preserve">
+    <value>Actualiser automatiquement l&apos;image actuelle</value>
+  </data>
+  <data name="AutoRefreshCurrentImageTooltip" xml:space="preserve">
+    <value>Recharge l&apos;image actuelle lorsque le fichier change sur le disque.</value>
+  </data>
+  <data name="ImagePositionFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

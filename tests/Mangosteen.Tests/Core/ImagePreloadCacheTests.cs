@@ -133,6 +133,34 @@ public sealed class ImagePreloadCacheTests
     }
 
     [TestMethod]
+    public void Remove_Evicts_Only_Requested_Image()
+    {
+        using var cache = new ImagePreloadCache
+        {
+            BudgetBytes = 2_000
+        };
+
+        cache.Store("edited.jpg", CreateImage("edited.jpg", 10, 10, isFull: true));
+        cache.Store("next.jpg", CreateImage("next.jpg", 10, 10, isFull: true));
+
+        Assert.IsTrue(cache.Remove("edited.jpg"));
+
+        Assert.IsFalse(cache.TryTake("edited.jpg", out _));
+        Assert.IsTrue(cache.TryTake("next.jpg", out var next));
+        Assert.AreEqual(0, cache.UsedBytes);
+
+        next?.Dispose();
+    }
+
+    [TestMethod]
+    public void Remove_Returns_False_For_Missing_Image()
+    {
+        using var cache = new ImagePreloadCache();
+
+        Assert.IsFalse(cache.Remove("missing.jpg"));
+    }
+
+    [TestMethod]
     public void Store_Does_Not_Evict_Higher_Priority_Images_For_Lower_Priority_Preload()
     {
         using var cache = new ImagePreloadCache
@@ -263,6 +291,7 @@ public sealed class ImagePreloadCacheTests
         Assert.ThrowsExactly<ArgumentException>(() => cache.CanStore("", 400, evictionPriority: 0));
         Assert.ThrowsExactly<ArgumentException>(() => cache.CanFit(" ", 400));
         Assert.ThrowsExactly<ArgumentException>(() => cache.TryTake("", out _));
+        Assert.ThrowsExactly<ArgumentException>(() => cache.Remove(" "));
         Assert.ThrowsExactly<ArgumentException>(() => cache.Store(" ", image));
     }
 

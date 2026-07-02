@@ -174,4 +174,13 @@ Agresywność wstępnego ładowania określa, jak daleko Mangosteen skanuje do p
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Wybierz, jak obrazy są powiększane po przekroczeniu rzeczywistego rozmiaru.</value>
   </data>
+  <data name="AutoRefreshCurrentImage" xml:space="preserve">
+    <value>Automatycznie odśwież bieżący obraz</value>
+  </data>
+  <data name="AutoRefreshCurrentImageTooltip" xml:space="preserve">
+    <value>Ponownie wczytuje bieżący obraz, gdy plik zmieni się na dysku.</value>
+  </data>
+  <data name="ImagePositionFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

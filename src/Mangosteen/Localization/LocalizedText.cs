@@ -9,6 +9,8 @@ internal static class LocalizedText
     public const string AllFiles = nameof(AllFiles);
     public const string Aggressive = nameof(Aggressive);
     public const string AppTitle = nameof(AppTitle);
+    public const string AutoRefreshCurrentImage = nameof(AutoRefreshCurrentImage);
+    public const string AutoRefreshCurrentImageTooltip = nameof(AutoRefreshCurrentImageTooltip);
     public const string Balanced = nameof(Balanced);
     public const string BalancedPreloadTooltip = nameof(BalancedPreloadTooltip);
     public const string Conservative = nameof(Conservative);
@@ -23,6 +25,7 @@ internal static class LocalizedText
     public const string AggressivePreloadTooltip = nameof(AggressivePreloadTooltip);
     public const string HelpMenu = nameof(HelpMenu);
     public const string ImageFiles = nameof(ImageFiles);
+    public const string ImagePositionFormat = nameof(ImagePositionFormat);
     public const string Loading = nameof(Loading);
     public const string Manual = nameof(Manual);
     public const string Nearest = nameof(Nearest);
@@ -86,6 +89,8 @@ internal static class LocalizedText
         Aggressive,
         AggressivePreloadTooltip,
         AppTitle,
+        AutoRefreshCurrentImage,
+        AutoRefreshCurrentImageTooltip,
         Balanced,
         BalancedPreloadTooltip,
         Conservative,
@@ -99,6 +104,7 @@ internal static class LocalizedText
         FullResolutionDecodeFailedFormat,
         HelpMenu,
         ImageFiles,
+        ImagePositionFormat,
         Loading,
         Manual,
         Nearest,
