@@ -43,7 +43,7 @@
     <value>Sonraki gÃ¶rÃ¼ntÃ¼</value>
   </data>
   <data name="NoImage" xml:space="preserve">
-    <value>GÃ¶rÃ¼ntÃ¼ yok</value>
+    <value>Sürükleyip bırakın veya açmak için tıklayın</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
     <value>GÃ¶rÃ¼ntÃ¼ aÃ§</value>
@@ -124,51 +124,54 @@
     <value>Yakınlaştırma</value>
   </data>
   <data name="AggressivePreloadTooltip" xml:space="preserve">
-    <value>Preload farther ahead and use more background work.</value>
+    <value>Daha ileriye ön yükler ve daha fazla arka plan işi kullanır.</value>
   </data>
   <data name="BalancedPreloadTooltip" xml:space="preserve">
-    <value>A middle ground between speed and memory use.</value>
+    <value>Hız ve bellek kullanımı arasında orta yol.</value>
   </data>
   <data name="ConservativePreloadTooltip" xml:space="preserve">
-    <value>Use less background work and memory.</value>
+    <value>Daha az arka plan işi ve bellek kullanır.</value>
   </data>
   <data name="HelpMenu" xml:space="preserve">
-    <value>Help</value>
+    <value>Yardım</value>
   </data>
   <data name="NearestUpscalingTooltip" xml:space="preserve">
-    <value>Use sharp, pixelated scaling when zooming in.</value>
+    <value>Yakınlaştırırken keskin, pikselli ölçekleme kullanır.</value>
   </data>
   <data name="OptionsHelp" xml:space="preserve">
-    <value>Options help</value>
+    <value>Seçenek yardımı</value>
   </data>
   <data name="OptionsHelpDialogText" xml:space="preserve">
-    <value>Upscaling controls how images are enlarged past their natural size. Smooth looks softer; nearest keeps hard pixel edges.
+    <value>Büyütme, görüntülerin doğal boyutlarının ötesinde nasıl büyütüleceğini denetler. Yumuşak daha yumuşak görünür; en yakın komşu sert piksel kenarlarını korur.
 
-Preload nearby images decodes likely next and previous images in the background.
+Yakındaki görüntüleri ön yükle, olası sonraki ve önceki görüntüleri arka planda çözer.
 
-Preload memory limits how much RAM cached images may use.
+Ön yükleme belleği, önbelleğe alınmış görüntülerin kullanabileceği RAM miktarını sınırlar.
 
-Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly it warms images.</value>
+Ön yükleme agresifliği, Mangosteen'in ne kadar ileri tarayacağını ve görüntüleri ne kadar istekli hazırlayacağını denetler.</value>
   </data>
   <data name="OptionsHelpDialogTitle" xml:space="preserve">
-    <value>Options help</value>
+    <value>Seçenek yardımı</value>
   </data>
   <data name="OptionsHelpTooltip" xml:space="preserve">
-    <value>Explain image display and preloading options.</value>
+    <value>Görüntü gösterimi ve ön yükleme seçeneklerini açıklar.</value>
   </data>
   <data name="PreloadAggressivenessTooltip" xml:space="preserve">
-    <value>Choose how far ahead Mangosteen looks and how eagerly it warms images.</value>
+    <value>Mangosteen'in ne kadar ileri bakacağını ve görüntüleri ne kadar istekli hazırlayacağını seçin.</value>
   </data>
   <data name="PreloadMemoryBudgetOptionTooltip" xml:space="preserve">
-    <value>Choose the decoded-image cache memory budget.</value>
+    <value>Çözülmüş görüntü önbelleği için bellek bütçesini seçin.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decode likely next and previous images in the background.</value>
+    <value>Olası sonraki ve önceki görüntüleri arka planda çözer.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
-    <value>Use smoother interpolation when zooming in.</value>
+    <value>Yakınlaştırırken daha yumuşak enterpolasyon kullanır.</value>
+  </data>
+  <data name="ShowImageInFolder" xml:space="preserve">
+    <value>Görüntüyü klasörde göster</value>
   </data>
   <data name="UpscalingTooltip" xml:space="preserve">
-    <value>Choose how images are enlarged when zoomed past actual size.</value>
+    <value>Gerçek boyutu aşacak şekilde yakınlaştırıldığında görüntülerin nasıl büyütüleceğini seçin.</value>
   </data>
 </root>

@@ -33,6 +33,20 @@ public sealed class ViewerStateTests
     }
 
     [TestMethod]
+    public void ActualPixels_On_Small_Zoomed_Image_Returns_To_One_To_One()
+    {
+        var state = new ViewerState();
+        state.SetViewport(new PixelSize(800, 600));
+        state.SetImage(320, 240, fitToWindow: true);
+
+        state.ZoomAt(14.56, new SKPoint(400, 300));
+        state.SetActualPixels();
+
+        Assert.AreEqual(1.0, state.Zoom, 0.0001);
+        Assert.AreEqual(ViewerFitMode.ActualPixels, state.Mode);
+    }
+
+    [TestMethod]
     public void MouseWheel_Cannot_Zoom_Out_Below_FitZoom()
     {
         var state = new ViewerState();

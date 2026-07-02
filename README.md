@@ -6,26 +6,26 @@
 [![Latest release](https://img.shields.io/github/v/release/sapere-aude-incipe/mangosteen-image-viewer?include_prereleases&label=release)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-### [💾 Download Portable (.zip)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) · [📦 Download Installer (.exe)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases)
+### [Download Portable (.zip)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) | [Download Installer (.exe)](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases)
 
 Mangosteen is a simple and fast Windows image viewer inspired by the classic Windows Photo Viewer experience. It focuses on quick image navigation, smooth zooming, actual-pixel viewing, broad format support, animated GIF playback, and responsive handling of very large images.
 
 ## Screenshots
 
-| Dark mode | Light mode |
+| Dark theme | Light theme |
 | --- | --- |
-| ![Mangosteen Image Viewer in dark mode](docs/screenshots/mangosteen-dark.png) | ![Mangosteen Image Viewer in light mode](docs/screenshots/mangosteen-light.png) |
+| ![Mangosteen Image Viewer showing an image in dark theme](docs/screenshots/mangosteen-dark.png) | ![Mangosteen Image Viewer showing an image in light theme](docs/screenshots/mangosteen-light.png) |
 
 ## Features
 
 - Fast previous/next folder navigation.
-- Mouse-wheel zoom anchored under the cursor.
+- Mouse-wheel zoom.
 - Left-button drag panning for oversized images.
 - Actual-pixel viewing for `1:1` physical pixel mapping.
 - Smooth or nearest-neighbor upscaling.
 - Light and dark themes.
 - Smart preloading with a configurable memory budget.
-- Preview-first loading for very large images and RAW-family files.
+- RAW support with initial preview loading.
 - Animated GIF support.
 - Installer and portable zip builds for Windows x64.
 

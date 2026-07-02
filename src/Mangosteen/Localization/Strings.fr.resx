@@ -43,7 +43,7 @@
     <value>Image suivante</value>
   </data>
   <data name="NoImage" xml:space="preserve">
-    <value>Aucune image</value>
+    <value>Glissez-déposez ou cliquez pour ouvrir</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
     <value>Ouvrir une image</value>
@@ -124,51 +124,54 @@
     <value>Zoom</value>
   </data>
   <data name="AggressivePreloadTooltip" xml:space="preserve">
-    <value>Preload farther ahead and use more background work.</value>
+    <value>Précharge plus loin et utilise davantage de travail en arrière-plan.</value>
   </data>
   <data name="BalancedPreloadTooltip" xml:space="preserve">
-    <value>A middle ground between speed and memory use.</value>
+    <value>Un compromis entre vitesse et utilisation de la mémoire.</value>
   </data>
   <data name="ConservativePreloadTooltip" xml:space="preserve">
-    <value>Use less background work and memory.</value>
+    <value>Utilise moins de travail en arrière-plan et moins de mémoire.</value>
   </data>
   <data name="HelpMenu" xml:space="preserve">
-    <value>Help</value>
+    <value>Aide</value>
   </data>
   <data name="NearestUpscalingTooltip" xml:space="preserve">
-    <value>Use sharp, pixelated scaling when zooming in.</value>
+    <value>Utilise un agrandissement net et pixellisé lors du zoom avant.</value>
   </data>
   <data name="OptionsHelp" xml:space="preserve">
-    <value>Options help</value>
+    <value>Aide sur les options</value>
   </data>
   <data name="OptionsHelpDialogText" xml:space="preserve">
-    <value>Upscaling controls how images are enlarged past their natural size. Smooth looks softer; nearest keeps hard pixel edges.
+    <value>L'agrandissement contrôle la façon dont les images sont agrandies au-delà de leur taille naturelle. Lissé donne un rendu plus doux ; plus proche voisin conserve des bords de pixels nets.
 
-Preload nearby images decodes likely next and previous images in the background.
+Précharger les images proches décode en arrière-plan les images probablement suivantes et précédentes.
 
-Preload memory limits how much RAM cached images may use.
+La mémoire de préchargement limite la RAM utilisée par les images en cache.
 
-Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly it warms images.</value>
+L'agressivité du préchargement contrôle jusqu'où Mangosteen analyse et avec quelle intensité il prépare les images.</value>
   </data>
   <data name="OptionsHelpDialogTitle" xml:space="preserve">
-    <value>Options help</value>
+    <value>Aide sur les options</value>
   </data>
   <data name="OptionsHelpTooltip" xml:space="preserve">
-    <value>Explain image display and preloading options.</value>
+    <value>Explique les options d'affichage et de préchargement des images.</value>
   </data>
   <data name="PreloadAggressivenessTooltip" xml:space="preserve">
-    <value>Choose how far ahead Mangosteen looks and how eagerly it warms images.</value>
+    <value>Choisit jusqu'où Mangosteen regarde à l'avance et avec quelle intensité il prépare les images.</value>
   </data>
   <data name="PreloadMemoryBudgetOptionTooltip" xml:space="preserve">
-    <value>Choose the decoded-image cache memory budget.</value>
+    <value>Choisit le budget mémoire du cache d'images décodées.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decode likely next and previous images in the background.</value>
+    <value>Décode en arrière-plan les images probablement suivantes et précédentes.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
-    <value>Use smoother interpolation when zooming in.</value>
+    <value>Utilise une interpolation plus douce lors du zoom avant.</value>
+  </data>
+  <data name="ShowImageInFolder" xml:space="preserve">
+    <value>Afficher l'image dans le dossier</value>
   </data>
   <data name="UpscalingTooltip" xml:space="preserve">
-    <value>Choose how images are enlarged when zoomed past actual size.</value>
+    <value>Choisit comment les images sont agrandies au-delà de leur taille réelle.</value>
   </data>
 </root>

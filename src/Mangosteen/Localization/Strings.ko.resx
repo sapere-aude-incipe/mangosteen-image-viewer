@@ -13,76 +13,76 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AllFiles" xml:space="preserve">
-    <value>ëª¨ë“  íŒŒì¼</value>
+    <value>모든 파일</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
     <value>Mangosteen Image Viewer</value>
   </data>
   <data name="FileNotFoundFormat" xml:space="preserve">
-    <value>íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: {0}</value>
+    <value>파일을 찾을 수 없음: {0}</value>
   </data>
   <data name="FullResolutionDecodeFailed" xml:space="preserve">
-    <value>ì „ì²´ í•´ìƒë„ ë””ì½”ë”©ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.</value>
+    <value>전체 해상도 디코딩에 실패했습니다.</value>
   </data>
   <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
-    <value>ì „ì²´ í•´ìƒë„ ë””ì½”ë”©ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤: {0}</value>
+    <value>전체 해상도 디코딩에 실패했습니다: {0}</value>
   </data>
   <data name="ImageFiles" xml:space="preserve">
-    <value>ì´ë¯¸ì§€ íŒŒì¼</value>
+    <value>이미지 파일</value>
   </data>
   <data name="Loading" xml:space="preserve">
-    <value>ë¡œë“œ ì¤‘...</value>
+    <value>로드 중...</value>
   </data>
   <data name="Manual" xml:space="preserve">
-    <value>ìˆ˜ë™</value>
+    <value>수동</value>
   </data>
   <data name="Nearest" xml:space="preserve">
-    <value>ìµœê·¼ì ‘</value>
+    <value>최근접</value>
   </data>
   <data name="NextImage" xml:space="preserve">
-    <value>ë‹¤ìŒ ì´ë¯¸ì§€</value>
+    <value>다음 이미지</value>
   </data>
   <data name="NoImage" xml:space="preserve">
-    <value>ì´ë¯¸ì§€ ì—†ìŒ</value>
+    <value>드래그 앤 드롭하거나 클릭하여 열기</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
-    <value>ì´ë¯¸ì§€ ì—´ê¸°</value>
+    <value>이미지 열기</value>
   </data>
   <data name="Preload" xml:space="preserve">
-    <value>ë¯¸ë¦¬ ë¡œë“œ</value>
+    <value>미리 로드</value>
   </data>
   <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
-    <value>ì „ì²´ ë””ì½”ë”© ë° ë¯¸ë¦¬ ë¡œë“œìš© ë©”ëª¨ë¦¬ í•œë„</value>
+    <value>전체 디코딩과 미리 로드에 사용할 메모리 한도</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>ì£¼ë³€ ì´ë¯¸ì§€ ë¯¸ë¦¬ ë¡œë“œ</value>
+    <value>주변 이미지 미리 로드</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
-    <value>ë¯¸ë¦¬ë³´ê¸°ë§Œ</value>
+    <value>미리 보기만</value>
   </data>
   <data name="PreviousImage" xml:space="preserve">
-    <value>ì´ì „ ì´ë¯¸ì§€</value>
+    <value>이전 이미지</value>
   </data>
   <data name="Smooth" xml:space="preserve">
-    <value>ë¶€ë“œëŸ½ê²Œ</value>
+    <value>부드럽게</value>
   </data>
   <data name="ToggleActualPixels" xml:space="preserve">
-    <value>ì‹¤ì œ í”½ì…€ ì „í™˜</value>
+    <value>실제 픽셀 보기 전환</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>ë‹¤í¬ ëª¨ë“œ ì „í™˜</value>
+    <value>다크 모드 전환</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
-    <value>ë¶€ë“œëŸ¬ìš´/ìµœê·¼ì ‘ í™•ëŒ€ ì „í™˜</value>
+    <value>부드러운/최근접 확대 전환</value>
   </data>
   <data name="UnexpectedError" xml:space="preserve">
-    <value>ì˜ˆê¸°ì¹˜ ì•Šì€ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.</value>
+    <value>예기치 않은 오류가 발생했습니다.</value>
   </data>
   <data name="UseDarkMode" xml:space="preserve">
-    <value>ë‹¤í¬ ëª¨ë“œ ì‚¬ìš©</value>
+    <value>다크 모드 사용</value>
   </data>
   <data name="UseLightMode" xml:space="preserve">
-    <value>ë¼ì´íŠ¸ ëª¨ë“œ ì‚¬ìš©</value>
+    <value>라이트 모드 사용</value>
   </data>
   <data name="Aggressive" xml:space="preserve">
     <value>적극적</value>
@@ -112,63 +112,66 @@
     <value>옵션</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>미리 불러오기 강도</value>
+    <value>미리 로드 적극성</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
-    <value>미리 불러오기 메모리</value>
+    <value>미리 로드 메모리</value>
   </data>
   <data name="Upscaling" xml:space="preserve">
-    <value>확대 방식</value>
-  </data>
-  <data name="Zoom" xml:space="preserve">
     <value>확대</value>
   </data>
+  <data name="Zoom" xml:space="preserve">
+    <value>확대/축소</value>
+  </data>
   <data name="AggressivePreloadTooltip" xml:space="preserve">
-    <value>Preload farther ahead and use more background work.</value>
+    <value>더 멀리 미리 로드하고 더 많은 백그라운드 작업을 사용합니다.</value>
   </data>
   <data name="BalancedPreloadTooltip" xml:space="preserve">
-    <value>A middle ground between speed and memory use.</value>
+    <value>속도와 메모리 사용량 사이의 중간 설정입니다.</value>
   </data>
   <data name="ConservativePreloadTooltip" xml:space="preserve">
-    <value>Use less background work and memory.</value>
+    <value>백그라운드 작업과 메모리 사용량을 줄입니다.</value>
   </data>
   <data name="HelpMenu" xml:space="preserve">
-    <value>Help</value>
+    <value>도움말</value>
   </data>
   <data name="NearestUpscalingTooltip" xml:space="preserve">
-    <value>Use sharp, pixelated scaling when zooming in.</value>
+    <value>확대할 때 선명하고 픽셀화된 스케일링을 사용합니다.</value>
   </data>
   <data name="OptionsHelp" xml:space="preserve">
-    <value>Options help</value>
+    <value>옵션 도움말</value>
   </data>
   <data name="OptionsHelpDialogText" xml:space="preserve">
-    <value>Upscaling controls how images are enlarged past their natural size. Smooth looks softer; nearest keeps hard pixel edges.
+    <value>확대는 이미지가 원래 크기보다 크게 표시될 때의 방식을 제어합니다. 부드럽게는 더 부드럽게 보이고, 최근접은 픽셀 경계를 또렷하게 유지합니다.
 
-Preload nearby images decodes likely next and previous images in the background.
+주변 이미지 미리 로드는 다음 및 이전 이미지로 예상되는 항목을 백그라운드에서 디코딩합니다.
 
-Preload memory limits how much RAM cached images may use.
+미리 로드 메모리는 캐시된 이미지가 사용할 수 있는 RAM 양을 제한합니다.
 
-Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly it warms images.</value>
+미리 로드 적극성은 Mangosteen이 얼마나 멀리 스캔하고 얼마나 적극적으로 이미지를 준비하는지 제어합니다.</value>
   </data>
   <data name="OptionsHelpDialogTitle" xml:space="preserve">
-    <value>Options help</value>
+    <value>옵션 도움말</value>
   </data>
   <data name="OptionsHelpTooltip" xml:space="preserve">
-    <value>Explain image display and preloading options.</value>
+    <value>이미지 표시와 미리 로드 옵션을 설명합니다.</value>
   </data>
   <data name="PreloadAggressivenessTooltip" xml:space="preserve">
-    <value>Choose how far ahead Mangosteen looks and how eagerly it warms images.</value>
+    <value>Mangosteen이 얼마나 멀리 보고 얼마나 적극적으로 이미지를 준비할지 선택합니다.</value>
   </data>
   <data name="PreloadMemoryBudgetOptionTooltip" xml:space="preserve">
-    <value>Choose the decoded-image cache memory budget.</value>
+    <value>디코딩된 이미지 캐시의 메모리 한도를 선택합니다.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decode likely next and previous images in the background.</value>
+    <value>다음 및 이전 이미지로 예상되는 항목을 백그라운드에서 디코딩합니다.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
-    <value>Use smoother interpolation when zooming in.</value>
+    <value>확대할 때 더 부드러운 보간을 사용합니다.</value>
+  </data>
+  <data name="ShowImageInFolder" xml:space="preserve">
+    <value>폴더에서 이미지 표시</value>
   </data>
   <data name="UpscalingTooltip" xml:space="preserve">
-    <value>Choose how images are enlarged when zoomed past actual size.</value>
+    <value>실제 크기를 넘어 확대할 때 이미지를 확대하는 방식을 선택합니다.</value>
   </data>
 </root>

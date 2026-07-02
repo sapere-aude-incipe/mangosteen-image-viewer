@@ -5,7 +5,7 @@ namespace Mangosteen.Rendering;
 
 public sealed class ViewerState
 {
-    private const double MaxZoom = 64.0;
+    public const double MaximumZoom = 64.0;
 
     public PixelSize ViewportSize { get; private set; }
 
@@ -113,7 +113,7 @@ public sealed class ViewerState
 
         var oldZoom = Zoom;
         var fitZoom = GetFitZoom();
-        var newZoom = Math.Clamp(oldZoom * factor, fitZoom, MaxZoom);
+        var newZoom = Math.Clamp(oldZoom * factor, fitZoom, MaximumZoom);
         if (Math.Abs(newZoom - oldZoom) < 0.0001) return;
 
         if (Math.Abs(newZoom - fitZoom) < 0.0001)
@@ -199,7 +199,7 @@ public sealed class ViewerState
         else
         {
             var zoomRatio = previousZoom / previousFitZoom;
-            Zoom = Math.Clamp(fitZoom * zoomRatio, fitZoom, MaxZoom);
+            Zoom = Math.Clamp(fitZoom * zoomRatio, fitZoom, MaximumZoom);
             Mode = ViewerFitMode.Custom;
         }
 

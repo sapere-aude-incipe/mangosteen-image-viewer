@@ -13,82 +13,82 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AllFiles" xml:space="preserve">
-    <value>æ‰€æœ‰æª”æ¡ˆ</value>
+    <value>所有檔案</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
     <value>Mangosteen Image Viewer</value>
   </data>
   <data name="FileNotFoundFormat" xml:space="preserve">
-    <value>æ‰¾ä¸åˆ°æª”æ¡ˆï¼š{0}</value>
+    <value>找不到檔案：{0}</value>
   </data>
   <data name="FullResolutionDecodeFailed" xml:space="preserve">
-    <value>å…¨è§£æžåº¦è§£ç¢¼å¤±æ•—ã€‚</value>
+    <value>全解析度解碼失敗。</value>
   </data>
   <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
-    <value>å…¨è§£æžåº¦è§£ç¢¼å¤±æ•—ï¼š{0}</value>
+    <value>全解析度解碼失敗：{0}</value>
   </data>
   <data name="ImageFiles" xml:space="preserve">
-    <value>å½±åƒæª”æ¡ˆ</value>
+    <value>影像檔案</value>
   </data>
   <data name="Loading" xml:space="preserve">
-    <value>æ­£åœ¨è¼‰å…¥...</value>
+    <value>正在載入...</value>
   </data>
   <data name="Manual" xml:space="preserve">
-    <value>æ‰‹å‹•</value>
+    <value>手動</value>
   </data>
   <data name="Nearest" xml:space="preserve">
-    <value>æœ€è¿‘é„°</value>
+    <value>最近鄰</value>
   </data>
   <data name="NextImage" xml:space="preserve">
-    <value>ä¸‹ä¸€å¼µå½±åƒ</value>
+    <value>下一張影像</value>
   </data>
   <data name="NoImage" xml:space="preserve">
-    <value>ç„¡å½±åƒ</value>
+    <value>拖放或按一下以開啟</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
-    <value>é–‹å•Ÿå½±åƒ</value>
+    <value>開啟影像</value>
   </data>
   <data name="Preload" xml:space="preserve">
-    <value>é è¼‰</value>
+    <value>預先載入</value>
   </data>
   <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
-    <value>ç”¨æ–¼å®Œæ•´è§£ç¢¼å’Œé è¼‰çš„è¨˜æ†¶é«”é ç®—</value>
+    <value>完整解碼和預先載入使用的記憶體預算</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>é è¼‰é™„è¿‘å½±åƒ</value>
+    <value>預先載入附近影像</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
-    <value>åƒ…é è¦½</value>
+    <value>僅預覽</value>
   </data>
   <data name="PreviousImage" xml:space="preserve">
-    <value>ä¸Šä¸€å¼µå½±åƒ</value>
+    <value>上一張影像</value>
   </data>
   <data name="Smooth" xml:space="preserve">
-    <value>å¹³æ»‘</value>
+    <value>平滑</value>
   </data>
   <data name="ToggleActualPixels" xml:space="preserve">
-    <value>åˆ‡æ›å¯¦éš›åƒç´ </value>
+    <value>切換實際像素</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>åˆ‡æ›æ·±è‰²æ¨¡å¼</value>
+    <value>切換深色模式</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
-    <value>åˆ‡æ›å¹³æ»‘æˆ–æœ€è¿‘é„°æ”¾å¤§</value>
+    <value>切換平滑或最近鄰放大</value>
   </data>
   <data name="UnexpectedError" xml:space="preserve">
-    <value>ç™¼ç”Ÿæœªé æœŸçš„éŒ¯èª¤ã€‚</value>
+    <value>發生未預期的錯誤。</value>
   </data>
   <data name="UseDarkMode" xml:space="preserve">
-    <value>ä½¿ç”¨æ·±è‰²æ¨¡å¼</value>
+    <value>使用深色模式</value>
   </data>
   <data name="UseLightMode" xml:space="preserve">
-    <value>ä½¿ç”¨æ·ºè‰²æ¨¡å¼</value>
+    <value>使用淺色模式</value>
   </data>
   <data name="Aggressive" xml:space="preserve">
     <value>積極</value>
   </data>
   <data name="Balanced" xml:space="preserve">
-    <value>均衡</value>
+    <value>平衡</value>
   </data>
   <data name="Conservative" xml:space="preserve">
     <value>保守</value>
@@ -97,7 +97,7 @@
     <value>刪除影像</value>
   </data>
   <data name="DeleteImageConfirmationFormat" xml:space="preserve">
-    <value>將 {0} 移到資源回收筒嗎？</value>
+    <value>要將 {0} 移到資源回收筒嗎？</value>
   </data>
   <data name="Exit" xml:space="preserve">
     <value>結束</value>
@@ -112,63 +112,66 @@
     <value>選項</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>預載積極度</value>
+    <value>預先載入積極度</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
-    <value>預載記憶體</value>
+    <value>預先載入記憶體</value>
   </data>
   <data name="Upscaling" xml:space="preserve">
-    <value>放大方式</value>
+    <value>放大</value>
   </data>
   <data name="Zoom" xml:space="preserve">
     <value>縮放</value>
   </data>
   <data name="AggressivePreloadTooltip" xml:space="preserve">
-    <value>Preload farther ahead and use more background work.</value>
+    <value>預先載入更遠的影像，並使用更多背景工作。</value>
   </data>
   <data name="BalancedPreloadTooltip" xml:space="preserve">
-    <value>A middle ground between speed and memory use.</value>
+    <value>在速度和記憶體使用之間取得平衡。</value>
   </data>
   <data name="ConservativePreloadTooltip" xml:space="preserve">
-    <value>Use less background work and memory.</value>
+    <value>使用較少背景工作和記憶體。</value>
   </data>
   <data name="HelpMenu" xml:space="preserve">
-    <value>Help</value>
+    <value>說明</value>
   </data>
   <data name="NearestUpscalingTooltip" xml:space="preserve">
-    <value>Use sharp, pixelated scaling when zooming in.</value>
+    <value>放大時使用銳利、像素化的縮放。</value>
   </data>
   <data name="OptionsHelp" xml:space="preserve">
-    <value>Options help</value>
+    <value>選項說明</value>
   </data>
   <data name="OptionsHelpDialogText" xml:space="preserve">
-    <value>Upscaling controls how images are enlarged past their natural size. Smooth looks softer; nearest keeps hard pixel edges.
+    <value>放大控制影像超過自然尺寸時的顯示方式。平滑看起來較柔和；最近鄰保留清晰的像素邊緣。
 
-Preload nearby images decodes likely next and previous images in the background.
+預先載入附近影像會在背景解碼可能的下一張和上一張影像。
 
-Preload memory limits how much RAM cached images may use.
+預先載入記憶體限制快取影像可使用的 RAM。
 
-Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly it warms images.</value>
+預先載入積極度控制 Mangosteen 向前掃描多遠，以及多積極地預熱影像。</value>
   </data>
   <data name="OptionsHelpDialogTitle" xml:space="preserve">
-    <value>Options help</value>
+    <value>選項說明</value>
   </data>
   <data name="OptionsHelpTooltip" xml:space="preserve">
-    <value>Explain image display and preloading options.</value>
+    <value>說明影像顯示和預先載入選項。</value>
   </data>
   <data name="PreloadAggressivenessTooltip" xml:space="preserve">
-    <value>Choose how far ahead Mangosteen looks and how eagerly it warms images.</value>
+    <value>選擇 Mangosteen 向前查看多遠，以及多積極地預熱影像。</value>
   </data>
   <data name="PreloadMemoryBudgetOptionTooltip" xml:space="preserve">
-    <value>Choose the decoded-image cache memory budget.</value>
+    <value>選擇已解碼影像快取的記憶體預算。</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decode likely next and previous images in the background.</value>
+    <value>在背景解碼可能的下一張和上一張影像。</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
-    <value>Use smoother interpolation when zooming in.</value>
+    <value>放大時使用更平滑的插值。</value>
+  </data>
+  <data name="ShowImageInFolder" xml:space="preserve">
+    <value>在資料夾中顯示影像</value>
   </data>
   <data name="UpscalingTooltip" xml:space="preserve">
-    <value>Choose how images are enlarged when zoomed past actual size.</value>
+    <value>選擇影像在超過實際大小後如何放大。</value>
   </data>
 </root>

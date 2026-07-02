@@ -3,6 +3,7 @@ obj/
 publish/
 dist/
 backup/
+.claude/
 .vs/
 .idea/
 .vscode/
