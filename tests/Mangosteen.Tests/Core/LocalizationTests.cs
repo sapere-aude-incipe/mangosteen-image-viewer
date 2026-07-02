@@ -32,7 +32,26 @@ public sealed class LocalizationTests
     {
         var german = CultureInfo.GetCultureInfo("de");
 
-        Assert.AreEqual("Kein Bild", LocalizedText.Get(LocalizedText.NoImage, german));
+        Assert.AreEqual(
+            "Bild hier ablegen oder klicken zum Öffnen",
+            LocalizedText.Get(LocalizedText.NoImage, german));
+    }
+
+    [TestMethod]
+    public void Localized_Values_Do_Not_Contain_Mojibake_Control_Characters()
+    {
+        foreach (var cultureName in LocalizedText.SupportedCultureNames)
+        {
+            var culture = CultureInfo.GetCultureInfo(cultureName);
+            foreach (var key in LocalizedText.Keys)
+            {
+                var value = LocalizedText.Get(key, culture);
+
+                Assert.IsFalse(
+                    value.Any(IsSuspiciousResourceCharacter),
+                    $"Suspicious mojibake/control character in '{key}' for '{cultureName}': {value}");
+            }
+        }
     }
 
     [TestMethod]
@@ -40,7 +59,9 @@ public sealed class LocalizationTests
     {
         var norwegian = CultureInfo.GetCultureInfo("nb");
 
-        Assert.AreEqual("Ingen bilder", LocalizedText.Get(LocalizedText.NoImage, norwegian));
+        Assert.AreEqual(
+            "Dra og slipp eller klikk for å åpne",
+            LocalizedText.Get(LocalizedText.NoImage, norwegian));
     }
 
     [TestMethod]
@@ -54,5 +75,10 @@ public sealed class LocalizationTests
                 norwegian,
                 LocalizedText.Get(LocalizedText.FileNotFoundFormat, norwegian),
                 "C:\\missing.jpg"));
+    }
+
+    private static bool IsSuspiciousResourceCharacter(char value)
+    {
+        return value is >= '\u0080' and <= '\u009F' or '\uFFFD';
     }
 }

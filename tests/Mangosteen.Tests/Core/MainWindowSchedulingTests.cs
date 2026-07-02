@@ -37,4 +37,22 @@ public sealed class MainWindowSchedulingTests
 
         Assert.IsFalse(shouldSchedule);
     }
+
+    [TestMethod]
+    public void ActualPixels_Command_Is_Enabled_For_Small_Image_Zoomed_Past_One_To_One()
+    {
+        Assert.IsTrue(MainWindow.CanToggleActualPixelsForState(
+            hasImage: true,
+            fitsAtActualPixels: true,
+            zoom: 14.56));
+    }
+
+    [TestMethod]
+    public void ActualPixels_Command_Is_Disabled_For_Small_Image_Already_At_One_To_One()
+    {
+        Assert.IsFalse(MainWindow.CanToggleActualPixelsForState(
+            hasImage: true,
+            fitsAtActualPixels: true,
+            zoom: 1.0));
+    }
 }

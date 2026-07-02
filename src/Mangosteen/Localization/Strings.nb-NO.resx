@@ -43,7 +43,7 @@
     <value>Neste bilde</value>
   </data>
   <data name="NoImage" xml:space="preserve">
-    <value>Ingen bilder</value>
+    <value>Dra og slipp eller klikk for å åpne</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
     <value>Ã…pne bilde</value>
@@ -124,51 +124,54 @@
     <value>Zoom</value>
   </data>
   <data name="AggressivePreloadTooltip" xml:space="preserve">
-    <value>Preload farther ahead and use more background work.</value>
+    <value>Forhåndslaster lenger fram og bruker mer bakgrunnsarbeid.</value>
   </data>
   <data name="BalancedPreloadTooltip" xml:space="preserve">
-    <value>A middle ground between speed and memory use.</value>
+    <value>En mellomting mellom hastighet og minnebruk.</value>
   </data>
   <data name="ConservativePreloadTooltip" xml:space="preserve">
-    <value>Use less background work and memory.</value>
+    <value>Bruker mindre bakgrunnsarbeid og minne.</value>
   </data>
   <data name="HelpMenu" xml:space="preserve">
-    <value>Help</value>
+    <value>Hjelp</value>
   </data>
   <data name="NearestUpscalingTooltip" xml:space="preserve">
-    <value>Use sharp, pixelated scaling when zooming in.</value>
+    <value>Bruker skarp, pikselert skalering når du zoomer inn.</value>
   </data>
   <data name="OptionsHelp" xml:space="preserve">
-    <value>Options help</value>
+    <value>Hjelp for alternativer</value>
   </data>
   <data name="OptionsHelpDialogText" xml:space="preserve">
-    <value>Upscaling controls how images are enlarged past their natural size. Smooth looks softer; nearest keeps hard pixel edges.
+    <value>Oppskalering styrer hvordan bilder forstørres forbi sin naturlige størrelse. Jevn ser mykere ut; nærmeste nabo beholder harde pikselkanter.
 
-Preload nearby images decodes likely next and previous images in the background.
+Forhåndslast bilder i nærheten dekoder sannsynlige neste og forrige bilder i bakgrunnen.
 
-Preload memory limits how much RAM cached images may use.
+Forhåndslastingsminne begrenser hvor mye RAM bufrede bilder kan bruke.
 
-Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly it warms images.</value>
+Hvor aggressiv forhåndslasting er styrer hvor langt fram Mangosteen skanner og hvor ivrig den varmer opp bilder.</value>
   </data>
   <data name="OptionsHelpDialogTitle" xml:space="preserve">
-    <value>Options help</value>
+    <value>Hjelp for alternativer</value>
   </data>
   <data name="OptionsHelpTooltip" xml:space="preserve">
-    <value>Explain image display and preloading options.</value>
+    <value>Forklarer bildevisnings- og forhåndslastingsalternativer.</value>
   </data>
   <data name="PreloadAggressivenessTooltip" xml:space="preserve">
-    <value>Choose how far ahead Mangosteen looks and how eagerly it warms images.</value>
+    <value>Velg hvor langt fram Mangosteen ser og hvor ivrig den varmer opp bilder.</value>
   </data>
   <data name="PreloadMemoryBudgetOptionTooltip" xml:space="preserve">
-    <value>Choose the decoded-image cache memory budget.</value>
+    <value>Velg minnebudsjett for den dekodede bildebufferen.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decode likely next and previous images in the background.</value>
+    <value>Dekoder sannsynlige neste og forrige bilder i bakgrunnen.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
-    <value>Use smoother interpolation when zooming in.</value>
+    <value>Bruker jevnere interpolering når du zoomer inn.</value>
+  </data>
+  <data name="ShowImageInFolder" xml:space="preserve">
+    <value>Vis bildet i mappe</value>
   </data>
   <data name="UpscalingTooltip" xml:space="preserve">
-    <value>Choose how images are enlarged when zoomed past actual size.</value>
+    <value>Velg hvordan bilder forstørres når de zoomes forbi faktisk størrelse.</value>
   </data>
 </root>

@@ -48,6 +48,7 @@ internal static class LocalizedText
     public const string PreviousImage = nameof(PreviousImage);
     public const string Smooth = nameof(Smooth);
     public const string SmoothUpscalingTooltip = nameof(SmoothUpscalingTooltip);
+    public const string ShowImageInFolder = nameof(ShowImageInFolder);
     public const string ToggleActualPixels = nameof(ToggleActualPixels);
     public const string ToggleDarkMode = nameof(ToggleDarkMode);
     public const string ToggleSmoothNearestUpscaling = nameof(ToggleSmoothNearestUpscaling);
@@ -123,6 +124,7 @@ internal static class LocalizedText
         PreviousImage,
         Smooth,
         SmoothUpscalingTooltip,
+        ShowImageInFolder,
         ToggleActualPixels,
         ToggleDarkMode,
         ToggleSmoothNearestUpscaling,

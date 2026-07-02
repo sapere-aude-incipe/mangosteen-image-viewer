@@ -11,10 +11,12 @@ using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using WpfPoint = System.Windows.Point;
 
@@ -47,8 +49,20 @@ public partial class MainWindow : Window
     private const long CleanupThresholdBytes = 512L * ImageMemoryEstimator.Megabyte;
     private const int BalancedFullPreloadIdleDelayMilliseconds = 1_200;
     private const int DefaultPreloadBudgetGigabytes = 2;
-    private const double DefaultMenuHeightDips = 28.0;
+    private const double DefaultTopChromeHeightDips = 48.0;
     private const double DefaultToolbarHeightDips = 48.0;
+    private const int DwmWindowCornerPreferenceAttribute = 33;
+    private const int MonitorDefaultToNearest = 2;
+    private const int WmGetMinMaxInfo = 0x0024;
+    private const double EmptyStateMinimumWidth = 280.0;
+    private const double EmptyStateMaximumWidth = 500.0;
+    private const double EmptyStateHorizontalMargin = 240.0;
+    private const double ZoomSliderMinimumValue = 0.0;
+    private const double ZoomSliderMaximumValue = 100.0;
+    private const double MinimumSliderZoom = 0.0001;
+    private const double ActualPixelZoomTolerance = 0.0001;
+    private const string MaximizeWindowIconGlyph = "\uE922";
+    private const string RestoreWindowIconGlyph = "\uE923";
     private static readonly SKColor LightViewerBackground = new(244, 246, 248);
     private static readonly SKColor DarkViewerBackground = new(30, 33, 38);
 
@@ -79,21 +93,24 @@ public partial class MainWindow : Window
     private bool _setActualPixelsAfterFullLoad;
     private bool _useSmoothSampling = true;
     private bool _isPreloadEnabled = true;
+    private bool _isUpdatingZoomSlider;
     private int _preloadBudgetGigabytes = DefaultPreloadBudgetGigabytes;
     private PreloadAggressiveness _preloadAggressiveness = PreloadAggressiveness.Balanced;
     private SKColor _viewerBackgroundColor = LightViewerBackground;
     private SKPoint _lastPanPoint;
+    private HwndSource? _hwndSource;
 
     public MainWindow()
     {
         InitializeComponent();
-        ApplyTheme(isDarkMode: false);
+        ApplyTheme(isDarkMode: true);
         ApplyLocalization();
         UpdateViewport();
         UpdateNavigationButtons();
         ApplyPreloadCacheBudget();
         UpdateActualPixelsIcon();
         UpdateToolbarDensity();
+        UpdateMaximizeRestoreButton();
 
         _animationTimer.Tick += AnimationTimer_Tick;
     }
@@ -135,8 +152,9 @@ public partial class MainWindow : Window
 
         if (_image is null)
         {
-            StatusText.Text = LocalizedText.Get(LocalizedText.NoImage);
+            ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
         }
+        UpdateStatusOverlayOpenState();
 
         PreviewOnlyText.Text = LocalizedText.Get(LocalizedText.PreviewOnly);
         DarkModeMenuItem.ToolTip = DarkModeMenuItem.IsChecked
@@ -145,8 +163,11 @@ public partial class MainWindow : Window
         PreviousButton.ToolTip = $"{LocalizedText.Get(LocalizedText.PreviousImage)} (←)";
         NextButton.ToolTip = $"{LocalizedText.Get(LocalizedText.NextImage)} (→)";
         ActualPixelsButton.ToolTip = $"{LocalizedText.Get(LocalizedText.ToggleActualPixels)} (1 / F)";
+        ZoomPopupButton.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
+        ShowInFolderButton.ToolTip = LocalizedText.Get(LocalizedText.ShowImageInFolder);
         DeleteButton.ToolTip = $"{LocalizedText.Get(LocalizedText.DeleteImage)} (Del)";
         ZoomText.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
+        ZoomSlider.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
         OpenMenuItem.InputGestureText = "Ctrl+O";
         DeleteMenuItem.InputGestureText = "Del";
         UpdateSettingsMenuChecks();
@@ -166,7 +187,11 @@ public partial class MainWindow : Window
     private void UpdateWindowTitle(string? fileName = null)
     {
         var appTitle = LocalizedText.Get(LocalizedText.AppTitle);
-        Title = string.IsNullOrWhiteSpace(fileName) ? appTitle : $"{fileName} - {appTitle}";
+        var hasFileName = !string.IsNullOrWhiteSpace(fileName);
+        var chromeTitle = hasFileName ? fileName! : appTitle;
+        Title = hasFileName ? $"{fileName} - {appTitle}" : appTitle;
+        ChromeTitleText.Text = chromeTitle;
+        ChromeTitleText.ToolTip = Title;
     }
 
     public async Task OpenPathAsync(string path)
@@ -600,11 +625,6 @@ public partial class MainWindow : Window
     private void ImageSurface_MouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (_image is null) return;
-        if (IsCurrentPreviewAwaitingFullResolution)
-        {
-            e.Handled = true;
-            return;
-        }
 
         var factor = e.Delta > 0 ? 1.15 : 1.0 / 1.15;
         _viewerState.ZoomAt(factor, ToPixelPoint(e.GetPosition(ImageSurface)));
@@ -613,15 +633,31 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isUpdatingZoomSlider || _image is null)
+        {
+            return;
+        }
+
+        var targetZoom = GetZoomFromSliderValue(e.NewValue);
+        if (Math.Abs(targetZoom - _viewerState.Zoom) < 0.0001 || _viewerState.Zoom <= 0)
+        {
+            return;
+        }
+
+        var viewportCenter = new SKPoint(
+            _viewerState.ViewportSize.Width / 2f,
+            _viewerState.ViewportSize.Height / 2f);
+        _viewerState.ZoomAt(targetZoom / _viewerState.Zoom, viewportCenter);
+        UpdateZoomText();
+        ImageSurface.InvalidateVisual();
+    }
+
     private void ImageSurface_MouseDown(object sender, MouseButtonEventArgs e)
     {
         ImageSurface.Focus();
         if (e.ChangedButton != MouseButton.Left || _image is null) return;
-        if (IsCurrentPreviewAwaitingFullResolution)
-        {
-            e.Handled = true;
-            return;
-        }
 
         _isPanning = true;
         _lastPanPoint = ToPixelPoint(e.GetPosition(ImageSurface));
@@ -696,9 +732,30 @@ public partial class MainWindow : Window
         ToggleActualPixels();
     }
 
+    private void ZoomPopupButton_Click(object sender, RoutedEventArgs e)
+    {
+        ZoomPopup.IsOpen = !ZoomPopup.IsOpen;
+    }
+
+    private void ShowInFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowCurrentImageInFolder();
+    }
+
     private async void DeleteButton_Click(object sender, RoutedEventArgs e)
     {
         await RunUiCommandAsync(DeleteCurrentImageAsync);
+    }
+
+    private async void StatusOverlay_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!CanOpenFromStatusOverlay())
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await RunUiCommandAsync(ShowOpenDialogAsync);
     }
 
     private async void OpenMenuItem_Click(object sender, RoutedEventArgs e)
@@ -791,6 +848,46 @@ public partial class MainWindow : Window
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         UpdateToolbarDensity();
+    }
+
+    private void Window_SourceInitialized(object? sender, EventArgs e)
+    {
+        var source = (HwndSource?)PresentationSource.FromVisual(this);
+        if (source is null)
+        {
+            return;
+        }
+
+        _hwndSource = source;
+        source.AddHook(WindowProc);
+        ApplyNativeRoundedCorners(source.Handle);
+    }
+
+    private void Window_StateChanged(object? sender, EventArgs e)
+    {
+        UpdateMaximizeRestoreButton();
+        UpdateToolbarDensity();
+    }
+
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        SystemCommands.MinimizeWindow(this);
+    }
+
+    private void MaximizeRestoreButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+        {
+            SystemCommands.RestoreWindow(this);
+            return;
+        }
+
+        SystemCommands.MaximizeWindow(this);
+    }
+
+    private void CloseWindowButton_Click(object sender, RoutedEventArgs e)
+    {
+        SystemCommands.CloseWindow(this);
     }
 
     private void DarkModeMenuItem_Click(object sender, RoutedEventArgs e)
@@ -922,6 +1019,34 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ShowCurrentImageInFolder()
+    {
+        var path = _navigator.CurrentPath;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        var directory = Path.GetDirectoryName(path);
+        if (!File.Exists(path) && (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)))
+        {
+            UpdateNavigationButtons();
+            return;
+        }
+
+        try
+        {
+            var startInfo = new ProcessStartInfo("explorer.exe");
+            startInfo.ArgumentList.Add(File.Exists(path) ? $"/select,{path}" : directory!);
+            Process.Start(startInfo);
+        }
+        catch (Exception ex)
+        {
+            TraceBackgroundError($"Failed to show image in folder for '{path}'", ex);
+            ShowStatus(LocalizedText.Get(LocalizedText.UnexpectedError));
+        }
+    }
+
     private async Task DeleteCurrentImageAsync()
     {
         var path = _navigator.CurrentPath;
@@ -931,15 +1056,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        var fileName = Path.GetFileName(path);
-        var result = MessageBox.Show(
-            this,
-            LocalizedText.Format(LocalizedText.DeleteImageConfirmationFormat, fileName),
-            LocalizedText.Get(LocalizedText.DeleteImage),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning,
-            MessageBoxResult.No);
-        if (result != MessageBoxResult.Yes)
+        // The shell confirmation dialog and the recycle are a single operation, so a
+        // cancelled dialog can only be detected by the file still existing afterwards.
+        FileSystem.DeleteFile(path, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.DoNothing);
+        if (File.Exists(path))
         {
             return;
         }
@@ -955,8 +1075,6 @@ public partial class MainWindow : Window
         CancelBackgroundFullWarmups();
         ClearPreloadCaches();
         ClearImage();
-
-        FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
 
         if (_navigator.RemoveCurrent() is null)
         {
@@ -995,9 +1113,9 @@ public partial class MainWindow : Window
 
     private double GetFallbackViewportHeightDips()
     {
-        var menuHeight = MainMenu is { ActualHeight: > 1.0 }
-            ? MainMenu.ActualHeight
-            : DefaultMenuHeightDips;
+        var menuHeight = TopChrome is { ActualHeight: > 1.0 }
+            ? TopChrome.ActualHeight
+            : DefaultTopChromeHeightDips;
         var toolbarHeight = ToolbarHost is { ActualHeight: > 1.0 }
             ? ToolbarHost.ActualHeight
             : DefaultToolbarHeightDips;
@@ -1030,6 +1148,13 @@ public partial class MainWindow : Window
 
         if (_viewerState.FitsAtActualPixels)
         {
+            if (_viewerState.Zoom > 1.0 + ActualPixelZoomTolerance)
+            {
+                _viewerState.SetActualPixels();
+                UpdateZoomText();
+                ImageSurface.InvalidateVisual();
+            }
+
             return;
         }
 
@@ -1865,6 +1990,58 @@ public partial class MainWindow : Window
         Debug.WriteLine($"{context}: {exception}");
     }
 
+    private nint WindowProc(nint hwnd, int message, nint wParam, nint lParam, ref bool handled)
+    {
+        if (message == WmGetMinMaxInfo)
+        {
+            ApplyMaximizedWorkArea(hwnd, lParam);
+            handled = true;
+        }
+
+        return nint.Zero;
+    }
+
+    private static void ApplyNativeRoundedCorners(nint hwnd)
+    {
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000))
+        {
+            return;
+        }
+
+        var preference = (int)DwmWindowCornerPreference.Round;
+        _ = DwmSetWindowAttribute(
+            hwnd,
+            DwmWindowCornerPreferenceAttribute,
+            ref preference,
+            Marshal.SizeOf<int>());
+    }
+
+    private static void ApplyMaximizedWorkArea(nint hwnd, nint minMaxInfoPointer)
+    {
+        var monitor = MonitorFromWindow(hwnd, MonitorDefaultToNearest);
+        if (monitor == nint.Zero)
+        {
+            return;
+        }
+
+        var monitorInfo = MonitorInfo.Create();
+        if (!GetMonitorInfo(monitor, ref monitorInfo))
+        {
+            return;
+        }
+
+        var minMaxInfo = Marshal.PtrToStructure<MinMaxInfo>(minMaxInfoPointer);
+        var workArea = monitorInfo.WorkArea;
+        var monitorArea = monitorInfo.MonitorArea;
+
+        minMaxInfo.MaxPosition.X = Math.Abs(workArea.Left - monitorArea.Left);
+        minMaxInfo.MaxPosition.Y = Math.Abs(workArea.Top - monitorArea.Top);
+        minMaxInfo.MaxSize.X = Math.Abs(workArea.Right - workArea.Left);
+        minMaxInfo.MaxSize.Y = Math.Abs(workArea.Bottom - workArea.Top);
+
+        Marshal.StructureToPtr(minMaxInfo, minMaxInfoPointer, fDeleteOld: true);
+    }
+
     private static bool IsNetworkPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -1875,6 +2052,13 @@ public partial class MainWindow : Window
         return path.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWith(@"\\", StringComparison.Ordinal) &&
             !path.StartsWith(@"\\?\", StringComparison.Ordinal);
+    }
+
+    private void UpdateMaximizeRestoreButton()
+    {
+        var isMaximized = WindowState == WindowState.Maximized;
+        MaximizeRestoreIcon.Text = isMaximized ? RestoreWindowIconGlyph : MaximizeWindowIconGlyph;
+        MaximizeRestoreButton.ToolTip = isMaximized ? "Restore" : "Maximize";
     }
 
     private void UpdateActualPixelsIcon()
@@ -1890,6 +2074,8 @@ public partial class MainWindow : Window
         var iconBrush = GetToolbarIconBrush();
         PreviousButton.Content = ToolbarIcon.Create(ToolbarIconKind.Previous, iconBrush);
         NextButton.Content = ToolbarIcon.Create(ToolbarIconKind.Next, iconBrush);
+        ZoomPopupButton.Content = ToolbarIcon.Create(ToolbarIconKind.Zoom, iconBrush);
+        ShowInFolderButton.Content = ToolbarIcon.Create(ToolbarIconKind.Folder, iconBrush);
         DeleteButton.Content = ToolbarIcon.Create(ToolbarIconKind.Delete, GetToolbarDangerBrush());
         UpdateActualPixelsIcon();
     }
@@ -1913,6 +2099,35 @@ public partial class MainWindow : Window
 
     private void ApplyToolbarThemeResources(bool isDarkMode)
     {
+        Resources["ChromeBackground"] = isDarkMode
+            ? CreateBrush(30, 33, 38)
+            : CreateBrush(244, 246, 248);
+        Resources["ChromeSurfaceBackground"] = isDarkMode
+            ? CreateBrush(39, 43, 50)
+            : CreateBrush(238, 243, 247);
+        Resources["ChromeSurfaceBorder"] = isDarkMode
+            ? CreateBrush(62, 69, 80)
+            : CreateBrush(215, 223, 231);
+        Resources["ChromeButtonForeground"] = isDarkMode
+            ? CreateBrush(236, 240, 245)
+            : CreateBrush(36, 50, 64);
+        Resources["ChromeButtonHoverBackground"] = isDarkMode
+            ? CreateBrush(54, 61, 72)
+            : CreateBrush(229, 236, 243);
+        Resources["ChromeButtonPressedBackground"] = isDarkMode
+            ? CreateBrush(64, 72, 84)
+            : CreateBrush(215, 225, 234);
+        Resources["ChromeCloseHoverBackground"] = CreateBrush(196, 43, 28);
+        Resources["ChromeCloseHoverForeground"] = CreateBrush(255, 255, 255);
+        Resources["EmptyStateBackground"] = isDarkMode
+            ? CreateBrush(14, 255, 255, 255)
+            : CreateBrush(12, 36, 50, 64);
+        Resources["EmptyStateBorder"] = isDarkMode
+            ? CreateBrush(96, 104, 114)
+            : CreateBrush(148, 160, 172);
+        Resources["EmptyStateIcon"] = isDarkMode
+            ? CreateBrush(150, 157, 166)
+            : CreateBrush(112, 126, 140);
         Resources["PanelBackground"] = isDarkMode
             ? CreateBrush(43, 47, 54)
             : CreateBrush(255, 255, 255);
@@ -1967,6 +2182,70 @@ public partial class MainWindow : Window
         return Resources["TextDanger"] as Brush ?? Brushes.Firebrick;
     }
 
+    private enum DwmWindowCornerPreference
+    {
+        Default = 0,
+        DoNotRound = 1,
+        Round = 2,
+        RoundSmall = 3
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Point
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Rect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MinMaxInfo
+    {
+        public Point Reserved;
+        public Point MaxSize;
+        public Point MaxPosition;
+        public Point MinTrackSize;
+        public Point MaxTrackSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MonitorInfo
+    {
+        public int Size;
+        public Rect MonitorArea;
+        public Rect WorkArea;
+        public int Flags;
+
+        public static MonitorInfo Create()
+        {
+            return new MonitorInfo
+            {
+                Size = Marshal.SizeOf<MonitorInfo>()
+            };
+        }
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(
+        nint hwnd,
+        int attribute,
+        ref int attributeValue,
+        int attributeSize);
+
+    [DllImport("user32.dll")]
+    private static extern nint MonitorFromWindow(nint hwnd, int flags);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfo monitorInfo);
+
     private static SolidColorBrush CreateBrush(byte red, byte green, byte blue)
     {
         return CreateBrush(255, red, green, blue);
@@ -1988,6 +2267,7 @@ public partial class MainWindow : Window
         PreviousButton.IsEnabled = _navigator.CanMovePrevious;
         NextButton.IsEnabled = _navigator.CanMoveNext;
         ActualPixelsButton.IsEnabled = CanToggleActualPixels();
+        ShowInFolderButton.IsEnabled = CanShowCurrentImageInFolder();
         var canDelete = CanDeleteCurrentImage();
         DeleteButton.IsEnabled = canDelete;
         DeleteMenuItem.IsEnabled = canDelete;
@@ -1996,16 +2276,80 @@ public partial class MainWindow : Window
     private void UpdateZoomText()
     {
         ZoomText.Text = _image is null
-            ? string.Empty
+            ? "-"
             : $"{_viewerState.Zoom * 100:0}%";
+        UpdateZoomSlider();
         ActualPixelsButton.IsEnabled = CanToggleActualPixels();
         UpdateActualPixelsIcon();
         UpdateToolbarDensity();
     }
 
+    private void UpdateZoomSlider()
+    {
+        if (ZoomSlider is null)
+        {
+            return;
+        }
+
+        _isUpdatingZoomSlider = true;
+        try
+        {
+            ZoomSlider.Minimum = ZoomSliderMinimumValue;
+            ZoomSlider.Maximum = ZoomSliderMaximumValue;
+            ZoomSlider.IsEnabled = _image is not null;
+            ZoomSlider.Value = _image is null
+                ? ZoomSliderMinimumValue
+                : GetSliderValueFromZoom(_viewerState.Zoom);
+        }
+        finally
+        {
+            _isUpdatingZoomSlider = false;
+        }
+    }
+
+    private double GetSliderValueFromZoom(double zoom)
+    {
+        var minimumZoom = GetSliderMinimumZoom();
+        var maximumZoom = ViewerState.MaximumZoom;
+        if (maximumZoom <= minimumZoom)
+        {
+            return ZoomSliderMaximumValue;
+        }
+
+        var clampedZoom = Math.Clamp(zoom, minimumZoom, maximumZoom);
+        var t = Math.Log(clampedZoom / minimumZoom) / Math.Log(maximumZoom / minimumZoom);
+        return Math.Clamp(t, 0.0, 1.0) * ZoomSliderMaximumValue;
+    }
+
+    private double GetZoomFromSliderValue(double sliderValue)
+    {
+        var minimumZoom = GetSliderMinimumZoom();
+        var maximumZoom = ViewerState.MaximumZoom;
+        if (maximumZoom <= minimumZoom)
+        {
+            return minimumZoom;
+        }
+
+        var t = Math.Clamp(sliderValue, ZoomSliderMinimumValue, ZoomSliderMaximumValue) / ZoomSliderMaximumValue;
+        return minimumZoom * Math.Pow(maximumZoom / minimumZoom, t);
+    }
+
+    private double GetSliderMinimumZoom()
+    {
+        return Math.Clamp(_viewerState.FitZoom, MinimumSliderZoom, ViewerState.MaximumZoom);
+    }
+
     private bool CanToggleActualPixels()
     {
-        return _image is not null && !_viewerState.FitsAtActualPixels;
+        return CanToggleActualPixelsForState(
+            _image is not null,
+            _viewerState.FitsAtActualPixels,
+            _viewerState.Zoom);
+    }
+
+    internal static bool CanToggleActualPixelsForState(bool hasImage, bool fitsAtActualPixels, double zoom)
+    {
+        return hasImage && (!fitsAtActualPixels || zoom > 1.0 + ActualPixelZoomTolerance);
     }
 
     private bool CanDeleteCurrentImage()
@@ -2014,35 +2358,79 @@ public partial class MainWindow : Window
         return path is not null && File.Exists(path);
     }
 
+    private bool CanShowCurrentImageInFolder()
+    {
+        var path = _navigator.CurrentPath;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        if (File.Exists(path))
+        {
+            return true;
+        }
+
+        var directory = Path.GetDirectoryName(path);
+        return !string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory);
+    }
+
     private void UpdateToolbarDensity()
     {
-        if (ZoomText is null)
+        if (ZoomText is null || ZoomSlider is null)
         {
             return;
         }
 
-        ZoomText.Visibility = ActualWidth >= 680 && _image is not null
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        ZoomSlider.Visibility = Visibility.Visible;
+        ZoomText.Visibility = Visibility.Visible;
+    }
+
+    private bool CanOpenFromStatusOverlay()
+    {
+        return _image is null &&
+            _navigator.CurrentPath is null &&
+            StatusOverlay.Visibility == Visibility.Visible &&
+            EmptyStatePanel.Visibility == Visibility.Visible &&
+            string.Equals(StatusText.Text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
+    }
+
+    private void UpdateStatusOverlayOpenState()
+    {
+        var canOpen = CanOpenFromStatusOverlay();
+        StatusOverlay.Cursor = canOpen ? Cursors.Hand : Cursors.Arrow;
+        StatusOverlay.ToolTip = canOpen ? LocalizedText.Get(LocalizedText.NoImage) : StatusText.ToolTip;
     }
 
     private void ShowStatus(string text)
     {
         HidePreviewOnlyBadge();
         UpdateStatusOverlayMaxWidth();
+        var isEmptyState = string.Equals(text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
         StatusText.ToolTip = text;
         StatusText.Text = text;
+        StatusMessageText.ToolTip = text;
+        StatusMessageText.Text = text;
+        EmptyStatePanel.Visibility = isEmptyState ? Visibility.Visible : Visibility.Collapsed;
+        StatusMessagePanel.Visibility = isEmptyState ? Visibility.Collapsed : Visibility.Visible;
         StatusOverlay.Visibility = Visibility.Visible;
+        UpdateStatusOverlayOpenState();
     }
 
     private void HideStatus()
     {
         StatusOverlay.Visibility = Visibility.Collapsed;
+        UpdateStatusOverlayOpenState();
     }
 
     private void UpdateStatusOverlayMaxWidth()
     {
-        StatusOverlay.MaxWidth = Math.Max(160, ImageSurface.ActualWidth - 80);
+        var surfaceWidth = ImageSurface.ActualWidth;
+        StatusOverlay.MaxWidth = Math.Max(160, surfaceWidth - 80);
+        EmptyStatePanel.Width = Math.Clamp(
+            surfaceWidth - EmptyStateHorizontalMargin,
+            EmptyStateMinimumWidth,
+            EmptyStateMaximumWidth);
     }
 
     private void ShowPreviewOnlyBadge(string details)

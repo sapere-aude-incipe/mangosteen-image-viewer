@@ -4,12 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+        xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         Title=""
         Width="1080"
         Height="720"
         MinWidth="520"
         MinHeight="360"
+        WindowStyle="None"
+        ResizeMode="CanResize"
         Background="#F4F6F8"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
@@ -17,11 +21,32 @@
         DragOver="Window_DragOver"
         Drop="Window_Drop"
         Icon="Assets/mangosteen.ico"
+        SourceInitialized="Window_SourceInitialized"
         SizeChanged="Window_SizeChanged"
+        StateChanged="Window_StateChanged"
         KeyDown="Window_KeyDown">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="48"
+                            CornerRadius="0"
+                            GlassFrameThickness="0"
+                            ResizeBorderThickness="6"
+                            UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
     <Window.Resources>
         <!-- Shared design tokens: one surface language for menu bar, menus, dock, and overlays.
              Values here are the light theme; ApplyToolbarThemeResources swaps them per theme. -->
+        <SolidColorBrush x:Key="ChromeBackground" Color="#F4F6F8" />
+        <SolidColorBrush x:Key="ChromeSurfaceBackground" Color="#EEF3F7" />
+        <SolidColorBrush x:Key="ChromeSurfaceBorder" Color="#D7DFE7" />
+        <SolidColorBrush x:Key="ChromeButtonForeground" Color="#243240" />
+        <SolidColorBrush x:Key="ChromeButtonHoverBackground" Color="#E5ECF3" />
+        <SolidColorBrush x:Key="ChromeButtonPressedBackground" Color="#D7E1EA" />
+        <SolidColorBrush x:Key="ChromeCloseHoverBackground" Color="#C42B1C" />
+        <SolidColorBrush x:Key="ChromeCloseHoverForeground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="EmptyStateBackground" Color="#0A243240" />
+        <SolidColorBrush x:Key="EmptyStateBorder" Color="#7B8794" />
+        <SolidColorBrush x:Key="EmptyStateIcon" Color="#7B8794" />
         <SolidColorBrush x:Key="PanelBackground" Color="#FFFFFF" />
         <SolidColorBrush x:Key="PanelBorder" Color="#D4DBE3" />
         <SolidColorBrush x:Key="PanelSeparator" Color="#E2E8EE" />
@@ -219,8 +244,36 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ButtonContent" Property="Opacity" Value="0.45" />
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChromeWindowButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource ChromeButtonForeground}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonSurface"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Background" Value="{DynamicResource ChromeButtonHoverBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Background" Value="{DynamicResource ChromeButtonPressedBackground}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -228,96 +281,274 @@
             </Setter>
         </Style>
 
+        <Style x:Key="ChromeCaptionGlyphStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="UseLayoutRounding" Value="True" />
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+            <Setter Property="TextOptions.TextHintingMode" Value="Fixed" />
+        </Style>
+
+        <Style x:Key="ChromeCloseButtonStyle"
+               TargetType="Button"
+               BasedOn="{StaticResource ChromeWindowButtonStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonSurface"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Background" Value="{DynamicResource ChromeCloseHoverBackground}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ChromeCloseHoverForeground}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.82" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ZoomSliderTrackButtonStyle" TargetType="{x:Type primitives:RepeatButton}">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Background" Value="{DynamicResource PanelSeparator}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type primitives:RepeatButton}">
+                        <Border Height="4"
+                                VerticalAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="2" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ZoomSliderThumbStyle" TargetType="{x:Type primitives:Thumb}">
+            <Setter Property="Width" Value="14" />
+            <Setter Property="Height" Value="14" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                        <Ellipse Fill="{DynamicResource TextPrimary}"
+                                 Stroke="{DynamicResource PanelBackground}"
+                                 StrokeThickness="2"
+                                 SnapsToDevicePixels="True" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DockZoomSliderStyle" TargetType="Slider">
+            <Setter Property="Width" Value="132" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Minimum" Value="0" />
+            <Setter Property="Maximum" Value="100" />
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="IsMoveToPointEnabled" Value="True" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="{TemplateBinding Height}"
+                              VerticalAlignment="Center">
+                            <primitives:Track x:Name="PART_Track"
+                                              VerticalAlignment="Center"
+                                              Orientation="{TemplateBinding Orientation}"
+                                              IsDirectionReversed="False">
+                                <primitives:Track.DecreaseRepeatButton>
+                                    <primitives:RepeatButton Command="Slider.DecreaseLarge"
+                                                             Style="{StaticResource ZoomSliderTrackButtonStyle}"
+                                                             Background="{DynamicResource TextPrimary}" />
+                                </primitives:Track.DecreaseRepeatButton>
+                                <primitives:Track.IncreaseRepeatButton>
+                                    <primitives:RepeatButton Command="Slider.IncreaseLarge"
+                                                             Style="{StaticResource ZoomSliderTrackButtonStyle}"
+                                                             Background="{DynamicResource PanelSeparator}" />
+                                </primitives:Track.IncreaseRepeatButton>
+                                <primitives:Track.Thumb>
+                                    <primitives:Thumb Style="{StaticResource ZoomSliderThumbStyle}" />
+                                </primitives:Track.Thumb>
+                            </primitives:Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ZoomPopupTextStyle" TargetType="TextBlock">
+            <Setter Property="MinWidth" Value="48" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        </Style>
+
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="28" />
+            <RowDefinition Height="48" />
             <RowDefinition Height="*" />
             <RowDefinition Height="48" />
         </Grid.RowDefinitions>
 
-        <Menu x:Name="MainMenu"
-              Grid.Row="0"
-              Background="{DynamicResource PanelBackground}"
-              Foreground="{DynamicResource TextPrimary}"
-              BorderBrush="{DynamicResource PanelBorder}"
-              BorderThickness="0,0,0,1">
-            <MenuItem x:Name="FileMenuItem">
-                <MenuItem x:Name="OpenMenuItem"
-                          Click="OpenMenuItem_Click" />
-                <MenuItem x:Name="DeleteMenuItem"
-                          Click="DeleteMenuItem_Click" />
-                <Separator />
-                <MenuItem x:Name="ExitMenuItem"
-                          Click="ExitMenuItem_Click" />
-            </MenuItem>
-            <MenuItem x:Name="OptionsMenuItem">
-                <MenuItem x:Name="SamplingMenuItem">
-                    <MenuItem x:Name="SmoothSamplingMenuItem"
-                              IsCheckable="True"
-                              IsChecked="True"
-                              Click="SmoothSamplingMenuItem_Click" />
-                    <MenuItem x:Name="NearestSamplingMenuItem"
-                              IsCheckable="True"
-                              Click="NearestSamplingMenuItem_Click" />
-                </MenuItem>
-                <MenuItem x:Name="PreloadEnabledMenuItem"
-                          IsCheckable="True"
-                          IsChecked="True"
-                          Click="PreloadEnabledMenuItem_Click" />
-                <MenuItem x:Name="PreloadMemoryBudgetMenuItem">
-                    <MenuItem IsCheckable="True"
-                              Header="1 GB"
-                              Tag="1"
-                              Click="PreloadBudgetMenuItem_Click" />
-                    <MenuItem IsCheckable="True"
-                              Header="2 GB"
-                              Tag="2"
-                              IsChecked="True"
-                              Click="PreloadBudgetMenuItem_Click" />
-                    <MenuItem IsCheckable="True"
-                              Header="5 GB"
-                              Tag="5"
-                              Click="PreloadBudgetMenuItem_Click" />
-                    <MenuItem IsCheckable="True"
-                              Header="10 GB"
-                              Tag="10"
-                              Click="PreloadBudgetMenuItem_Click" />
-                    <MenuItem IsCheckable="True"
-                              Header="15 GB"
-                              Tag="15"
-                              Click="PreloadBudgetMenuItem_Click" />
-                </MenuItem>
-                <MenuItem x:Name="PreloadAggressivenessMenuItem">
-                    <MenuItem x:Name="ConservativePreloadMenuItem"
-                              IsCheckable="True"
-                              Tag="Conservative"
-                              Click="PreloadAggressivenessMenuItem_Click" />
-                    <MenuItem x:Name="BalancedPreloadMenuItem"
-                              IsCheckable="True"
-                              Tag="Balanced"
-                              IsChecked="True"
-                              Click="PreloadAggressivenessMenuItem_Click" />
-                    <MenuItem x:Name="AggressivePreloadMenuItem"
-                              IsCheckable="True"
-                              Tag="Aggressive"
-                              Click="PreloadAggressivenessMenuItem_Click" />
-                </MenuItem>
-                <Separator />
-                <MenuItem x:Name="DarkModeMenuItem"
-                          IsCheckable="True"
-                          Click="DarkModeMenuItem_Click" />
-            </MenuItem>
-            <MenuItem x:Name="HelpMenuItem">
-                <MenuItem x:Name="OptionsHelpMenuItem"
-                          Click="OptionsHelpMenuItem_Click" />
-            </MenuItem>
-        </Menu>
+        <Border x:Name="TopChrome"
+                Grid.Row="0"
+                Background="{DynamicResource ChromeBackground}">
+            <Grid Margin="8,6,8,4">
+                <TextBlock x:Name="ChromeTitleText"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           MaxWidth="420"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimary}"
+                           TextTrimming="CharacterEllipsis"
+                           IsHitTestVisible="False" />
+
+                <StackPanel HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Image Width="18"
+                           Height="18"
+                           Margin="4,0,8,0"
+                           Source="Assets/mangosteen.ico" />
+                    <Border Height="34"
+                            Padding="3,0"
+                            Background="{DynamicResource ChromeSurfaceBackground}"
+                            BorderBrush="{DynamicResource ChromeSurfaceBorder}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                        <Menu x:Name="MainMenu"
+                              Height="32"
+                              Background="Transparent"
+                              Foreground="{DynamicResource TextPrimary}"
+                              BorderThickness="0"
+                              shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            <MenuItem x:Name="FileMenuItem">
+                                <MenuItem x:Name="OpenMenuItem"
+                                          Click="OpenMenuItem_Click" />
+                                <MenuItem x:Name="DeleteMenuItem"
+                                          Click="DeleteMenuItem_Click" />
+                                <Separator />
+                                <MenuItem x:Name="ExitMenuItem"
+                                          Click="ExitMenuItem_Click" />
+                            </MenuItem>
+                            <MenuItem x:Name="OptionsMenuItem">
+                                <MenuItem x:Name="SamplingMenuItem">
+                                    <MenuItem x:Name="SmoothSamplingMenuItem"
+                                              IsCheckable="True"
+                                              IsChecked="True"
+                                              Click="SmoothSamplingMenuItem_Click" />
+                                    <MenuItem x:Name="NearestSamplingMenuItem"
+                                              IsCheckable="True"
+                                              Click="NearestSamplingMenuItem_Click" />
+                                </MenuItem>
+                                <MenuItem x:Name="PreloadEnabledMenuItem"
+                                          IsCheckable="True"
+                                          IsChecked="True"
+                                          Click="PreloadEnabledMenuItem_Click" />
+                                <MenuItem x:Name="PreloadMemoryBudgetMenuItem">
+                                    <MenuItem IsCheckable="True"
+                                              Header="1 GB"
+                                              Tag="1"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="2 GB"
+                                              Tag="2"
+                                              IsChecked="True"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="5 GB"
+                                              Tag="5"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="10 GB"
+                                              Tag="10"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="15 GB"
+                                              Tag="15"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                </MenuItem>
+                                <MenuItem x:Name="PreloadAggressivenessMenuItem">
+                                    <MenuItem x:Name="ConservativePreloadMenuItem"
+                                              IsCheckable="True"
+                                              Tag="Conservative"
+                                              Click="PreloadAggressivenessMenuItem_Click" />
+                                    <MenuItem x:Name="BalancedPreloadMenuItem"
+                                              IsCheckable="True"
+                                              Tag="Balanced"
+                                              IsChecked="True"
+                                              Click="PreloadAggressivenessMenuItem_Click" />
+                                    <MenuItem x:Name="AggressivePreloadMenuItem"
+                                              IsCheckable="True"
+                                              Tag="Aggressive"
+                                              Click="PreloadAggressivenessMenuItem_Click" />
+                                </MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="DarkModeMenuItem"
+                                          IsCheckable="True"
+                                          Click="DarkModeMenuItem_Click" />
+                            </MenuItem>
+                            <MenuItem x:Name="HelpMenuItem">
+                                <MenuItem x:Name="OptionsHelpMenuItem"
+                                          Click="OptionsHelpMenuItem_Click" />
+                            </MenuItem>
+                        </Menu>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button x:Name="MinimizeButton"
+                            Style="{StaticResource ChromeWindowButtonStyle}"
+                            Click="MinimizeButton_Click"
+                            ToolTip="Minimize">
+                        <TextBlock Style="{StaticResource ChromeCaptionGlyphStyle}"
+                                   Text="&#xE921;" />
+                    </Button>
+                    <Button x:Name="MaximizeRestoreButton"
+                            Style="{StaticResource ChromeWindowButtonStyle}"
+                            Click="MaximizeRestoreButton_Click"
+                            ToolTip="Maximize">
+                        <TextBlock x:Name="MaximizeRestoreIcon"
+                                   Style="{StaticResource ChromeCaptionGlyphStyle}"
+                                   Text="&#xE922;" />
+                    </Button>
+                    <Button x:Name="CloseWindowButton"
+                            Style="{StaticResource ChromeCloseButtonStyle}"
+                            Click="CloseWindowButton_Click"
+                            ToolTip="Close">
+                        <TextBlock Style="{StaticResource ChromeCaptionGlyphStyle}"
+                                   Text="&#xE8BB;" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <skia:SKElement x:Name="ImageSurface"
                         Grid.Row="1"
-                        Margin="0,8,0,0"
                         PaintSurface="ImageSurface_PaintSurface"
                         MouseWheel="ImageSurface_MouseWheel"
                         MouseDown="ImageSurface_MouseDown"
@@ -331,18 +562,70 @@
                 Grid.Row="1"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Background="{DynamicResource PanelBackground}"
-                BorderBrush="{DynamicResource PanelBorder}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="18,12">
-            <TextBlock x:Name="StatusText"
-                       Text=""
-                       Foreground="{DynamicResource TextPrimary}"
-                       FontSize="14"
-                       TextAlignment="Center"
-                       TextTrimming="CharacterEllipsis"
-                       TextWrapping="Wrap" />
+                Background="Transparent"
+                Padding="0"
+                MouseWheel="ImageSurface_MouseWheel"
+                MouseLeftButtonUp="StatusOverlay_MouseLeftButtonUp">
+            <Grid>
+                <Grid x:Name="EmptyStatePanel"
+                      Width="460"
+                      Height="122"
+                      MinWidth="260">
+                    <Rectangle RadiusX="12"
+                               RadiusY="12"
+                               Fill="{DynamicResource EmptyStateBackground}"
+                               Stroke="{DynamicResource EmptyStateBorder}"
+                               StrokeThickness="1.2"
+                               StrokeDashArray="2.5 3.5"
+                               SnapsToDevicePixels="True" />
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <Viewbox Width="30"
+                                 Height="30"
+                                 Margin="0,0,0,11">
+                            <Grid Width="24"
+                                  Height="24">
+                                <Path Data="M4.3,7.4 H9.4 L11.2,9.2 H19.7 V17.5 Q19.7,19.1 18.1,19.1 H5.9 Q4.3,19.1 4.3,17.5 Z M4.3,7.4 V6.5 Q4.3,5.4 5.4,5.4 H8.8 L10.6,7.4 H18.5 Q19.7,7.4 19.7,8.6 V9.2"
+                                      Fill="Transparent"
+                                      Stroke="{DynamicResource EmptyStateIcon}"
+                                      StrokeThickness="1.45"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round" />
+                            </Grid>
+                        </Viewbox>
+                        <TextBlock x:Name="StatusText"
+                                   Text=""
+                                   Foreground="{DynamicResource TextSecondary}"
+                                   FontFamily="Segoe UI"
+                                   FontSize="15"
+                                   FontWeight="Normal"
+                                   Opacity="0.88"
+                                   TextAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="Wrap"
+                                   TextOptions.TextFormattingMode="Display" />
+                    </StackPanel>
+                </Grid>
+
+                <Border x:Name="StatusMessagePanel"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource PanelBackground}"
+                        BorderBrush="{DynamicResource PanelBorder}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="18,12"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="StatusMessageText"
+                               Text=""
+                               Foreground="{DynamicResource TextPrimary}"
+                               FontSize="14"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               TextWrapping="Wrap" />
+                </Border>
+            </Grid>
         </Border>
 
         <Border x:Name="PreviewOnlyBadge"
@@ -366,56 +649,118 @@
                 Grid.Row="2"
                 Background="Transparent"
                 BorderThickness="0">
-            <Border x:Name="CommandDock"
-                    Margin="10,0"
-                    Padding="5,4"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Background="{DynamicResource PanelBackground}"
-                    BorderBrush="{DynamicResource PanelBorder}"
-                    BorderThickness="1"
-                    CornerRadius="10"
-                    SnapsToDevicePixels="True">
-                <Border.Effect>
-                    <DropShadowEffect Color="#000000"
-                                      Direction="270"
-                                      ShadowDepth="1"
-                                      BlurRadius="8"
-                                      Opacity="0.10" />
-                </Border.Effect>
-                <StackPanel Orientation="Horizontal"
-                            VerticalAlignment="Center">
-                    <Button x:Name="PreviousButton"
-                            Style="{StaticResource DockButtonStyle}"
-                            Click="PreviousButton_Click" />
-                    <Button x:Name="NextButton"
-                            Style="{StaticResource DockButtonStyle}"
-                            Click="NextButton_Click" />
-                    <Rectangle Width="1"
-                               Height="18"
-                               Margin="6,0"
-                               VerticalAlignment="Center"
-                               Fill="{DynamicResource PanelSeparator}" />
-                    <Button x:Name="ActualPixelsButton"
-                            Style="{StaticResource DockButtonStyle}"
-                            Click="ActualPixelsButton_Click" />
-                    <TextBlock x:Name="ZoomText"
-                               MinWidth="44"
-                               Margin="2,0"
-                               VerticalAlignment="Center"
-                               TextAlignment="Center"
-                               FontSize="12"
-                               Foreground="{DynamicResource TextSecondary}" />
-                    <Rectangle Width="1"
-                               Height="18"
-                               Margin="6,0"
-                               VerticalAlignment="Center"
-                               Fill="{DynamicResource PanelSeparator}" />
-                    <Button x:Name="DeleteButton"
-                            Style="{StaticResource DockButtonStyle}"
-                            Click="DeleteButton_Click" />
-                </StackPanel>
-            </Border>
+            <Grid Margin="10,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="NavigationDock"
+                        Grid.Column="1"
+                        Padding="5,4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource PanelBackground}"
+                        BorderBrush="{DynamicResource PanelBorder}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        SnapsToDevicePixels="True">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000"
+                                          Direction="270"
+                                          ShadowDepth="1"
+                                          BlurRadius="8"
+                                          Opacity="0.10" />
+                    </Border.Effect>
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="82" />
+                            <ColumnDefinition Width="13" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="13" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0"
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                            <Button x:Name="ZoomPopupButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="ZoomPopupButton_Click" />
+                            <Button x:Name="ActualPixelsButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="ActualPixelsButton_Click" />
+                        </StackPanel>
+
+                        <Rectangle Grid.Column="1"
+                                   Width="1"
+                                   Height="18"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Fill="{DynamicResource PanelSeparator}" />
+
+                        <StackPanel Grid.Column="2"
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal">
+                            <Button x:Name="PreviousButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="PreviousButton_Click" />
+                            <Button x:Name="NextButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="NextButton_Click" />
+                        </StackPanel>
+
+                        <Rectangle Grid.Column="3"
+                                   Width="1"
+                                   Height="18"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Fill="{DynamicResource PanelSeparator}" />
+
+                        <StackPanel Grid.Column="4"
+                                    HorizontalAlignment="Left"
+                                    Orientation="Horizontal">
+                            <Button x:Name="ShowInFolderButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="ShowInFolderButton_Click" />
+                            <Button x:Name="DeleteButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="DeleteButton_Click" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Popup x:Name="ZoomPopup"
+                       Grid.Column="1"
+                       AllowsTransparency="True"
+                       Placement="Top"
+                       PlacementTarget="{Binding ElementName=ZoomPopupButton}"
+                       PopupAnimation="Fade"
+                       StaysOpen="False">
+                    <Border Padding="10,8"
+                            Background="{DynamicResource PanelBackground}"
+                            BorderBrush="{DynamicResource PanelBorder}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000"
+                                              Direction="270"
+                                              ShadowDepth="2"
+                                              BlurRadius="12"
+                                              Opacity="0.20" />
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="ZoomText"
+                                       Style="{StaticResource ZoomPopupTextStyle}" />
+                            <Slider x:Name="ZoomSlider"
+                                    Style="{StaticResource DockZoomSliderStyle}"
+                                    ValueChanged="ZoomSlider_ValueChanged" />
+                        </StackPanel>
+                    </Border>
+                </Popup>
+            </Grid>
         </Border>
     </Grid>
 </Window>

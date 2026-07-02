@@ -43,7 +43,7 @@
     <value>Imagen siguiente</value>
   </data>
   <data name="NoImage" xml:space="preserve">
-    <value>Sin imagen</value>
+    <value>Arrastra y suelta o haz clic para abrir</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
     <value>Abrir imagen</value>
@@ -124,51 +124,54 @@
     <value>Zoom</value>
   </data>
   <data name="AggressivePreloadTooltip" xml:space="preserve">
-    <value>Preload farther ahead and use more background work.</value>
+    <value>Precarga más adelante y usa más trabajo en segundo plano.</value>
   </data>
   <data name="BalancedPreloadTooltip" xml:space="preserve">
-    <value>A middle ground between speed and memory use.</value>
+    <value>Un punto medio entre velocidad y uso de memoria.</value>
   </data>
   <data name="ConservativePreloadTooltip" xml:space="preserve">
-    <value>Use less background work and memory.</value>
+    <value>Usa menos trabajo en segundo plano y menos memoria.</value>
   </data>
   <data name="HelpMenu" xml:space="preserve">
-    <value>Help</value>
+    <value>Ayuda</value>
   </data>
   <data name="NearestUpscalingTooltip" xml:space="preserve">
-    <value>Use sharp, pixelated scaling when zooming in.</value>
+    <value>Usa un escalado nítido y pixelado al acercar.</value>
   </data>
   <data name="OptionsHelp" xml:space="preserve">
-    <value>Options help</value>
+    <value>Ayuda de opciones</value>
   </data>
   <data name="OptionsHelpDialogText" xml:space="preserve">
-    <value>Upscaling controls how images are enlarged past their natural size. Smooth looks softer; nearest keeps hard pixel edges.
+    <value>El escalado controla cómo se amplían las imágenes más allá de su tamaño natural. Suave se ve más blando; vecino más cercano conserva bordes de píxel duros.
 
-Preload nearby images decodes likely next and previous images in the background.
+Precargar imágenes cercanas decodifica en segundo plano las imágenes que probablemente sean la siguiente y la anterior.
 
-Preload memory limits how much RAM cached images may use.
+La memoria de precarga limita cuánta RAM pueden usar las imágenes en caché.
 
-Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly it warms images.</value>
+La agresividad de precarga controla hasta dónde escanea Mangosteen y con qué intensidad prepara imágenes.</value>
   </data>
   <data name="OptionsHelpDialogTitle" xml:space="preserve">
-    <value>Options help</value>
+    <value>Ayuda de opciones</value>
   </data>
   <data name="OptionsHelpTooltip" xml:space="preserve">
-    <value>Explain image display and preloading options.</value>
+    <value>Explica las opciones de visualización y precarga de imágenes.</value>
   </data>
   <data name="PreloadAggressivenessTooltip" xml:space="preserve">
-    <value>Choose how far ahead Mangosteen looks and how eagerly it warms images.</value>
+    <value>Elige hasta dónde mira Mangosteen y con qué intensidad prepara imágenes.</value>
   </data>
   <data name="PreloadMemoryBudgetOptionTooltip" xml:space="preserve">
-    <value>Choose the decoded-image cache memory budget.</value>
+    <value>Elige el presupuesto de memoria para la caché de imágenes decodificadas.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decode likely next and previous images in the background.</value>
+    <value>Decodifica en segundo plano las imágenes que probablemente sean la siguiente y la anterior.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
-    <value>Use smoother interpolation when zooming in.</value>
+    <value>Usa una interpolación más suave al acercar.</value>
+  </data>
+  <data name="ShowImageInFolder" xml:space="preserve">
+    <value>Mostrar imagen en carpeta</value>
   </data>
   <data name="UpscalingTooltip" xml:space="preserve">
-    <value>Choose how images are enlarged when zoomed past actual size.</value>
+    <value>Elige cómo se amplían las imágenes cuando se acercan más allá del tamaño real.</value>
   </data>
 </root>

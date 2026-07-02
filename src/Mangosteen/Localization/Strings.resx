@@ -43,7 +43,7 @@
     <value>Next image</value>
   </data>
   <data name="NoImage" xml:space="preserve">
-    <value>No image</value>
+    <value>Drag and drop or click to open</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
     <value>Open image</value>
@@ -167,6 +167,9 @@ Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly i
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Use smoother interpolation when zooming in.</value>
+  </data>
+  <data name="ShowImageInFolder" xml:space="preserve">
+    <value>Show image in folder</value>
   </data>
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Choose how images are enlarged when zoomed past actual size.</value>
