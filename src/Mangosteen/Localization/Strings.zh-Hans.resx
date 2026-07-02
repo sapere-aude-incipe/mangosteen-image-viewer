@@ -174,4 +174,13 @@
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>选择图像在超过实际大小后如何放大。</value>
   </data>
+  <data name="AutoRefreshCurrentImage" xml:space="preserve">
+    <value>自动刷新当前图像</value>
+  </data>
+  <data name="AutoRefreshCurrentImageTooltip" xml:space="preserve">
+    <value>当磁盘上的文件更改时重新加载当前图像。</value>
+  </data>
+  <data name="ImagePositionFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

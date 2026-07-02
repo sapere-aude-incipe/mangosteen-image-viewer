@@ -174,4 +174,13 @@
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>実寸を超えてズームしたときの画像の拡大方法を選びます。</value>
   </data>
+  <data name="AutoRefreshCurrentImage" xml:space="preserve">
+    <value>現在の画像を自動更新</value>
+  </data>
+  <data name="AutoRefreshCurrentImageTooltip" xml:space="preserve">
+    <value>ファイルがディスク上で変更されたら現在の画像を再読み込みします。</value>
+  </data>
+  <data name="ImagePositionFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

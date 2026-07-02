@@ -174,4 +174,13 @@ La agresividad de precarga controla hasta dónde escanea Mangosteen y con qué i
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Elige cómo se amplían las imágenes cuando se acercan más allá del tamaño real.</value>
   </data>
+  <data name="AutoRefreshCurrentImage" xml:space="preserve">
+    <value>Actualizar automáticamente la imagen actual</value>
+  </data>
+  <data name="AutoRefreshCurrentImageTooltip" xml:space="preserve">
+    <value>Recarga la imagen actual cuando el archivo cambia en el disco.</value>
+  </data>
+  <data name="ImagePositionFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

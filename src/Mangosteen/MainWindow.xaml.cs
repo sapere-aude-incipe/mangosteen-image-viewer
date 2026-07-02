@@ -70,6 +70,7 @@ public partial class MainWindow : Window
     private readonly ImageNavigator _navigator = new();
     private readonly ViewerState _viewerState = new();
     private readonly DispatcherTimer _animationTimer = new();
+    private readonly DispatcherTimer _autoRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly ImagePreloadCache _fullPreloadCache = new();
     private readonly ImagePreloadCache _previewPreloadCache = new();
     private readonly object _preloadWorkerGate = new();
@@ -93,17 +94,22 @@ public partial class MainWindow : Window
     private bool _setActualPixelsAfterFullLoad;
     private bool _useSmoothSampling = true;
     private bool _isPreloadEnabled = true;
+    private bool _isAutoRefreshEnabled;
     private bool _isUpdatingZoomSlider;
+    private bool _isDarkMode = true;
+    private bool _isAutoRefreshReloading;
     private int _preloadBudgetGigabytes = DefaultPreloadBudgetGigabytes;
     private PreloadAggressiveness _preloadAggressiveness = PreloadAggressiveness.Balanced;
     private SKColor _viewerBackgroundColor = LightViewerBackground;
     private SKPoint _lastPanPoint;
     private HwndSource? _hwndSource;
+    private FileSystemWatcher? _autoRefreshWatcher;
+    private string? _autoRefreshPath;
 
     public MainWindow()
     {
         InitializeComponent();
-        ApplyTheme(isDarkMode: true);
+        ApplySettings(AppSettings.Load());
         ApplyLocalization();
         UpdateViewport();
         UpdateNavigationButtons();
@@ -113,6 +119,30 @@ public partial class MainWindow : Window
         UpdateMaximizeRestoreButton();
 
         _animationTimer.Tick += AnimationTimer_Tick;
+        _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+    }
+
+    private void ApplySettings(AppSettings settings)
+    {
+        _useSmoothSampling = settings.UseSmoothSampling;
+        _isPreloadEnabled = settings.IsPreloadEnabled;
+        _isAutoRefreshEnabled = settings.IsAutoRefreshEnabled;
+        _preloadBudgetGigabytes = Math.Clamp(settings.PreloadBudgetGigabytes, 1, 15);
+        _preloadAggressiveness = settings.PreloadAggressiveness;
+        ApplyTheme(settings.IsDarkMode);
+    }
+
+    private void SaveSettings()
+    {
+        new AppSettings
+        {
+            IsDarkMode = _isDarkMode,
+            UseSmoothSampling = _useSmoothSampling,
+            IsPreloadEnabled = _isPreloadEnabled,
+            IsAutoRefreshEnabled = _isAutoRefreshEnabled,
+            PreloadBudgetGigabytes = _preloadBudgetGigabytes,
+            PreloadAggressiveness = _preloadAggressiveness
+        }.Save();
     }
 
     private void ApplyLocalization()
@@ -133,6 +163,7 @@ public partial class MainWindow : Window
         ConservativePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Conservative);
         BalancedPreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Balanced);
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
+        AutoRefreshMenuItem.Header = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImage);
         DarkModeMenuItem.Header = LocalizedText.Get(LocalizedText.ToggleDarkMode);
         OptionsHelpMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsHelp);
         SamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.UpscalingTooltip);
@@ -141,6 +172,7 @@ public partial class MainWindow : Window
         PreloadEnabledMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadNearbyImagesTooltip);
         PreloadMemoryBudgetMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadMemoryBudgetTooltip);
         PreloadAggressivenessMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadAggressivenessTooltip);
+        AutoRefreshMenuItem.ToolTip = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImageTooltip);
         ConservativePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ConservativePreloadTooltip);
         BalancedPreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.BalancedPreloadTooltip);
         AggressivePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.AggressivePreloadTooltip);
@@ -236,6 +268,10 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _isClosing = true;
+        SaveSettings();
+        _autoRefreshTimer.Stop();
+        _autoRefreshTimer.Tick -= AutoRefreshTimer_Tick;
+        DisposeAutoRefreshWatcher();
         _animationTimer.Stop();
         _animationTimer.Tick -= AnimationTimer_Tick;
         StopPanning();
@@ -893,6 +929,7 @@ public partial class MainWindow : Window
     private void DarkModeMenuItem_Click(object sender, RoutedEventArgs e)
     {
         ApplyTheme(DarkModeMenuItem.IsChecked);
+        SaveSettings();
     }
 
     private void SmoothSamplingMenuItem_Click(object sender, RoutedEventArgs e)
@@ -933,10 +970,16 @@ public partial class MainWindow : Window
         SetPreloadAggressiveness(aggressiveness);
     }
 
+    private void AutoRefreshMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        SetAutoRefreshEnabled(AutoRefreshMenuItem.IsChecked == true);
+    }
+
     private void SetSmoothSampling(bool useSmoothSampling)
     {
         _useSmoothSampling = useSmoothSampling;
         UpdateSettingsMenuChecks();
+        SaveSettings();
         ImageSurface.InvalidateVisual();
     }
 
@@ -944,6 +987,7 @@ public partial class MainWindow : Window
     {
         _isPreloadEnabled = isEnabled;
         UpdateSettingsMenuChecks();
+        SaveSettings();
 
         if (_isPreloadEnabled)
         {
@@ -961,6 +1005,7 @@ public partial class MainWindow : Window
         _preloadBudgetGigabytes = Math.Clamp(gigabytes, 1, 15);
         UpdateSettingsMenuChecks();
         ApplyPreloadCacheBudget();
+        SaveSettings();
 
         if (RestartFullResolutionLoadForCurrentPreview())
         {
@@ -977,6 +1022,7 @@ public partial class MainWindow : Window
     {
         _preloadAggressiveness = aggressiveness;
         UpdateSettingsMenuChecks();
+        SaveSettings();
 
         if (_isPreloadEnabled)
         {
@@ -984,11 +1030,20 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SetAutoRefreshEnabled(bool isEnabled)
+    {
+        _isAutoRefreshEnabled = isEnabled;
+        UpdateSettingsMenuChecks();
+        UpdateAutoRefreshWatcher();
+        SaveSettings();
+    }
+
     private void UpdateSettingsMenuChecks()
     {
         SmoothSamplingMenuItem.IsChecked = _useSmoothSampling;
         NearestSamplingMenuItem.IsChecked = !_useSmoothSampling;
         PreloadEnabledMenuItem.IsChecked = _isPreloadEnabled;
+        AutoRefreshMenuItem.IsChecked = _isAutoRefreshEnabled;
 
         foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
         {
@@ -1200,6 +1255,12 @@ public partial class MainWindow : Window
         }
 
         return _previewPreloadCache.TryTake(path, out var preview) ? preview : null;
+    }
+
+    private void RemovePreloadedImage(string path)
+    {
+        _fullPreloadCache.Remove(path);
+        _previewPreloadCache.Remove(path);
     }
 
     private bool TryApplyCachedFullResolution(string path, bool setActualPixels)
@@ -1527,6 +1588,150 @@ public partial class MainWindow : Window
             {
                 ShowStatus(ex.Message);
             }
+        }
+    }
+
+    private void UpdateAutoRefreshWatcher()
+    {
+        if (!_isAutoRefreshEnabled || _isClosing)
+        {
+            DisposeAutoRefreshWatcher();
+            return;
+        }
+
+        var path = _navigator.CurrentPath;
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            DisposeAutoRefreshWatcher();
+            return;
+        }
+
+        var fullPath = Path.GetFullPath(path);
+        if (string.Equals(_autoRefreshPath, fullPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        DisposeAutoRefreshWatcher();
+
+        var directory = Path.GetDirectoryName(fullPath);
+        var fileName = Path.GetFileName(fullPath);
+        if (string.IsNullOrWhiteSpace(directory) || string.IsNullOrWhiteSpace(fileName))
+        {
+            return;
+        }
+
+        try
+        {
+            var watcher = new FileSystemWatcher(directory, fileName)
+            {
+                IncludeSubdirectories = false,
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size
+            };
+            watcher.Changed += AutoRefreshWatcher_Changed;
+            watcher.Created += AutoRefreshWatcher_Changed;
+            watcher.Renamed += AutoRefreshWatcher_Renamed;
+            watcher.Deleted += AutoRefreshWatcher_Changed;
+            watcher.EnableRaisingEvents = true;
+
+            _autoRefreshWatcher = watcher;
+            _autoRefreshPath = fullPath;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            TraceBackgroundError($"Failed to watch '{fullPath}' for changes", ex);
+            DisposeAutoRefreshWatcher();
+        }
+    }
+
+    private void DisposeAutoRefreshWatcher()
+    {
+        _autoRefreshTimer.Stop();
+        if (_autoRefreshWatcher is not null)
+        {
+            _autoRefreshWatcher.EnableRaisingEvents = false;
+            _autoRefreshWatcher.Changed -= AutoRefreshWatcher_Changed;
+            _autoRefreshWatcher.Created -= AutoRefreshWatcher_Changed;
+            _autoRefreshWatcher.Renamed -= AutoRefreshWatcher_Renamed;
+            _autoRefreshWatcher.Deleted -= AutoRefreshWatcher_Changed;
+            _autoRefreshWatcher.Dispose();
+        }
+
+        _autoRefreshWatcher = null;
+        _autoRefreshPath = null;
+    }
+
+    private void AutoRefreshWatcher_Changed(object sender, FileSystemEventArgs e)
+    {
+        if (IsAutoRefreshEventForCurrentPath(e.FullPath))
+        {
+            _ = TryDispatchAsync(ScheduleAutoRefreshReload);
+        }
+    }
+
+    private void AutoRefreshWatcher_Renamed(object sender, RenamedEventArgs e)
+    {
+        if (IsAutoRefreshEventForCurrentPath(e.FullPath) ||
+            IsAutoRefreshEventForCurrentPath(e.OldFullPath))
+        {
+            _ = TryDispatchAsync(ScheduleAutoRefreshReload);
+        }
+    }
+
+    private bool IsAutoRefreshEventForCurrentPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(_autoRefreshPath) || string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            return Path.GetFullPath(path).Equals(_autoRefreshPath, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return false;
+        }
+    }
+
+    private void ScheduleAutoRefreshReload()
+    {
+        if (_isClosing || !_isAutoRefreshEnabled)
+        {
+            return;
+        }
+
+        _autoRefreshTimer.Stop();
+        _autoRefreshTimer.Start();
+    }
+
+    private async void AutoRefreshTimer_Tick(object? sender, EventArgs e)
+    {
+        _autoRefreshTimer.Stop();
+        if (_isClosing || !_isAutoRefreshEnabled || _isAutoRefreshReloading)
+        {
+            return;
+        }
+
+        var path = _navigator.CurrentPath;
+        if (string.IsNullOrWhiteSpace(path) ||
+            !File.Exists(path) ||
+            !IsAutoRefreshEventForCurrentPath(path))
+        {
+            UpdateAutoRefreshWatcher();
+            return;
+        }
+
+        _isAutoRefreshReloading = true;
+        try
+        {
+            RemovePreloadedImage(path);
+            await RunUiCommandAsync(() => LoadCurrentImageAsync(fitToWindow: false));
+        }
+        finally
+        {
+            _isAutoRefreshReloading = false;
         }
     }
 
@@ -2082,6 +2287,7 @@ public partial class MainWindow : Window
 
     private void ApplyTheme(bool isDarkMode)
     {
+        _isDarkMode = isDarkMode;
         _viewerBackgroundColor = isDarkMode ? DarkViewerBackground : LightViewerBackground;
         DarkModeMenuItem.IsChecked = isDarkMode;
         DarkModeMenuItem.ToolTip = isDarkMode
@@ -2271,6 +2477,24 @@ public partial class MainWindow : Window
         var canDelete = CanDeleteCurrentImage();
         DeleteButton.IsEnabled = canDelete;
         DeleteMenuItem.IsEnabled = canDelete;
+        UpdateImagePositionText();
+        UpdateAutoRefreshWatcher();
+    }
+
+    private void UpdateImagePositionText()
+    {
+        if (_navigator.CurrentIndex >= 0 && _navigator.Files.Count > 1)
+        {
+            ImagePositionText.Text = LocalizedText.Format(
+                LocalizedText.ImagePositionFormat,
+                _navigator.CurrentIndex + 1,
+                _navigator.Files.Count);
+            ImagePositionText.Visibility = Visibility.Visible;
+            return;
+        }
+
+        ImagePositionText.Text = string.Empty;
+        ImagePositionText.Visibility = Visibility.Collapsed;
     }
 
     private void UpdateZoomText()

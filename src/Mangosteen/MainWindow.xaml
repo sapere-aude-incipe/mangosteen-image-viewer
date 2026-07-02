@@ -498,6 +498,9 @@
                                           Tag="Aggressive"
                                           Click="PreloadAggressivenessMenuItem_Click" />
                             </MenuItem>
+                            <MenuItem x:Name="AutoRefreshMenuItem"
+                                      IsCheckable="True"
+                                      Click="AutoRefreshMenuItem_Click" />
                             <Separator />
                             <MenuItem x:Name="DarkModeMenuItem"
                                       IsCheckable="True"
@@ -648,6 +651,15 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="ImagePositionText"
+                           Grid.Column="0"
+                           Margin="8,0,0,0"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondary}"
+                           FontSize="12"
+                           Visibility="Collapsed" />
 
                 <Border x:Name="NavigationDock"
                         Grid.Column="1"

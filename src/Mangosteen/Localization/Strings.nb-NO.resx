@@ -174,4 +174,13 @@ Hvor aggressiv forhåndslasting er styrer hvor langt fram Mangosteen skanner og 
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Velg hvordan bilder forstørres når de zoomes forbi faktisk størrelse.</value>
   </data>
+  <data name="AutoRefreshCurrentImage" xml:space="preserve">
+    <value>Oppdater gjeldende bilde automatisk</value>
+  </data>
+  <data name="AutoRefreshCurrentImageTooltip" xml:space="preserve">
+    <value>Last inn gjeldende bilde på nytt når filen endres på disken.</value>
+  </data>
+  <data name="ImagePositionFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

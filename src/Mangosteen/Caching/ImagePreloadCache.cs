@@ -184,6 +184,25 @@ public sealed class ImagePreloadCache : IDisposable
         }
     }
 
+    public bool Remove(string path)
+    {
+        ValidatePath(path);
+
+        CacheEntry? entry = null;
+        lock (_gate)
+        {
+            if (_disposed || !_images.Remove(path, out entry))
+            {
+                return false;
+            }
+
+            _usedBytes -= entry.Bytes;
+        }
+
+        entry.Image.Dispose();
+        return true;
+    }
+
     public bool Store(string path, DecodedImage image, long evictionPriority = 0)
     {
         ValidatePath(path);
