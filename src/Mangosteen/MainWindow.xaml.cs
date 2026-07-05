@@ -37,6 +37,12 @@ internal readonly record struct PreloadProfile(
     int FullPreloadIdleDelayMilliseconds,
     int LargeFullPreloadLimitAdjustment);
 
+internal readonly record struct WindowPlacement(
+    double Left,
+    double Top,
+    double Width,
+    double Height);
+
 public partial class MainWindow : Window
 {
     private const int BalancedForwardPreloadCount = 50;
@@ -61,6 +67,7 @@ public partial class MainWindow : Window
     private const double ZoomSliderMaximumValue = 100.0;
     private const double MinimumSliderZoom = 0.0001;
     private const double ActualPixelZoomTolerance = 0.0001;
+    private const double InitialWorkAreaCoverage = 0.78;
     private const string MaximizeWindowIconGlyph = "\uE922";
     private const string RestoreWindowIconGlyph = "\uE923";
     private static readonly SKColor LightViewerBackground = new(244, 246, 248);
@@ -112,6 +119,8 @@ public partial class MainWindow : Window
         StartupDiagnostics.Mark("window.ctor.begin");
         InitializeComponent();
         StartupDiagnostics.Mark("window.initialize_component.end");
+        ApplyInitialWindowPlacement();
+        StartupDiagnostics.Mark("window.initial_placement_applied");
         ApplySettings(AppSettings.Load());
         StartupDiagnostics.Mark("window.settings_applied");
         ApplyLocalization();
@@ -126,6 +135,26 @@ public partial class MainWindow : Window
         _animationTimer.Tick += AnimationTimer_Tick;
         _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
         StartupDiagnostics.Mark("window.ctor.end");
+    }
+
+    private void ApplyInitialWindowPlacement()
+    {
+        var workArea = SystemParameters.WorkArea;
+        var placement = CalculateInitialWindowPlacement(
+            workArea.Left,
+            workArea.Top,
+            workArea.Width,
+            workArea.Height,
+            MinWidth,
+            MinHeight,
+            Width,
+            Height);
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Width = placement.Width;
+        Height = placement.Height;
+        Left = placement.Left;
+        Top = placement.Top;
     }
 
     private void ApplySettings(AppSettings settings)
@@ -2255,6 +2284,60 @@ public partial class MainWindow : Window
     internal static bool ShouldSchedulePreloadsAfterFullDecode(CancellationToken token, Func<bool>? shouldContinue)
     {
         return !token.IsCancellationRequested && shouldContinue?.Invoke() != false;
+    }
+
+    internal static WindowPlacement CalculateInitialWindowPlacement(
+        double workAreaLeft,
+        double workAreaTop,
+        double workAreaWidth,
+        double workAreaHeight,
+        double minWidth,
+        double minHeight,
+        double fallbackWidth,
+        double fallbackHeight)
+    {
+        var width = GetInitialWindowDimension(workAreaWidth, minWidth, fallbackWidth);
+        var height = GetInitialWindowDimension(workAreaHeight, minHeight, fallbackHeight);
+        var left = GetCenteredPosition(workAreaLeft, workAreaWidth, width);
+        var top = GetCenteredPosition(workAreaTop, workAreaHeight, height);
+
+        return new WindowPlacement(left, top, width, height);
+    }
+
+    private static double GetInitialWindowDimension(double workAreaDimension, double minDimension, double fallbackDimension)
+    {
+        if (!IsUsableDimension(workAreaDimension))
+        {
+            return RoundDip(Math.Max(minDimension, fallbackDimension));
+        }
+
+        var target = workAreaDimension * InitialWorkAreaCoverage;
+        target = Math.Max(target, minDimension);
+        target = Math.Min(target, workAreaDimension);
+        return RoundDip(target);
+    }
+
+    private static double GetCenteredPosition(double workAreaPosition, double workAreaDimension, double windowDimension)
+    {
+        if (!IsUsableDimension(workAreaDimension))
+        {
+            return double.IsFinite(workAreaPosition) ? RoundDip(workAreaPosition) : 0.0;
+        }
+
+        var position = workAreaPosition + (workAreaDimension - windowDimension) / 2.0;
+        return RoundDip(position);
+    }
+
+    private static bool IsUsableDimension(double value)
+    {
+        return double.IsFinite(value) && value > 0.0;
+    }
+
+    private static double RoundDip(double value)
+    {
+        return double.IsFinite(value)
+            ? Math.Round(value, MidpointRounding.AwayFromZero)
+            : 0.0;
     }
 
     private static void RequestMemoryCleanup(long releasedBytes)

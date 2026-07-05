@@ -63,4 +63,61 @@ public sealed class MainWindowSchedulingTests
         Assert.AreEqual(1, MainWindow.GetNavigationDeltaForMouseButton(System.Windows.Input.MouseButton.XButton2));
         Assert.AreEqual(0, MainWindow.GetNavigationDeltaForMouseButton(System.Windows.Input.MouseButton.Left));
     }
+
+    [TestMethod]
+    public void Initial_Window_Placement_Fills_Most_Of_Work_Area_With_Even_Margins()
+    {
+        var placement = MainWindow.CalculateInitialWindowPlacement(
+            workAreaLeft: 0,
+            workAreaTop: 0,
+            workAreaWidth: 1920,
+            workAreaHeight: 1040,
+            minWidth: 520,
+            minHeight: 360,
+            fallbackWidth: 1080,
+            fallbackHeight: 720);
+
+        Assert.AreEqual(1498, placement.Width);
+        Assert.AreEqual(811, placement.Height);
+        Assert.AreEqual(211, placement.Left);
+        Assert.AreEqual(115, placement.Top);
+    }
+
+    [TestMethod]
+    public void Initial_Window_Placement_Uses_Work_Area_Origin_For_Secondary_Monitor()
+    {
+        var placement = MainWindow.CalculateInitialWindowPlacement(
+            workAreaLeft: 1920,
+            workAreaTop: 40,
+            workAreaWidth: 2560,
+            workAreaHeight: 1400,
+            minWidth: 520,
+            minHeight: 360,
+            fallbackWidth: 1080,
+            fallbackHeight: 720);
+
+        Assert.AreEqual(1997, placement.Width);
+        Assert.AreEqual(1092, placement.Height);
+        Assert.AreEqual(2202, placement.Left);
+        Assert.AreEqual(194, placement.Top);
+    }
+
+    [TestMethod]
+    public void Initial_Window_Placement_Respects_Minimum_Size_On_Small_Work_Area()
+    {
+        var placement = MainWindow.CalculateInitialWindowPlacement(
+            workAreaLeft: 0,
+            workAreaTop: 0,
+            workAreaWidth: 640,
+            workAreaHeight: 420,
+            minWidth: 520,
+            minHeight: 360,
+            fallbackWidth: 1080,
+            fallbackHeight: 720);
+
+        Assert.AreEqual(520, placement.Width);
+        Assert.AreEqual(360, placement.Height);
+        Assert.AreEqual(60, placement.Left);
+        Assert.AreEqual(30, placement.Top);
+    }
 }
