@@ -44,6 +44,17 @@ public sealed class DecoderRegistryTests
     }
 
     [TestMethod]
+    public void GetDecoderPlan_Prefers_Libvips_For_Tiff()
+    {
+        using var registry = CreateDefaultPlanRegistry();
+
+        var plan = registry.GetDecoderPlan("sample.tiff");
+
+        Assert.IsInstanceOfType<VipsImageDecoder>(plan[0]);
+        Assert.IsLessThan(IndexOf<WicImageDecoder>(plan), IndexOf<VipsImageDecoder>(plan));
+    }
+
+    [TestMethod]
     public void GetDecoderPlan_Prefers_Embedded_Raw_Preview_For_Raw_Preview()
     {
         using var registry = CreateDefaultPlanRegistry();
