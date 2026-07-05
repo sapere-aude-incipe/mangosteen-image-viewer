@@ -129,7 +129,7 @@ This creates:
 
 ## Release Process
 
-CI builds and tests every push and pull request on Windows using NuGet lock files. Tagged releases named like `v0.1.0` run the release workflow, validate the version, build unsigned Windows artifacts, verify `SHA256SUMS.txt`, upload artifacts, and create a prerelease.
+CI builds and tests every push and pull request on Windows using NuGet lock files. Pull requests also build unsigned installer and portable zip artifacts for testing from the Actions run page. Tagged releases named like `v0.1.0` run the release workflow, validate the version, build unsigned Windows artifacts, verify `SHA256SUMS.txt`, upload artifacts, and create a prerelease.
 
 Generated installers, portable zip files, and checksums are published as GitHub Release assets. They are not committed to the repository.
 
