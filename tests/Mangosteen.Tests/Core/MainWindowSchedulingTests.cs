@@ -55,4 +55,12 @@ public sealed class MainWindowSchedulingTests
             fitsAtActualPixels: true,
             zoom: 1.0));
     }
+
+    [TestMethod]
+    public void Mouse_Thumb_Buttons_Map_To_Previous_And_Next_Image()
+    {
+        Assert.AreEqual(-1, MainWindow.GetNavigationDeltaForMouseButton(System.Windows.Input.MouseButton.XButton1));
+        Assert.AreEqual(1, MainWindow.GetNavigationDeltaForMouseButton(System.Windows.Input.MouseButton.XButton2));
+        Assert.AreEqual(0, MainWindow.GetNavigationDeltaForMouseButton(System.Windows.Input.MouseButton.Left));
+    }
 }

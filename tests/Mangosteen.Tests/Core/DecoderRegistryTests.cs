@@ -21,6 +21,55 @@ public sealed class DecoderRegistryTests
     }
 
     [TestMethod]
+    public void GetDecoderPlan_Prefers_SkiaSharp_For_Common_Raster_Startup()
+    {
+        using var registry = CreateDefaultPlanRegistry();
+
+        var plan = registry.GetDecoderPlan("sample.jpg");
+
+        Assert.IsInstanceOfType<SkiaImageDecoder>(plan[0]);
+        Assert.IsLessThan(IndexOf<VipsImageDecoder>(plan), IndexOf<SkiaImageDecoder>(plan));
+    }
+
+    [TestMethod]
+    public void GetDecoderPlan_Prefers_Wic_For_Bmp()
+    {
+        using var registry = CreateDefaultPlanRegistry();
+
+        var plan = registry.GetDecoderPlan("sample.bmp");
+
+        Assert.IsInstanceOfType<WicImageDecoder>(plan[0]);
+        Assert.IsLessThan(IndexOf<SkiaImageDecoder>(plan), IndexOf<WicImageDecoder>(plan));
+        Assert.IsLessThan(IndexOf<VipsImageDecoder>(plan), IndexOf<WicImageDecoder>(plan));
+    }
+
+    [TestMethod]
+    public void GetDecoderPlan_Prefers_Embedded_Raw_Preview_For_Raw_Preview()
+    {
+        using var registry = CreateDefaultPlanRegistry();
+
+        var plan = registry.GetDecoderPlan(
+            "sample.dng",
+            new ImageDecodeRequest("sample.dng", FullResolution: false));
+
+        Assert.IsInstanceOfType<WicRawPreviewImageDecoder>(plan[0]);
+        Assert.IsLessThan(IndexOf<VipsImageDecoder>(plan), IndexOf<WicRawPreviewImageDecoder>(plan));
+    }
+
+    [TestMethod]
+    public void GetDecoderPlan_Excludes_Embedded_Raw_Preview_For_Full_Raw_Decode()
+    {
+        using var registry = CreateDefaultPlanRegistry();
+
+        var plan = registry.GetDecoderPlan(
+            "sample.dng",
+            new ImageDecodeRequest("sample.dng", FullResolution: true));
+
+        Assert.IsFalse(plan.Any(static decoder => decoder is WicRawPreviewImageDecoder));
+        Assert.IsInstanceOfType<VipsImageDecoder>(plan[0]);
+    }
+
+    [TestMethod]
     public async Task LoadMetadataAsync_Falls_Back_When_Higher_Priority_Decoder_Fails()
     {
         var registry = new DecoderRegistry(
@@ -280,6 +329,32 @@ public sealed class DecoderRegistryTests
 
         await Assert.ThrowsExactlyAsync<ObjectDisposedException>(
             () => registry.DecodeAsync(new ImageDecodeRequest("sample.fake"), CancellationToken.None));
+    }
+
+    private static DecoderRegistry CreateDefaultPlanRegistry()
+    {
+        return new DecoderRegistry(
+        [
+            new WicRawPreviewImageDecoder(),
+            new VipsImageDecoder(),
+            new WicImageDecoder(),
+            new SkiaImageDecoder(),
+            new MagickImageDecoder()
+        ]);
+    }
+
+    private static int IndexOf<TDecoder>(IReadOnlyList<IImageDecoder> decoders)
+        where TDecoder : IImageDecoder
+    {
+        for (var i = 0; i < decoders.Count; i++)
+        {
+            if (decoders[i] is TDecoder)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private sealed class FakeDecoder(
