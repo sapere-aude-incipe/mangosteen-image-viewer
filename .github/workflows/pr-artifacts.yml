@@ -1,0 +1,105 @@
+name: PR Artifacts
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-artifacts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Package unsigned PR build
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress --yes
+
+      - name: Resolve artifact version
+        id: version
+        shell: pwsh
+        run: |
+          $prNumber = "${{ github.event.pull_request.number }}"
+          if ([string]::IsNullOrWhiteSpace($prNumber)) {
+            $prNumber = "manual"
+          }
+
+          $version = "0.0.0-pr.$prNumber.${{ github.run_number }}"
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        run: dotnet restore Mangosteen.slnx --locked-mode
+
+      - name: Restore package runtime
+        run: dotnet restore .\src\Mangosteen\Mangosteen.csproj --runtime win-x64 --locked-mode
+
+      - name: Build
+        run: dotnet build Mangosteen.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Mangosteen.slnx --configuration Release --no-build
+
+      - name: Package
+        shell: pwsh
+        run: ./scripts/build-installer.ps1 -Version "${{ steps.version.outputs.version }}" -Configuration Release -NoRestore
+
+      - name: Verify checksums
+        shell: pwsh
+        run: |
+          $checksumPath = "dist\SHA256SUMS.txt"
+          if (-not (Test-Path -LiteralPath $checksumPath)) {
+            throw "Missing checksum file: $checksumPath"
+          }
+
+          $lines = Get-Content -LiteralPath $checksumPath | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+          if ($lines.Count -eq 0) {
+            throw "Checksum file is empty."
+          }
+
+          foreach ($line in $lines) {
+            if ($line -notmatch '^([a-f0-9]{64})  ([^\\/]+)$') {
+              throw "Invalid checksum line: $line"
+            }
+
+            $expectedHash = $Matches[1]
+            $fileName = $Matches[2]
+            $filePath = Join-Path "dist" $fileName
+            if (-not (Test-Path -LiteralPath $filePath)) {
+              throw "Checksum references missing file: $fileName"
+            }
+
+            $actualHash = (Get-FileHash -LiteralPath $filePath -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $expectedHash) {
+              throw "Checksum mismatch for $fileName."
+            }
+          }
+
+      - name: Upload PR artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mangosteen-pr-${{ github.event.pull_request.number || github.run_number }}-unsigned
+          path: dist/*
+          if-no-files-found: error
