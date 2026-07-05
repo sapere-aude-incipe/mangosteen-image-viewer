@@ -20,6 +20,7 @@
         AllowDrop="True"
         DragOver="Window_DragOver"
         Drop="Window_Drop"
+        PreviewMouseDown="Window_PreviewMouseDown"
         Icon="Assets/mangosteen.ico"
         SourceInitialized="Window_SourceInitialized"
         SizeChanged="Window_SizeChanged"
@@ -251,7 +252,7 @@
         </Style>
 
         <Style x:Key="ChromeWindowButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="44" />
+            <Setter Property="Width" Value="46" />
             <Setter Property="Height" Value="32" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Foreground" Value="{DynamicResource ChromeButtonForeground}" />
@@ -263,8 +264,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="ButtonSurface"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6">
+                                Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                         </Border>
@@ -302,8 +302,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="ButtonSurface"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6">
+                                Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center" />
                         </Border>
@@ -313,7 +312,8 @@
                                 <Setter Property="Foreground" Value="{DynamicResource ChromeCloseHoverForeground}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButtonSurface" Property="Opacity" Value="0.82" />
+                                <Setter TargetName="ButtonSurface" Property="Background" Value="#8B1A10" />
+                                <Setter Property="Foreground" Value="{DynamicResource ChromeCloseHoverForeground}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

@@ -108,9 +108,13 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        StartupDiagnostics.Mark("window.ctor.begin");
         InitializeComponent();
+        StartupDiagnostics.Mark("window.initialize_component.end");
         ApplySettings(AppSettings.Load());
+        StartupDiagnostics.Mark("window.settings_applied");
         ApplyLocalization();
+        StartupDiagnostics.Mark("window.localization_applied");
         UpdateViewport();
         UpdateNavigationButtons();
         ApplyPreloadCacheBudget();
@@ -120,6 +124,7 @@ public partial class MainWindow : Window
 
         _animationTimer.Tick += AnimationTimer_Tick;
         _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+        StartupDiagnostics.Mark("window.ctor.end");
     }
 
     private void ApplySettings(AppSettings settings)
@@ -228,6 +233,7 @@ public partial class MainWindow : Window
 
     public async Task OpenPathAsync(string path)
     {
+        StartupDiagnostics.Mark("open_path.begin", Path.GetFileName(path));
         if (_isClosing)
         {
             return;
@@ -243,16 +249,15 @@ public partial class MainWindow : Window
         var fullPath = Path.GetFullPath(path);
         var openGeneration = ++_openGeneration;
         _navigator.LoadSingle(fullPath);
+        StartupDiagnostics.Mark("open_path.navigator_loaded", Path.GetFileName(fullPath));
         CancelPreloadWorker();
         CancelFolderIndexing();
         CancelBackgroundFullWarmups();
         ClearPreloadCaches();
         UpdateNavigationButtons();
-        if (!_isClosing)
-        {
-            StartFolderIndexing(fullPath, openGeneration);
-        }
         await LoadCurrentImageAsync(fitToWindow: true);
+        QueueFolderIndexingAfterFirstPreview(fullPath, openGeneration);
+        StartupDiagnostics.Mark("open_path.end", Path.GetFileName(fullPath));
     }
 
     public void ReportError(string message)
@@ -290,6 +295,7 @@ public partial class MainWindow : Window
 
     private async Task LoadCurrentImageAsync(bool fitToWindow)
     {
+        StartupDiagnostics.Mark("load_current.begin", Path.GetFileName(_navigator.CurrentPath ?? string.Empty));
         if (_isClosing)
         {
             return;
@@ -307,6 +313,7 @@ public partial class MainWindow : Window
         var token = session.Token;
         CancelPreloadWorker();
         var preloaded = TryTakePreload(path);
+        StartupDiagnostics.Mark(preloaded is null ? "load_current.preload_miss" : "load_current.preload_hit", Path.GetFileName(path));
 
         UpdateNavigationButtons();
         if (preloaded is null)
@@ -326,18 +333,22 @@ public partial class MainWindow : Window
                 }
 
                 SetImage(preloaded, fitToWindow);
+                StartupDiagnostics.Mark("load_current.preloaded_set_image", Path.GetFileName(path));
                 HandleDisplayedImageLoadState(preloaded, path, session);
 
                 return;
             }
 
+            StartupDiagnostics.Mark("load_current.preview_decode.begin", Path.GetFileName(path));
             var preview = await DecodePreviewExclusiveAsync(path, GetViewportPixelSize(), session);
+            StartupDiagnostics.Mark("load_current.preview_decode.end", Path.GetFileName(path));
             if (preview is null)
             {
                 return;
             }
 
             SetImage(preview, fitToWindow);
+            StartupDiagnostics.Mark("load_current.preview_set_image", $"{Path.GetFileName(path)} full={preview.IsFullResolution}");
             HandleDisplayedImageLoadState(preview, path, session);
         }
         catch (OperationCanceledException)
@@ -359,20 +370,24 @@ public partial class MainWindow : Window
         finally
         {
             session.Release();
+            StartupDiagnostics.Mark("load_current.end", Path.GetFileName(path));
         }
     }
 
     private void HandleDisplayedImageLoadState(DecodedImage image, string path, LoadSession session)
     {
+        StartupDiagnostics.Mark("load_state.begin", $"{Path.GetFileName(path)} full={image.IsFullResolution}");
         if (image.IsFullResolution)
         {
             ScheduleSmartPreloads(allowFullPreloads: true);
+            StartupDiagnostics.Mark("load_state.full_resolution_done", Path.GetFileName(path));
             return;
         }
 
         if (TryApplyCachedFullResolution(path, setActualPixels: false))
         {
             ScheduleSmartPreloads(allowFullPreloads: true);
+            StartupDiagnostics.Mark("load_state.cached_full_applied", Path.GetFileName(path));
             return;
         }
 
@@ -382,11 +397,13 @@ public partial class MainWindow : Window
         {
             StartBackgroundFullResolutionWarmup(path);
             ScheduleSmartPreloads(allowFullPreloads: true);
+            StartupDiagnostics.Mark("load_state.deferred_full_warmup", Path.GetFileName(path));
             return;
         }
 
         ScheduleSmartPreloads(allowFullPreloads: false);
         StartFullResolutionLoad(path, session);
+        StartupDiagnostics.Mark("load_state.started_full_decode", Path.GetFileName(path));
     }
 
     private async Task<DecodedImage?> DecodePreviewExclusiveAsync(
@@ -701,6 +718,18 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private async void Window_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        var navigationDelta = GetNavigationDeltaForMouseButton(e.ChangedButton);
+        if (navigationDelta == 0)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await RunUiCommandAsync(() => NavigateRelativeAsync(navigationDelta));
+    }
+
     private void ImageSurface_MouseMove(object sender, MouseEventArgs e)
     {
         if (!_isPanning || _image is null) return;
@@ -743,24 +772,35 @@ public partial class MainWindow : Window
 
     private async void PreviousButton_Click(object sender, RoutedEventArgs e)
     {
-        await RunUiCommandAsync(async () =>
-        {
-            if (_navigator.MovePrevious() is not null)
-            {
-                await LoadCurrentImageAsync(fitToWindow: true);
-            }
-        });
+        await RunUiCommandAsync(NavigatePreviousAsync);
     }
 
     private async void NextButton_Click(object sender, RoutedEventArgs e)
     {
-        await RunUiCommandAsync(async () =>
+        await RunUiCommandAsync(NavigateNextAsync);
+    }
+
+    private Task NavigateRelativeAsync(int delta)
+    {
+        return delta < 0
+            ? NavigatePreviousAsync()
+            : NavigateNextAsync();
+    }
+
+    private async Task NavigatePreviousAsync()
+    {
+        if (_navigator.CanMovePrevious && _navigator.MovePrevious() is not null)
         {
-            if (_navigator.MoveNext() is not null)
-            {
-                await LoadCurrentImageAsync(fitToWindow: true);
-            }
-        });
+            await LoadCurrentImageAsync(fitToWindow: true);
+        }
+    }
+
+    private async Task NavigateNextAsync()
+    {
+        if (_navigator.CanMoveNext && _navigator.MoveNext() is not null)
+        {
+            await LoadCurrentImageAsync(fitToWindow: true);
+        }
     }
 
     private void ActualPixelsButton_Click(object sender, RoutedEventArgs e)
@@ -821,14 +861,12 @@ public partial class MainWindow : Window
             else if (e.Key is Key.Left or Key.Back && _navigator.CanMovePrevious)
             {
                 e.Handled = true;
-                _navigator.MovePrevious();
-                await LoadCurrentImageAsync(fitToWindow: true);
+                await NavigatePreviousAsync();
             }
             else if (e.Key is Key.Right or Key.Space && _navigator.CanMoveNext)
             {
                 e.Handled = true;
-                _navigator.MoveNext();
-                await LoadCurrentImageAsync(fitToWindow: true);
+                await NavigateNextAsync();
             }
             else if (e.Key is Key.D1 or Key.NumPad1)
             {
@@ -1742,9 +1780,28 @@ public partial class MainWindow : Window
             return;
         }
 
+        StartupDiagnostics.Mark("folder_index.start", Path.GetFileName(path));
         var cts = new CancellationTokenSource();
         _folderIndexCts = cts;
         _ = LoadFolderIndexAsync(path, openGeneration, cts);
+    }
+
+    private void QueueFolderIndexingAfterFirstPreview(string path, int openGeneration)
+    {
+        if (_isClosing || openGeneration != _openGeneration)
+        {
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(
+            () =>
+            {
+                if (!_isClosing && openGeneration == _openGeneration)
+                {
+                    StartFolderIndexing(path, openGeneration);
+                }
+            },
+            DispatcherPriority.Background);
     }
 
     private async Task LoadFolderIndexAsync(string path, int openGeneration, CancellationTokenSource cts)
@@ -1765,6 +1822,7 @@ public partial class MainWindow : Window
 
             _navigator.Apply(snapshot);
             UpdateNavigationButtons();
+            StartupDiagnostics.Mark("folder_index.applied", $"{Path.GetFileName(path)} count={snapshot.Files.Count}");
             if (_image is not null)
             {
                 ScheduleSmartPreloads(allowFullPreloads: !IsFullDecodeInProgress);
@@ -2597,6 +2655,16 @@ public partial class MainWindow : Window
 
         var directory = Path.GetDirectoryName(path);
         return !string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory);
+    }
+
+    internal static int GetNavigationDeltaForMouseButton(MouseButton button)
+    {
+        return button switch
+        {
+            MouseButton.XButton1 => -1,
+            MouseButton.XButton2 => 1,
+            _ => 0
+        };
     }
 
     private void UpdateToolbarDensity()
