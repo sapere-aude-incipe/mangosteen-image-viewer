@@ -13,7 +13,7 @@ public sealed class DecoderRegistry : IDisposable
     private static readonly IReadOnlySet<string> WicPreferredExtensions =
         new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            ".bmp", ".cur", ".dib", ".jxr", ".tif", ".tiff", ".wdp"
+            ".bmp", ".cur", ".dib", ".jxr", ".wdp"
         };
 
     private static readonly IReadOnlySet<string> VipsPreferredExtensions =
@@ -22,7 +22,7 @@ public sealed class DecoderRegistry : IDisposable
             ".ari", ".avif", ".bay", ".cap", ".dcs", ".dds", ".drf", ".exif",
             ".exr", ".fff", ".gpr", ".hdr", ".heic", ".heif", ".iiq", ".jxl",
             ".mdc", ".pbm", ".pcx", ".pgm", ".ppm", ".psb", ".psd", ".qoi",
-            ".svg", ".svgz", ".tga", ".wmf", ".xbm", ".xpm"
+            ".svg", ".svgz", ".tga", ".tif", ".tiff", ".wmf", ".xbm", ".xpm"
         };
 
     private readonly IImageDecoder[] _decoders;

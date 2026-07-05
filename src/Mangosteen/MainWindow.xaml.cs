@@ -76,6 +76,7 @@ public partial class MainWindow : Window
     private readonly object _preloadWorkerGate = new();
     private readonly object _backgroundFullWarmupGate = new();
     private readonly HashSet<string> _backgroundFullWarmups = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<Task> _backgroundFullWarmupTasks = [];
     private readonly SemaphoreSlim _previewDecodeGate = new(1, 1);
     private readonly SemaphoreSlim _fullDecodeGate = new(1, 1);
     private LoadSession? _loadSession;
@@ -1380,133 +1381,152 @@ public partial class MainWindow : Window
         }
 
         var startGeneration = Volatile.Read(ref _loadGeneration);
+        var maxDecodedBytes = GetInteractiveDecodedByteLimit();
+        Task warmupTask;
+        CancellationToken token;
         lock (_backgroundFullWarmupGate)
         {
             if (!_backgroundFullWarmups.Add(path))
             {
                 return;
             }
-        }
 
-        var token = _backgroundFullWarmupCts.Token;
-        var maxDecodedBytes = GetInteractiveDecodedByteLimit();
-        _ = Task.Run(
-            async () =>
-            {
-                DecodedImage? full = null;
-                try
+            token = _backgroundFullWarmupCts.Token;
+            warmupTask = Task.Run(
+                async () =>
                 {
-                    full = await DecodeFullResolutionExclusiveAsync(
-                        path,
-                        token,
-                        shouldContinue: () => IsCurrentWarmup(path, startGeneration, token),
-                        schedulePreloadsWhenIdle: false,
-                        maxDecodedBytes: maxDecodedBytes,
-                        waitForGate: true,
-                        decoderFilter: null);
-                    if (full is null || token.IsCancellationRequested)
+                    DecodedImage? full = null;
+                    try
                     {
-                        full?.Dispose();
-                        return;
-                    }
-
-                    var handedOff = false;
-                    await TryDispatchAsync(() =>
-                    {
-                        if (_isClosing)
+                        full = await DecodeFullResolutionExclusiveAsync(
+                            path,
+                            token,
+                            shouldContinue: () => IsCurrentWarmup(path, startGeneration, token),
+                            schedulePreloadsWhenIdle: false,
+                            maxDecodedBytes: maxDecodedBytes,
+                            waitForGate: true,
+                            decoderFilter: null);
+                        if (full is null || token.IsCancellationRequested)
                         {
+                            full?.Dispose();
                             return;
                         }
 
-                        var currentPath = _navigator.CurrentPath;
-                        if (currentPath is not null &&
-                            startGeneration == Volatile.Read(ref _loadGeneration) &&
-                            currentPath.Equals(path, StringComparison.OrdinalIgnoreCase) &&
-                            _image is { IsFullResolution: false } &&
-                            _image.Metadata.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
-                        {
-                            SetImage(full, fitToWindow: false);
-                            if (_setActualPixelsAfterFullLoad)
-                            {
-                                _setActualPixelsAfterFullLoad = false;
-                                UpdateZoomText();
-                                ImageSurface.InvalidateVisual();
-                            }
-
-                            handedOff = true;
-                            full = null;
-                        }
-                    });
-
-                    if (!handedOff && full is not null)
-                    {
+                        var handedOff = false;
                         await TryDispatchAsync(() =>
                         {
-                            if (_isClosing || token.IsCancellationRequested)
+                            if (_isClosing)
                             {
                                 return;
                             }
 
-                            ApplyPreloadCacheBudget();
-                            _fullPreloadCache.Store(path, full, evictionPriority: 0);
-                            full = null;
+                            var currentPath = _navigator.CurrentPath;
+                            if (currentPath is not null &&
+                                startGeneration == Volatile.Read(ref _loadGeneration) &&
+                                currentPath.Equals(path, StringComparison.OrdinalIgnoreCase) &&
+                                _image is { IsFullResolution: false } &&
+                                _image.Metadata.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                            {
+                                SetImage(full, fitToWindow: false);
+                                if (_setActualPixelsAfterFullLoad)
+                                {
+                                    _setActualPixelsAfterFullLoad = false;
+                                    UpdateZoomText();
+                                    ImageSurface.InvalidateVisual();
+                                }
+
+                                handedOff = true;
+                                full = null;
+                            }
                         });
 
-                        full?.Dispose();
-                        full = null;
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    full?.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    full?.Dispose();
-                    if (BackgroundExceptionPolicy.IsExpectedShutdownOrCancellation(ex, _isClosing, token))
-                    {
-                        return;
-                    }
-
-                    await TryDispatchAsync(() =>
-                    {
-                        var currentPath = _navigator.CurrentPath;
-                        if (currentPath is not null &&
-                            currentPath.Equals(path, StringComparison.OrdinalIgnoreCase) &&
-                            _image is { IsFullResolution: false } &&
-                            _image.Metadata.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                        if (!handedOff && full is not null)
                         {
-                            _setActualPixelsAfterFullLoad = false;
-                            _isCurrentPreviewAwaitingFullResolution = false;
-                            HideStatus();
-                            ShowPreviewOnlyBadge(ex.Message);
+                            await TryDispatchAsync(() =>
+                            {
+                                if (_isClosing || token.IsCancellationRequested)
+                                {
+                                    return;
+                                }
+
+                                ApplyPreloadCacheBudget();
+                                _fullPreloadCache.Store(path, full, evictionPriority: 0);
+                                full = null;
+                            });
+
+                            full?.Dispose();
+                            full = null;
                         }
-                    });
-                    TraceBackgroundError($"Background full warmup failed for '{path}'", ex);
-                }
-                finally
-                {
-                    lock (_backgroundFullWarmupGate)
-                    {
-                        _backgroundFullWarmups.Remove(path);
                     }
-                }
-            },
-            token);
+                    catch (OperationCanceledException)
+                    {
+                        full?.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        full?.Dispose();
+                        if (BackgroundExceptionPolicy.IsExpectedShutdownOrCancellation(ex, _isClosing, token))
+                        {
+                            return;
+                        }
+
+                        await TryDispatchAsync(() =>
+                        {
+                            var currentPath = _navigator.CurrentPath;
+                            if (currentPath is not null &&
+                                currentPath.Equals(path, StringComparison.OrdinalIgnoreCase) &&
+                                _image is { IsFullResolution: false } &&
+                                _image.Metadata.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+                            {
+                                _setActualPixelsAfterFullLoad = false;
+                                _isCurrentPreviewAwaitingFullResolution = false;
+                                HideStatus();
+                                ShowPreviewOnlyBadge(ex.Message);
+                            }
+                        });
+                        TraceBackgroundError($"Background full warmup failed for '{path}'", ex);
+                    }
+                    finally
+                    {
+                        lock (_backgroundFullWarmupGate)
+                        {
+                            _backgroundFullWarmups.Remove(path);
+                        }
+                    }
+                },
+                token);
+            _backgroundFullWarmupTasks.Add(warmupTask);
+        }
+
+        _ = RemoveBackgroundWarmupTaskWhenDoneAsync(warmupTask);
     }
 
     private void CancelBackgroundFullWarmups(bool replaceToken = true)
     {
+        CancellationTokenSource previousCts;
+        Task[] previousTasks;
         lock (_backgroundFullWarmupGate)
         {
-            var previousCts = _backgroundFullWarmupCts;
+            previousCts = _backgroundFullWarmupCts;
             previousCts.Cancel();
+            previousTasks = _backgroundFullWarmupTasks.ToArray();
             if (replaceToken)
             {
                 _backgroundFullWarmupCts = new CancellationTokenSource();
             }
 
             _backgroundFullWarmups.Clear();
+        }
+
+        _ = DisposeCancellationSourceWhenDoneAsync(previousCts, Task.WhenAll(previousTasks));
+    }
+
+    private async Task RemoveBackgroundWarmupTaskWhenDoneAsync(Task task)
+    {
+        await IgnorePreloadCompletionAsync(task).ConfigureAwait(false);
+        lock (_backgroundFullWarmupGate)
+        {
+            _backgroundFullWarmupTasks.Remove(task);
         }
     }
 
