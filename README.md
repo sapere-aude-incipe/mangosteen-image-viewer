@@ -129,7 +129,11 @@ This creates:
 
 ## Release Process
 
-CI builds and tests every push and pull request on Windows using NuGet lock files. Pull requests also build unsigned installer and portable zip artifacts for testing from the Actions run page. Tagged releases named like `v0.1.0` run the release workflow, validate the version, build unsigned Windows artifacts, verify `SHA256SUMS.txt`, upload artifacts, and create a prerelease.
+CI builds and tests every push and pull request on Windows using NuGet lock files. Pull requests also build unsigned installer and portable zip artifacts for testing from the Actions run page.
+
+When changes land on `main`, the release workflow automatically chooses the next stable patch version, builds the unsigned Windows installer and portable zip, verifies `SHA256SUMS.txt`, and publishes a GitHub Release with generated release notes. Tagged releases named like `v0.2.3` or manual release workflow runs can still publish an explicit version.
+
+Stable versions such as `0.2.3` are normal GitHub releases and can appear as the latest release. Versions with a suffix, such as `0.2.3-preview.1`, are published as pre-releases.
 
 Generated installers, portable zip files, and checksums are published as GitHub Release assets. They are not committed to the repository.
 

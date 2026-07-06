@@ -2,6 +2,8 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*.*.*"
   workflow_dispatch:
@@ -26,10 +28,15 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      make_latest: ${{ steps.version.outputs.make_latest }}
 
     steps:
       - name: Check out source
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 0
 
       - name: Set up .NET
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
@@ -44,9 +51,28 @@ jobs:
         id: version
         shell: pwsh
         run: |
+          function Get-NextStableVersion {
+            $stableVersions = @()
+            foreach ($tag in (git tag --list "v*.*.*")) {
+              if ($tag -match '^v(?<version>(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))$') {
+                $stableVersions += [Version]$Matches['version']
+              }
+            }
+
+            if ($stableVersions.Count -eq 0) {
+              return "0.1.0"
+            }
+
+            $latest = $stableVersions | Sort-Object -Descending | Select-Object -First 1
+            return "$($latest.Major).$($latest.Minor).$($latest.Build + 1)"
+          }
+
           $version = "${{ github.event.inputs.version }}"
-          if ([string]::IsNullOrWhiteSpace($version)) {
+          if ("${{ github.ref_type }}" -eq "tag") {
             $version = "${{ github.ref_name }}" -replace '^v', ''
+          }
+          elseif ([string]::IsNullOrWhiteSpace($version)) {
+            $version = Get-NextStableVersion
           }
 
           $pattern = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$'
@@ -58,7 +84,13 @@ jobs:
             throw "Tag '${{ github.ref_name }}' must match resolved version 'v$version'."
           }
 
+          $isPrerelease = $version.Contains("-").ToString().ToLowerInvariant()
+          $makeLatest = if ($version.Contains("-")) { "false" } else { "true" }
+
           "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+          "is_prerelease=$isPrerelease" >> $env:GITHUB_OUTPUT
+          "make_latest=$makeLatest" >> $env:GITHUB_OUTPUT
 
       - name: Restore
         run: dotnet restore Mangosteen.slnx --locked-mode
@@ -116,7 +148,6 @@ jobs:
 
   release:
     name: Create GitHub release
-    if: startsWith(github.ref, 'refs/tags/')
     needs: package
     runs-on: ubuntu-latest
     permissions:
@@ -133,9 +164,19 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@7c4723f7a335432393329f8f1c564994ce50185d # v3
         with:
-          files: dist/*
-          prerelease: true
+          name: Mangosteen ${{ needs.package.outputs.version }}
+          tag_name: ${{ needs.package.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          files: |
+            dist/Mangosteen-Setup-${{ needs.package.outputs.version }}-x64.exe
+            dist/Mangosteen-Portable-${{ needs.package.outputs.version }}-x64.zip
+            dist/SHA256SUMS.txt
+          fail_on_unmatched_files: true
+          preserve_order: true
+          generate_release_notes: true
+          prerelease: ${{ needs.package.outputs.is_prerelease }}
+          make_latest: ${{ needs.package.outputs.make_latest }}
           body: |
-            Unsigned preview release of Mangosteen Image Viewer.
+            Unsigned Windows build of Mangosteen Image Viewer.
 
-            Download `SHA256SUMS.txt` and verify files before running them. Windows SmartScreen may warn until the project has code signing in place.
+            Download the installer or portable zip from the assets below. Verify downloads with `SHA256SUMS.txt` before running them. Windows SmartScreen may warn until the project has code signing in place.
