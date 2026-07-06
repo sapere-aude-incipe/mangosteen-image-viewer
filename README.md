@@ -63,7 +63,7 @@ The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
 - **Portable**: `Mangosteen-Portable-<version>-x64.zip` - extract anywhere and run `Mangosteen.exe`. No installation and no separate .NET runtime required.
-- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - classic setup with Start menu shortcut.
+- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - classic setup with Start menu shortcut and an optional, checked-by-default file type registration step.
 
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 

@@ -7,6 +7,27 @@ namespace Mangosteen.Tests.Core;
 public sealed partial class InstallerSupportedTypesTests
 {
     [TestMethod]
+    public void Inno_Setup_Uses_Full_Product_Name_For_Uninstall_Display()
+    {
+        var text = GetInstallerScriptText();
+
+        StringAssert.Contains(text, "#define AppDisplayName \"Mangosteen Image Viewer\"");
+        StringAssert.Contains(text, "UninstallDisplayName={#AppDisplayName}");
+    }
+
+    [TestMethod]
+    public void Inno_Setup_Offers_Checked_File_Association_Task()
+    {
+        var text = GetInstallerScriptText();
+        var taskLine = text
+            .Split(["\r\n", "\n"], StringSplitOptions.None)
+            .Single(line => line.Contains("Name: \"associatefiles\"", StringComparison.Ordinal));
+
+        StringAssert.Contains(taskLine, "Register supported image file types");
+        Assert.IsFalse(taskLine.Contains("unchecked", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod]
     public void Inno_Setup_Registers_All_Broad_Image_Extensions()
     {
         var supportedTypes = GetInstallerSupportedTypes();
@@ -32,14 +53,32 @@ public sealed partial class InstallerSupportedTypesTests
         Assert.IsEmpty(duplicates, "Installer has duplicate SupportedTypes entries: " + string.Join(", ", duplicates));
     }
 
+    [TestMethod]
+    public void Inno_Setup_Gates_SupportedTypes_Behind_File_Association_Task()
+    {
+        var unsupportedLines = GetInstallerScriptText()
+            .Split(["\r\n", "\n"], StringSplitOptions.None)
+            .Where(line => line.Contains(@"\SupportedTypes""", StringComparison.Ordinal))
+            .Where(line => line.Contains("ValueName:", StringComparison.Ordinal))
+            .Where(line => !line.Contains("Tasks: associatefiles", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.IsEmpty(unsupportedLines, "SupportedTypes entries must be gated by the associatefiles task.");
+    }
+
     private static string[] GetInstallerSupportedTypes()
     {
-        var installerScript = Path.Combine(GetRepositoryRoot(), "packaging", "inno", "Mangosteen.iss");
-        var text = File.ReadAllText(installerScript);
+        var text = GetInstallerScriptText();
         return SupportedTypeRegex()
             .Matches(text)
             .Select(match => match.Groups["extension"].Value)
             .ToArray();
+    }
+
+    private static string GetInstallerScriptText()
+    {
+        var installerScript = Path.Combine(GetRepositoryRoot(), "packaging", "inno", "Mangosteen.iss");
+        return File.ReadAllText(installerScript);
     }
 
     private static string GetRepositoryRoot()
