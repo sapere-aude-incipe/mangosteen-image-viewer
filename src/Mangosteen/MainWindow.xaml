@@ -652,15 +652,6 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock x:Name="ImagePositionText"
-                           Grid.Column="0"
-                           Margin="8,0,0,0"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Center"
-                           Foreground="{DynamicResource TextSecondary}"
-                           FontSize="12"
-                           Visibility="Collapsed" />
-
                 <Border x:Name="NavigationDock"
                         Grid.Column="1"
                         Padding="5,4"
@@ -711,6 +702,16 @@
                             <Button x:Name="PreviousButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="PreviousButton_Click" />
+                            <TextBlock x:Name="ImagePositionText"
+                                       MinWidth="52"
+                                       Margin="5,0"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextSecondary}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       TextAlignment="Center"
+                                       Visibility="Collapsed" />
                             <Button x:Name="NextButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="NextButton_Click" />
