@@ -162,7 +162,7 @@ jobs:
           path: dist
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@7c4723f7a335432393329f8f1c564994ce50185d # v3
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3
         with:
           name: Mangosteen ${{ needs.package.outputs.version }}
           tag_name: ${{ needs.package.outputs.tag }}
