@@ -2854,6 +2854,47 @@ public partial class MainWindow : Window
         Resources["BadgeForeground"] = isDarkMode
             ? CreateBrush(232, 201, 122)
             : CreateBrush(107, 74, 0);
+        ApplyContextMenuThemeResources();
+    }
+
+    private void ApplyContextMenuThemeResources()
+    {
+        foreach (var key in new[]
+        {
+            "PanelBackground",
+            "PanelBorder",
+            "PanelSeparator",
+            "ControlHoverBackground",
+            "ControlPressedBackground",
+            "TextPrimary",
+            "TextSecondary",
+            "TextDisabled",
+            "TextDanger",
+            "AccentCheckBackground",
+            "AccentCheckBorder"
+        })
+        {
+            CopyResourceToContextMenu(key);
+        }
+
+        ImageContextMenu.Background = GetContextMenuBrush("PanelBackground", Brushes.White);
+        ImageContextMenu.BorderBrush = GetContextMenuBrush("PanelBorder", Brushes.LightGray);
+        ImageContextMenu.Foreground = GetContextMenuBrush("TextPrimary", Brushes.Black);
+    }
+
+    private void CopyResourceToContextMenu(string key)
+    {
+        if (Resources[key] is not null)
+        {
+            ImageContextMenu.Resources[key] = Resources[key];
+        }
+    }
+
+    private Brush GetContextMenuBrush(string key, Brush fallback)
+    {
+        return ImageContextMenu.Resources[key] as Brush ??
+            Resources[key] as Brush ??
+            fallback;
     }
 
     private Brush GetToolbarIconBrush()
