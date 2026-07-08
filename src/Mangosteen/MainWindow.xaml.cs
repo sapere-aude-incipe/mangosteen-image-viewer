@@ -2745,7 +2745,11 @@ public partial class MainWindow : Window
         var icon = _viewerState.Mode != ViewerFitMode.Fit
             ? ToolbarIconKind.FitToWindow
             : ToolbarIconKind.ActualPixels;
-        ActualPixelsButton.Content = ToolbarIcon.Create(icon, GetToolbarIconBrush());
+        var canToggle = CanToggleActualPixels();
+        ActualPixelsButton.IsEnabled = canToggle;
+        ActualPixelsButton.Content = ToolbarIcon.Create(
+            icon,
+            canToggle ? GetToolbarIconBrush() : GetToolbarDisabledBrush());
     }
 
     private void UpdateToolbarIcons()
@@ -2862,6 +2866,11 @@ public partial class MainWindow : Window
         return Resources["TextDanger"] as Brush ?? Brushes.Firebrick;
     }
 
+    private Brush GetToolbarDisabledBrush()
+    {
+        return Resources["TextDisabled"] as Brush ?? Brushes.Gray;
+    }
+
     private enum DwmWindowCornerPreference
     {
         Default = 0,
@@ -2953,7 +2962,7 @@ public partial class MainWindow : Window
     {
         PreviousButton.IsEnabled = _navigator.CanMovePrevious;
         NextButton.IsEnabled = _navigator.CanMoveNext;
-        ActualPixelsButton.IsEnabled = CanToggleActualPixels();
+        UpdateActualPixelsIcon();
         ShowInFolderButton.IsEnabled = CanShowCurrentImageInFolder();
         var canDelete = CanDeleteCurrentImage();
         DeleteButton.IsEnabled = canDelete;
@@ -2985,7 +2994,6 @@ public partial class MainWindow : Window
             ? "-"
             : $"{_viewerState.Zoom * 100:0}%";
         UpdateZoomSlider();
-        ActualPixelsButton.IsEnabled = CanToggleActualPixels();
         UpdateActualPixelsIcon();
         UpdateToolbarDensity();
     }
@@ -3055,7 +3063,9 @@ public partial class MainWindow : Window
 
     internal static bool CanToggleActualPixelsForState(bool hasImage, bool fitsAtActualPixels, double zoom)
     {
-        return hasImage && (!fitsAtActualPixels || zoom > 1.0 + ActualPixelZoomTolerance);
+        return hasImage &&
+            (zoom < 1.0 - ActualPixelZoomTolerance ||
+                zoom > 1.0 + ActualPixelZoomTolerance);
     }
 
     private bool CanDeleteCurrentImage()
