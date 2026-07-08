@@ -171,6 +171,21 @@ Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly i
   <data name="ShowImageInFolder" xml:space="preserve">
     <value>Show image in folder</value>
   </data>
+  <data name="OpenWith" xml:space="preserve">
+    <value>Open With</value>
+  </data>
+  <data name="SetAsDesktopBackground" xml:space="preserve">
+    <value>Set as desktop background</value>
+  </data>
+  <data name="OpenFileLocation" xml:space="preserve">
+    <value>Open file location</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Choose how images are enlarged when zoomed past actual size.</value>
   </data>
@@ -182,5 +197,46 @@ Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly i
   </data>
   <data name="ImagePositionFormat" xml:space="preserve">
     <value>{0} / {1}</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="CheckForUpdatesTooltip" xml:space="preserve">
+    <value>Check GitHub Releases for a newer version.</value>
+  </data>
+  <data name="CheckingForUpdates" xml:space="preserve">
+    <value>Checking for updates...</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Downloading update...</value>
+  </data>
+  <data name="StartingInstaller" xml:space="preserve">
+    <value>Starting installer...</value>
+  </data>
+  <data name="UpdatesDialogTitle" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="NoUpdatesAvailableFormat" xml:space="preserve">
+    <value>Mangosteen is up to date.
+
+Current version: {0}</value>
+  </data>
+  <data name="UpdateAvailableInstalledFormat" xml:space="preserve">
+    <value>Mangosteen {0} is available. You are using {1}.
+
+Download and run the installer now? Mangosteen will close after the installer starts.</value>
+  </data>
+  <data name="UpdateAvailablePortableFormat" xml:space="preserve">
+    <value>Mangosteen {0} is available. You are using {1}.
+
+Portable builds cannot update in place. Open the GitHub Releases page?</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>The update operation could not finish.
+
+{0}</value>
+  </data>
+  <data name="UpdateInstallerMissing" xml:space="preserve">
+    <value>The latest release does not include a Windows installer yet.</value>
   </data>
 </root>

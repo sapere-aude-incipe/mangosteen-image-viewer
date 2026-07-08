@@ -34,6 +34,16 @@ function Get-ProjectVersion {
     return "0.1.0"
 }
 
+function Get-NumericAssemblyVersion {
+    param([string] $Value)
+
+    if ($Value -notmatch '^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)') {
+        throw "Release version '$Value' must start with a numeric major.minor.patch version."
+    }
+
+    return "$($Matches['major']).$($Matches['minor']).$($Matches['patch']).0"
+}
+
 function Find-InnoCompiler {
     param([string] $ExplicitPath)
 
@@ -115,6 +125,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 }
 
 Assert-ReleaseVersion $Version
+$numericAssemblyVersion = Get-NumericAssemblyVersion $Version
 
 Clear-GeneratedDirectory -Path $distDir -AllowedRoot $projectRoot
 Clear-GeneratedDirectory -Path $installerInputDir -AllowedRoot $projectRoot
@@ -129,6 +140,10 @@ $publishArgs = @(
     "-p:PublishSingleFile=false",
     "-p:DebugType=None",
     "-p:DebugSymbols=false",
+    "-p:Version=$Version",
+    "-p:AssemblyVersion=$numericAssemblyVersion",
+    "-p:FileVersion=$numericAssemblyVersion",
+    "-p:InformationalVersion=$Version",
     "-p:SatelliteResourceLanguages=en%3Bnb-NO%3Bde%3Bfr%3Bes%3Bpt-BR%3Bpl%3Btr%3Bja%3Bko%3Bzh-Hans%3Bzh-Hant%3Bru",
     "-o",
     $installerInputDir

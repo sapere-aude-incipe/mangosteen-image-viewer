@@ -5,17 +5,20 @@ using Mangosteen.Icons;
 using Mangosteen.Localization;
 using Mangosteen.Navigation;
 using Mangosteen.Rendering;
+using Mangosteen.Updates;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using WpfPoint = System.Windows.Point;
@@ -59,6 +62,9 @@ public partial class MainWindow : Window
     private const double DefaultToolbarHeightDips = 48.0;
     private const int DwmWindowCornerPreferenceAttribute = 33;
     private const int MonitorDefaultToNearest = 2;
+    private const int SpiSetDesktopWallpaper = 0x0014;
+    private const int SpifUpdateIniFile = 0x0001;
+    private const int SpifSendChange = 0x0002;
     private const int WmGetMinMaxInfo = 0x0024;
     private const double EmptyStateMinimumWidth = 280.0;
     private const double EmptyStateMaximumWidth = 500.0;
@@ -80,6 +86,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _autoRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly ImagePreloadCache _fullPreloadCache = new();
     private readonly ImagePreloadCache _previewPreloadCache = new();
+    private readonly GitHubUpdateService _updates = new();
     private readonly object _preloadWorkerGate = new();
     private readonly object _backgroundFullWarmupGate = new();
     private readonly HashSet<string> _backgroundFullWarmups = new(StringComparer.OrdinalIgnoreCase);
@@ -88,6 +95,7 @@ public partial class MainWindow : Window
     private readonly SemaphoreSlim _fullDecodeGate = new(1, 1);
     private LoadSession? _loadSession;
     private CancellationTokenSource? _folderIndexCts;
+    private CancellationTokenSource? _updateCheckCts;
     private CancellationTokenSource _preloadCts = new();
     private CancellationTokenSource _backgroundFullWarmupCts = new();
     private Task _preloadWorkerTask = Task.CompletedTask;
@@ -189,6 +197,7 @@ public partial class MainWindow : Window
         ExitMenuItem.Header = LocalizedText.Get(LocalizedText.Exit);
         OptionsMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsMenu);
         HelpMenuItem.Header = LocalizedText.Get(LocalizedText.HelpMenu);
+        CheckForUpdatesMenuItem.Header = LocalizedText.Get(LocalizedText.CheckForUpdates);
         SamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Upscaling);
         SmoothSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Smooth);
         NearestSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Nearest);
@@ -211,6 +220,7 @@ public partial class MainWindow : Window
         ConservativePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ConservativePreloadTooltip);
         BalancedPreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.BalancedPreloadTooltip);
         AggressivePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.AggressivePreloadTooltip);
+        CheckForUpdatesMenuItem.ToolTip = LocalizedText.Get(LocalizedText.CheckForUpdatesTooltip);
         OptionsHelpMenuItem.ToolTip = LocalizedText.Get(LocalizedText.OptionsHelpTooltip);
         foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
         {
@@ -233,10 +243,17 @@ public partial class MainWindow : Window
         ZoomPopupButton.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
         ShowInFolderButton.ToolTip = LocalizedText.Get(LocalizedText.ShowImageInFolder);
         DeleteButton.ToolTip = $"{LocalizedText.Get(LocalizedText.DeleteImage)} (Del)";
+        ContextOpenWithMenuItem.Header = LocalizedText.Get(LocalizedText.OpenWith);
+        ContextSetDesktopBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.SetAsDesktopBackground);
+        ContextOpenFileLocationMenuItem.Header = LocalizedText.Get(LocalizedText.OpenFileLocation);
+        ContextCopyMenuItem.Header = LocalizedText.Get(LocalizedText.Copy);
+        ContextDeleteMenuItem.Header = LocalizedText.Get(LocalizedText.DeleteImage);
+        ContextPropertiesMenuItem.Header = LocalizedText.Get(LocalizedText.Properties);
         ZoomText.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
         ZoomSlider.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
         OpenMenuItem.InputGestureText = "Ctrl+O";
         DeleteMenuItem.InputGestureText = "Del";
+        ContextDeleteMenuItem.InputGestureText = "Del";
         UpdateSettingsMenuChecks();
         UpdateZoomText();
     }
@@ -249,6 +266,123 @@ public partial class MainWindow : Window
             LocalizedText.Get(LocalizedText.OptionsHelpDialogTitle),
             MessageBoxButton.OK,
             MessageBoxImage.Information);
+    }
+
+    private async void CheckForUpdatesMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_updateCheckCts is not null)
+        {
+            return;
+        }
+
+        var currentVersion = GetCurrentReleaseVersion();
+        var updateCheckCts = new CancellationTokenSource();
+        _updateCheckCts = updateCheckCts;
+        CheckForUpdatesMenuItem.IsEnabled = false;
+
+        try
+        {
+            ShowStatus(LocalizedText.Get(LocalizedText.CheckingForUpdates));
+            var update = await _updates.CheckLatestReleaseAsync(currentVersion, updateCheckCts.Token);
+            if (!update.IsUpdateAvailable)
+            {
+                MessageBox.Show(
+                    this,
+                    LocalizedText.Format(LocalizedText.NoUpdatesAvailableFormat, currentVersion),
+                    LocalizedText.Get(LocalizedText.UpdatesDialogTitle),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            if (!IsInstalledBuild())
+            {
+                var portableChoice = MessageBox.Show(
+                    this,
+                    LocalizedText.Format(
+                        LocalizedText.UpdateAvailablePortableFormat,
+                        update.LatestVersion,
+                        update.CurrentVersion),
+                    LocalizedText.Get(LocalizedText.UpdatesDialogTitle),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (portableChoice == MessageBoxResult.Yes)
+                {
+                    OpenExternalUrl(update.ReleasePageUrl);
+                }
+
+                return;
+            }
+
+            if (update.InstallerAsset is null)
+            {
+                MessageBox.Show(
+                    this,
+                    LocalizedText.Get(LocalizedText.UpdateInstallerMissing),
+                    LocalizedText.Get(LocalizedText.UpdatesDialogTitle),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                OpenExternalUrl(update.ReleasePageUrl);
+                return;
+            }
+
+            var installedChoice = MessageBox.Show(
+                this,
+                LocalizedText.Format(
+                    LocalizedText.UpdateAvailableInstalledFormat,
+                    update.LatestVersion,
+                    update.CurrentVersion),
+                LocalizedText.Get(LocalizedText.UpdatesDialogTitle),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Information);
+
+            if (installedChoice != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            ShowStatus(LocalizedText.Get(LocalizedText.DownloadingUpdate));
+            var installerPath = await _updates.DownloadInstallerAsync(
+                update,
+                GetUpdateDownloadDirectory(update.LatestVersion),
+                progress: null,
+                updateCheckCts.Token);
+
+            ShowStatus(LocalizedText.Get(LocalizedText.StartingInstaller));
+            Process.Start(new ProcessStartInfo(installerPath)
+            {
+                UseShellExecute = true
+            });
+            Close();
+        }
+        catch (OperationCanceledException) when (_isClosing)
+        {
+        }
+        catch (Exception ex)
+        {
+            TraceBackgroundError("Failed to check for updates", ex);
+            MessageBox.Show(
+                this,
+                LocalizedText.Format(LocalizedText.UpdateCheckFailedFormat, ex.Message),
+                LocalizedText.Get(LocalizedText.UpdatesDialogTitle),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+        finally
+        {
+            if (ReferenceEquals(_updateCheckCts, updateCheckCts))
+            {
+                _updateCheckCts = null;
+            }
+
+            updateCheckCts.Dispose();
+            if (!_isClosing)
+            {
+                RestoreStatusAfterUpdateCheck();
+                CheckForUpdatesMenuItem.IsEnabled = true;
+            }
+        }
     }
 
     private void UpdateWindowTitle(string? fileName = null)
@@ -312,6 +446,7 @@ public partial class MainWindow : Window
         StopPanning();
         _loadSession?.CancelAndDisposeWhenInactive();
         _loadSession = null;
+        CancelUpdateCheck();
         CancelFolderIndexing();
         CancelPreloadWorker(replaceToken: false);
         CancelBackgroundFullWarmups(replaceToken: false);
@@ -320,6 +455,7 @@ public partial class MainWindow : Window
         _image?.Dispose();
         _image = null;
         _decoders.Dispose();
+        _updates.Dispose();
         base.OnClosed(e);
     }
 
@@ -874,6 +1010,61 @@ public partial class MainWindow : Window
         await RunUiCommandAsync(DeleteCurrentImageAsync);
     }
 
+    private void ImageSurface_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        UpdateImageContextMenuItems();
+        if (!CanUseCurrentImageFile() && !CanCopyCurrentImage())
+        {
+            e.Handled = true;
+        }
+    }
+
+    private async void ContextOpenWithMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(() =>
+        {
+            OpenCurrentImageWith();
+            return Task.CompletedTask;
+        });
+    }
+
+    private async void ContextSetDesktopBackgroundMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(() =>
+        {
+            SetCurrentImageAsDesktopBackground();
+            return Task.CompletedTask;
+        });
+    }
+
+    private void ContextOpenFileLocationMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        ShowCurrentImageInFolder();
+    }
+
+    private async void ContextCopyMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(() =>
+        {
+            CopyCurrentImageToClipboard();
+            return Task.CompletedTask;
+        });
+    }
+
+    private async void ContextDeleteMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(DeleteCurrentImageAsync);
+    }
+
+    private async void ContextPropertiesMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(() =>
+        {
+            ShowCurrentImageProperties();
+            return Task.CompletedTask;
+        });
+    }
+
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
     {
         Close();
@@ -1168,6 +1359,121 @@ public partial class MainWindow : Window
             TraceBackgroundError($"Failed to show image in folder for '{path}'", ex);
             ShowStatus(LocalizedText.Get(LocalizedText.UnexpectedError));
         }
+    }
+
+    private static ReleaseVersion GetCurrentReleaseVersion()
+    {
+        var assembly = typeof(MainWindow).Assembly;
+        var informationalVersion = assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+        if (ReleaseVersion.TryParse(informationalVersion, out var releaseVersion))
+        {
+            return releaseVersion;
+        }
+
+        var assemblyVersion = assembly.GetName().Version;
+        return assemblyVersion is null
+            ? new ReleaseVersion(0, 0, 0, null)
+            : new ReleaseVersion(
+                Math.Max(assemblyVersion.Major, 0),
+                Math.Max(assemblyVersion.Minor, 0),
+                Math.Max(assemblyVersion.Build, 0),
+                null);
+    }
+
+    private static string GetUpdateDownloadDirectory(ReleaseVersion version)
+    {
+        return Path.Combine(Path.GetTempPath(), "Mangosteen", "Updates", version.ToString());
+    }
+
+    private static bool IsInstalledBuild()
+    {
+        try
+        {
+            return Directory.EnumerateFiles(AppContext.BaseDirectory, "unins*.exe", System.IO.SearchOption.TopDirectoryOnly).Any();
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static void OpenExternalUrl(string url)
+    {
+        Process.Start(new ProcessStartInfo(url)
+        {
+            UseShellExecute = true
+        });
+    }
+
+    private void OpenCurrentImageWith()
+    {
+        var path = GetExistingCurrentImagePath();
+        if (path is null)
+        {
+            UpdateNavigationButtons();
+            return;
+        }
+
+        var startInfo = new ProcessStartInfo("rundll32.exe")
+        {
+            UseShellExecute = false
+        };
+        startInfo.ArgumentList.Add("shell32.dll,OpenAs_RunDLL");
+        startInfo.ArgumentList.Add(path);
+        Process.Start(startInfo);
+    }
+
+    private void SetCurrentImageAsDesktopBackground()
+    {
+        var path = GetExistingCurrentImagePath();
+        if (path is null)
+        {
+            UpdateNavigationButtons();
+            return;
+        }
+
+        if (!SystemParametersInfo(
+            SpiSetDesktopWallpaper,
+            0,
+            path,
+            SpifUpdateIniFile | SpifSendChange))
+        {
+            throw new InvalidOperationException(LocalizedText.Get(LocalizedText.UnexpectedError));
+        }
+    }
+
+    private void CopyCurrentImageToClipboard()
+    {
+        if (!CanCopyCurrentImage() || _image is null)
+        {
+            UpdateNavigationButtons();
+            return;
+        }
+
+        var frameIndex = Math.Clamp(_frameIndex, 0, _image.Frames.Count - 1);
+        Clipboard.SetImage(CreateClipboardBitmap(_image.Frames[frameIndex].Image));
+    }
+
+    private void ShowCurrentImageProperties()
+    {
+        var path = GetExistingCurrentImagePath();
+        if (path is null)
+        {
+            UpdateNavigationButtons();
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo(path)
+        {
+            UseShellExecute = true,
+            Verb = "properties"
+        });
     }
 
     private async Task DeleteCurrentImageAsync()
@@ -1906,6 +2212,13 @@ public partial class MainWindow : Window
         _folderIndexCts = null;
     }
 
+    private void CancelUpdateCheck()
+    {
+        _updateCheckCts?.Cancel();
+        _updateCheckCts?.Dispose();
+        _updateCheckCts = null;
+    }
+
     private void ScheduleSmartPreloads(bool allowFullPreloads)
     {
         if (_isClosing) return;
@@ -2613,6 +2926,13 @@ public partial class MainWindow : Window
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfo monitorInfo);
 
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern bool SystemParametersInfo(
+        int action,
+        int parameter,
+        string value,
+        int update);
+
     private static SolidColorBrush CreateBrush(byte red, byte green, byte blue)
     {
         return CreateBrush(255, red, green, blue);
@@ -2638,6 +2958,7 @@ public partial class MainWindow : Window
         var canDelete = CanDeleteCurrentImage();
         DeleteButton.IsEnabled = canDelete;
         DeleteMenuItem.IsEnabled = canDelete;
+        UpdateImageContextMenuItems();
         UpdateImagePositionText();
         UpdateAutoRefreshWatcher();
     }
@@ -2743,6 +3064,16 @@ public partial class MainWindow : Window
         return path is not null && File.Exists(path);
     }
 
+    private bool CanUseCurrentImageFile()
+    {
+        return GetExistingCurrentImagePath() is not null;
+    }
+
+    private bool CanCopyCurrentImage()
+    {
+        return _image is not null && IsDisplayedImageCurrent();
+    }
+
     private bool CanShowCurrentImageInFolder()
     {
         var path = _navigator.CurrentPath;
@@ -2758,6 +3089,37 @@ public partial class MainWindow : Window
 
         var directory = Path.GetDirectoryName(path);
         return !string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory);
+    }
+
+    private string? GetExistingCurrentImagePath()
+    {
+        var path = _navigator.CurrentPath;
+        return path is not null && File.Exists(path) ? path : null;
+    }
+
+    private void UpdateImageContextMenuItems()
+    {
+        var canUseFile = CanUseCurrentImageFile();
+        ContextOpenWithMenuItem.IsEnabled = canUseFile;
+        ContextSetDesktopBackgroundMenuItem.IsEnabled = canUseFile;
+        ContextOpenFileLocationMenuItem.IsEnabled = CanShowCurrentImageInFolder();
+        ContextCopyMenuItem.IsEnabled = CanCopyCurrentImage();
+        ContextDeleteMenuItem.IsEnabled = CanDeleteCurrentImage();
+        ContextPropertiesMenuItem.IsEnabled = canUseFile;
+    }
+
+    private static BitmapSource CreateClipboardBitmap(SKImage image)
+    {
+        using var encoded = image.Encode(SKEncodedImageFormat.Png, quality: 100)
+            ?? throw new InvalidDataException("Could not encode image for the clipboard.");
+        using var stream = new MemoryStream(encoded.ToArray());
+        var bitmap = new BitmapImage();
+        bitmap.BeginInit();
+        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+        bitmap.StreamSource = stream;
+        bitmap.EndInit();
+        bitmap.Freeze();
+        return bitmap;
     }
 
     internal static int GetNavigationDeltaForMouseButton(MouseButton button)
@@ -2810,6 +3172,18 @@ public partial class MainWindow : Window
         StatusMessagePanel.Visibility = isEmptyState ? Visibility.Collapsed : Visibility.Visible;
         StatusOverlay.Visibility = Visibility.Visible;
         UpdateStatusOverlayOpenState();
+    }
+
+    private void RestoreStatusAfterUpdateCheck()
+    {
+        if (_image is null && _navigator.CurrentPath is null)
+        {
+            ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
+        }
+        else if (_image is not null && !_isCurrentPreviewAwaitingFullResolution)
+        {
+            HideStatus();
+        }
     }
 
     private void HideStatus()

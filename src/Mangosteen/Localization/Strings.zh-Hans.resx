@@ -171,6 +171,21 @@
   <data name="ShowImageInFolder" xml:space="preserve">
     <value>在文件夹中显示图像</value>
   </data>
+  <data name="OpenWith" xml:space="preserve">
+    <value>打开方式</value>
+  </data>
+  <data name="SetAsDesktopBackground" xml:space="preserve">
+    <value>设置为桌面背景</value>
+  </data>
+  <data name="OpenFileLocation" xml:space="preserve">
+    <value>打开文件位置</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>属性</value>
+  </data>
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>选择图像在超过实际大小后如何放大。</value>
   </data>
@@ -182,5 +197,46 @@
   </data>
   <data name="ImagePositionFormat" xml:space="preserve">
     <value>{0} / {1}</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
+  <data name="CheckForUpdatesTooltip" xml:space="preserve">
+    <value>在 GitHub Releases 检查较新的版本。</value>
+  </data>
+  <data name="CheckingForUpdates" xml:space="preserve">
+    <value>正在检查更新...</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>正在下载更新...</value>
+  </data>
+  <data name="StartingInstaller" xml:space="preserve">
+    <value>正在启动安装程序...</value>
+  </data>
+  <data name="UpdatesDialogTitle" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="NoUpdatesAvailableFormat" xml:space="preserve">
+    <value>Mangosteen 已是最新版本。
+
+当前版本：{0}</value>
+  </data>
+  <data name="UpdateAvailableInstalledFormat" xml:space="preserve">
+    <value>Mangosteen {0} 可用。你正在使用 {1}。
+
+现在下载并运行安装程序吗？安装程序启动后 Mangosteen 将关闭。</value>
+  </data>
+  <data name="UpdateAvailablePortableFormat" xml:space="preserve">
+    <value>Mangosteen {0} 可用。你正在使用 {1}。
+
+便携版不能就地更新。是否打开 GitHub Releases 页面？</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>更新操作无法完成。
+
+{0}</value>
+  </data>
+  <data name="UpdateInstallerMissing" xml:space="preserve">
+    <value>最新版本尚未包含 Windows 安装程序。</value>
   </data>
 </root>

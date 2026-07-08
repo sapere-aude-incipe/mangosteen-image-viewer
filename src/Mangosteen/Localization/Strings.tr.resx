@@ -171,6 +171,21 @@ Yakındaki görüntüleri ön yükle, olası sonraki ve önceki görüntüleri a
   <data name="ShowImageInFolder" xml:space="preserve">
     <value>Görüntüyü klasörde göster</value>
   </data>
+  <data name="OpenWith" xml:space="preserve">
+    <value>Birlikte aç</value>
+  </data>
+  <data name="SetAsDesktopBackground" xml:space="preserve">
+    <value>Masaüstü arka planı yap</value>
+  </data>
+  <data name="OpenFileLocation" xml:space="preserve">
+    <value>Dosya konumunu aç</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Kopyala</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Özellikler</value>
+  </data>
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Gerçek boyutu aşacak şekilde yakınlaştırıldığında görüntülerin nasıl büyütüleceğini seçin.</value>
   </data>
@@ -182,5 +197,46 @@ Yakındaki görüntüleri ön yükle, olası sonraki ve önceki görüntüleri a
   </data>
   <data name="ImagePositionFormat" xml:space="preserve">
     <value>{0} / {1}</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Güncellemeleri denetle</value>
+  </data>
+  <data name="CheckForUpdatesTooltip" xml:space="preserve">
+    <value>Daha yeni bir sürüm için GitHub Releases sayfasını denetle.</value>
+  </data>
+  <data name="CheckingForUpdates" xml:space="preserve">
+    <value>Güncellemeler denetleniyor...</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Güncelleme indiriliyor...</value>
+  </data>
+  <data name="StartingInstaller" xml:space="preserve">
+    <value>Yükleyici başlatılıyor...</value>
+  </data>
+  <data name="UpdatesDialogTitle" xml:space="preserve">
+    <value>Güncellemeler</value>
+  </data>
+  <data name="NoUpdatesAvailableFormat" xml:space="preserve">
+    <value>Mangosteen güncel.
+
+Geçerli sürüm: {0}</value>
+  </data>
+  <data name="UpdateAvailableInstalledFormat" xml:space="preserve">
+    <value>Mangosteen {0} kullanılabilir. {1} kullanıyorsunuz.
+
+Yükleyiciyi şimdi indirip çalıştırmak ister misiniz? Yükleyici başladıktan sonra Mangosteen kapanacak.</value>
+  </data>
+  <data name="UpdateAvailablePortableFormat" xml:space="preserve">
+    <value>Mangosteen {0} kullanılabilir. {1} kullanıyorsunuz.
+
+Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açılsın mı?</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>Güncelleme işlemi tamamlanamadı.
+
+{0}</value>
+  </data>
+  <data name="UpdateInstallerMissing" xml:space="preserve">
+    <value>En son sürüm henüz bir Windows yükleyicisi içermiyor.</value>
   </data>
 </root>

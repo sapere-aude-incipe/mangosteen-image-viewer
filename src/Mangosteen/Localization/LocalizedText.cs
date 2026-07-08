@@ -13,10 +13,14 @@ internal static class LocalizedText
     public const string AutoRefreshCurrentImageTooltip = nameof(AutoRefreshCurrentImageTooltip);
     public const string Balanced = nameof(Balanced);
     public const string BalancedPreloadTooltip = nameof(BalancedPreloadTooltip);
+    public const string CheckForUpdates = nameof(CheckForUpdates);
+    public const string CheckForUpdatesTooltip = nameof(CheckForUpdatesTooltip);
+    public const string CheckingForUpdates = nameof(CheckingForUpdates);
     public const string Conservative = nameof(Conservative);
     public const string ConservativePreloadTooltip = nameof(ConservativePreloadTooltip);
     public const string DeleteImage = nameof(DeleteImage);
     public const string DeleteImageConfirmationFormat = nameof(DeleteImageConfirmationFormat);
+    public const string DownloadingUpdate = nameof(DownloadingUpdate);
     public const string Exit = nameof(Exit);
     public const string FileNotFoundFormat = nameof(FileNotFoundFormat);
     public const string FileMenu = nameof(FileMenu);
@@ -32,6 +36,7 @@ internal static class LocalizedText
     public const string NearestUpscalingTooltip = nameof(NearestUpscalingTooltip);
     public const string NextImage = nameof(NextImage);
     public const string NoImage = nameof(NoImage);
+    public const string NoUpdatesAvailableFormat = nameof(NoUpdatesAvailableFormat);
     public const string OpenCommand = nameof(OpenCommand);
     public const string OpenImage = nameof(OpenImage);
     public const string OptionsHelp = nameof(OptionsHelp);
@@ -39,6 +44,8 @@ internal static class LocalizedText
     public const string OptionsHelpDialogTitle = nameof(OptionsHelpDialogTitle);
     public const string OptionsHelpTooltip = nameof(OptionsHelpTooltip);
     public const string OptionsMenu = nameof(OptionsMenu);
+    public const string OpenFileLocation = nameof(OpenFileLocation);
+    public const string OpenWith = nameof(OpenWith);
     public const string Preload = nameof(Preload);
     public const string PreloadAggressiveness = nameof(PreloadAggressiveness);
     public const string PreloadAggressivenessTooltip = nameof(PreloadAggressivenessTooltip);
@@ -52,10 +59,19 @@ internal static class LocalizedText
     public const string Smooth = nameof(Smooth);
     public const string SmoothUpscalingTooltip = nameof(SmoothUpscalingTooltip);
     public const string ShowImageInFolder = nameof(ShowImageInFolder);
+    public const string StartingInstaller = nameof(StartingInstaller);
+    public const string Copy = nameof(Copy);
+    public const string Properties = nameof(Properties);
+    public const string SetAsDesktopBackground = nameof(SetAsDesktopBackground);
     public const string ToggleActualPixels = nameof(ToggleActualPixels);
     public const string ToggleDarkMode = nameof(ToggleDarkMode);
     public const string ToggleSmoothNearestUpscaling = nameof(ToggleSmoothNearestUpscaling);
     public const string UnexpectedError = nameof(UnexpectedError);
+    public const string UpdateAvailableInstalledFormat = nameof(UpdateAvailableInstalledFormat);
+    public const string UpdateAvailablePortableFormat = nameof(UpdateAvailablePortableFormat);
+    public const string UpdateCheckFailedFormat = nameof(UpdateCheckFailedFormat);
+    public const string UpdateInstallerMissing = nameof(UpdateInstallerMissing);
+    public const string UpdatesDialogTitle = nameof(UpdatesDialogTitle);
     public const string Upscaling = nameof(Upscaling);
     public const string UpscalingTooltip = nameof(UpscalingTooltip);
     public const string UseDarkMode = nameof(UseDarkMode);
@@ -93,10 +109,14 @@ internal static class LocalizedText
         AutoRefreshCurrentImageTooltip,
         Balanced,
         BalancedPreloadTooltip,
+        CheckForUpdates,
+        CheckForUpdatesTooltip,
+        CheckingForUpdates,
         Conservative,
         ConservativePreloadTooltip,
         DeleteImage,
         DeleteImageConfirmationFormat,
+        DownloadingUpdate,
         Exit,
         FileNotFoundFormat,
         FileMenu,
@@ -111,6 +131,7 @@ internal static class LocalizedText
         NearestUpscalingTooltip,
         NextImage,
         NoImage,
+        NoUpdatesAvailableFormat,
         OpenCommand,
         OpenImage,
         OptionsHelp,
@@ -118,6 +139,8 @@ internal static class LocalizedText
         OptionsHelpDialogTitle,
         OptionsHelpTooltip,
         OptionsMenu,
+        OpenFileLocation,
+        OpenWith,
         Preload,
         PreloadAggressiveness,
         PreloadAggressivenessTooltip,
@@ -131,10 +154,19 @@ internal static class LocalizedText
         Smooth,
         SmoothUpscalingTooltip,
         ShowImageInFolder,
+        StartingInstaller,
+        Copy,
+        Properties,
+        SetAsDesktopBackground,
         ToggleActualPixels,
         ToggleDarkMode,
         ToggleSmoothNearestUpscaling,
         UnexpectedError,
+        UpdateAvailableInstalledFormat,
+        UpdateAvailablePortableFormat,
+        UpdateCheckFailedFormat,
+        UpdateInstallerMissing,
+        UpdatesDialogTitle,
         Upscaling,
         UpscalingTooltip,
         UseDarkMode,

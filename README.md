@@ -34,6 +34,7 @@ Mangosteen keeps the interface quiet, starts quickly, supports modern image form
 - Smart preloading with a configurable memory budget.
 - RAW support with initial preview loading.
 - Animated GIF support.
+- Manual update checks through GitHub Releases.
 - Installer and portable zip builds for Windows x64.
 
 ## Repository Layout
@@ -75,6 +76,12 @@ Get-Content .\SHA256SUMS.txt
 ```
 
 Windows SmartScreen may warn for unsigned preview releases.
+
+## Updates
+
+Use `Help > Check for updates` to manually check GitHub Releases for a newer stable version. Mangosteen does not check for updates in the background.
+
+Installed builds can download the newest installer, verify its SHA256 checksum, start the installer, and close Mangosteen so the installer can replace the app files. Portable builds open the Releases page instead of trying to rewrite the folder they are running from.
 
 ## Build
 

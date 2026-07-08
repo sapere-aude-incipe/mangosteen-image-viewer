@@ -171,6 +171,21 @@ Hvor aggressiv forhåndslasting er styrer hvor langt fram Mangosteen skanner og 
   <data name="ShowImageInFolder" xml:space="preserve">
     <value>Vis bildet i mappe</value>
   </data>
+  <data name="OpenWith" xml:space="preserve">
+    <value>Åpne med</value>
+  </data>
+  <data name="SetAsDesktopBackground" xml:space="preserve">
+    <value>Bruk som skrivebordsbakgrunn</value>
+  </data>
+  <data name="OpenFileLocation" xml:space="preserve">
+    <value>Åpne filplassering</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Kopier</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Egenskaper</value>
+  </data>
   <data name="UpscalingTooltip" xml:space="preserve">
     <value>Velg hvordan bilder forstørres når de zoomes forbi faktisk størrelse.</value>
   </data>
@@ -182,5 +197,46 @@ Hvor aggressiv forhåndslasting er styrer hvor langt fram Mangosteen skanner og 
   </data>
   <data name="ImagePositionFormat" xml:space="preserve">
     <value>{0} / {1}</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Se etter oppdateringer</value>
+  </data>
+  <data name="CheckForUpdatesTooltip" xml:space="preserve">
+    <value>Sjekk GitHub Releases for en nyere versjon.</value>
+  </data>
+  <data name="CheckingForUpdates" xml:space="preserve">
+    <value>Ser etter oppdateringer...</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Laster ned oppdatering...</value>
+  </data>
+  <data name="StartingInstaller" xml:space="preserve">
+    <value>Starter installasjonsprogram...</value>
+  </data>
+  <data name="UpdatesDialogTitle" xml:space="preserve">
+    <value>Oppdateringer</value>
+  </data>
+  <data name="NoUpdatesAvailableFormat" xml:space="preserve">
+    <value>Mangosteen er oppdatert.
+
+Gjeldende versjon: {0}</value>
+  </data>
+  <data name="UpdateAvailableInstalledFormat" xml:space="preserve">
+    <value>Mangosteen {0} er tilgjengelig. Du bruker {1}.
+
+Vil du laste ned og kjøre installasjonsprogrammet nå? Mangosteen lukkes etter at installasjonen starter.</value>
+  </data>
+  <data name="UpdateAvailablePortableFormat" xml:space="preserve">
+    <value>Mangosteen {0} er tilgjengelig. Du bruker {1}.
+
+Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-siden?</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>Oppdateringen kunne ikke fullføres.
+
+{0}</value>
+  </data>
+  <data name="UpdateInstallerMissing" xml:space="preserve">
+    <value>Den nyeste utgivelsen inneholder ikke et Windows-installasjonsprogram ennå.</value>
   </data>
 </root>
