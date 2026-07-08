@@ -16,6 +16,7 @@
 #define AppPublisher "sapere-aude-incipe"
 #define AppExeName "Mangosteen.exe"
 #define AppId "{{5505BFA7-AFF8-4C6E-8B60-52EDF84880D3}"
+#define AppImageProgId "Mangosteen.Image"
 
 [Setup]
 AppId={#AppId}
@@ -72,6 +73,18 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}"; Flags: deletek
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "{#AppDisplayName}"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"",0"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities"; ValueType: string; ValueName: "ApplicationName"; ValueData: "{#AppDisplayName}"; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities"; ValueType: string; ValueName: "ApplicationDescription"; ValueData: "Simple, fast, privacy-respecting image viewer"; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".jpg"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".jpe"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".jpeg"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\{#AppImageProgId}"; ValueType: string; ValueName: ""; ValueData: "{#AppDisplayName} image"; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\{#AppImageProgId}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"",0"; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\{#AppImageProgId}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\.jpg\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\.jpe\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
+Root: HKA; Subkey: "Software\Classes\.jpeg\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
+Root: HKA; Subkey: "Software\RegisteredApplications"; ValueType: string; ValueName: "{#AppDisplayName}"; ValueData: "Software\Classes\Applications\{#AppExeName}\Capabilities"; Flags: uninsdeletevalue; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".3fr"; ValueData: ""; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".ari"; ValueData: ""; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".arw"; ValueData: ""; Tasks: associatefiles
