@@ -507,6 +507,8 @@
                                       Click="DarkModeMenuItem_Click" />
                         </MenuItem>
                         <MenuItem x:Name="HelpMenuItem">
+                            <MenuItem x:Name="CheckForUpdatesMenuItem"
+                                      Click="CheckForUpdatesMenuItem_Click" />
                             <MenuItem x:Name="OptionsHelpMenuItem"
                                       Click="OptionsHelpMenuItem_Click" />
                         </MenuItem>
@@ -552,7 +554,29 @@
                         MouseUp="ImageSurface_MouseUp"
                         LostMouseCapture="ImageSurface_LostMouseCapture"
                         SizeChanged="ImageSurface_SizeChanged"
-                        Focusable="True" />
+                        ContextMenuOpening="ImageSurface_ContextMenuOpening"
+                        Focusable="True">
+            <skia:SKElement.ContextMenu>
+                <ContextMenu x:Name="ImageContextMenu">
+                    <MenuItem x:Name="ContextOpenWithMenuItem"
+                              Click="ContextOpenWithMenuItem_Click" />
+                    <Separator />
+                    <MenuItem x:Name="ContextSetDesktopBackgroundMenuItem"
+                              Click="ContextSetDesktopBackgroundMenuItem_Click" />
+                    <Separator />
+                    <MenuItem x:Name="ContextOpenFileLocationMenuItem"
+                              Click="ContextOpenFileLocationMenuItem_Click" />
+                    <Separator />
+                    <MenuItem x:Name="ContextCopyMenuItem"
+                              Click="ContextCopyMenuItem_Click" />
+                    <MenuItem x:Name="ContextDeleteMenuItem"
+                              Click="ContextDeleteMenuItem_Click" />
+                    <Separator />
+                    <MenuItem x:Name="ContextPropertiesMenuItem"
+                              Click="ContextPropertiesMenuItem_Click" />
+                </ContextMenu>
+            </skia:SKElement.ContextMenu>
+        </skia:SKElement>
 
         <Border x:Name="StatusOverlay"
                 Grid.Row="1"
