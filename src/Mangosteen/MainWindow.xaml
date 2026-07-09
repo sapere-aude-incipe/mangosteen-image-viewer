@@ -74,6 +74,28 @@
             </Setter>
         </Style>
 
+        <Style x:Key="ThemedContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="Background" Value="{DynamicResource PanelBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border MinWidth="230"
+                                Padding="1,4"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="MenuItem">
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
             <Setter Property="Background" Value="Transparent" />
@@ -557,7 +579,8 @@
                         ContextMenuOpening="ImageSurface_ContextMenuOpening"
                         Focusable="True">
             <skia:SKElement.ContextMenu>
-                <ContextMenu x:Name="ImageContextMenu">
+                <ContextMenu x:Name="ImageContextMenu"
+                             Style="{StaticResource ThemedContextMenuStyle}">
                     <MenuItem x:Name="ContextOpenWithMenuItem"
                               Click="ContextOpenWithMenuItem_Click" />
                     <Separator />

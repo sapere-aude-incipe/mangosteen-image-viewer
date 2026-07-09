@@ -75,7 +75,7 @@ Get-FileHash .\Mangosteen-Setup-0.1.0-x64.exe -Algorithm SHA256
 Get-Content .\SHA256SUMS.txt
 ```
 
-Windows SmartScreen may warn for unsigned preview releases.
+Windows SmartScreen or Smart App Control may warn for unsigned early releases. See [Release Trust And Windows Warnings](docs/release-trust.md) for the current verification and Microsoft submission process.
 
 ## Updates
 
@@ -138,7 +138,7 @@ This creates:
 
 CI builds and tests every push and pull request on Windows using NuGet lock files. Pull requests also build unsigned installer and portable zip artifacts for testing from the Actions run page.
 
-When changes land on `main`, the release workflow automatically chooses the next stable patch version, builds the unsigned Windows installer and portable zip, verifies `SHA256SUMS.txt`, and publishes a GitHub Release with generated release notes. Tagged releases named like `v0.2.3` or manual release workflow runs can still publish an explicit version.
+When changes land on `main`, the release workflow automatically chooses the next stable patch version, builds the unsigned Windows installer and portable zip, verifies `SHA256SUMS.txt`, and publishes a GitHub Release with release notes generated from commits since the previous release tag. Tagged releases named like `v0.2.3` or manual release workflow runs can still publish an explicit version.
 
 Stable versions such as `0.2.3` are normal GitHub releases and can appear as the latest release. Versions with a suffix, such as `0.2.3-preview.1`, are published as pre-releases.
 

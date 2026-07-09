@@ -2745,7 +2745,11 @@ public partial class MainWindow : Window
         var icon = _viewerState.Mode != ViewerFitMode.Fit
             ? ToolbarIconKind.FitToWindow
             : ToolbarIconKind.ActualPixels;
-        ActualPixelsButton.Content = ToolbarIcon.Create(icon, GetToolbarIconBrush());
+        var canToggle = CanToggleActualPixels();
+        ActualPixelsButton.IsEnabled = canToggle;
+        ActualPixelsButton.Content = ToolbarIcon.Create(
+            icon,
+            canToggle ? GetToolbarIconBrush() : GetToolbarDisabledBrush());
     }
 
     private void UpdateToolbarIcons()
@@ -2850,6 +2854,47 @@ public partial class MainWindow : Window
         Resources["BadgeForeground"] = isDarkMode
             ? CreateBrush(232, 201, 122)
             : CreateBrush(107, 74, 0);
+        ApplyContextMenuThemeResources();
+    }
+
+    private void ApplyContextMenuThemeResources()
+    {
+        foreach (var key in new[]
+        {
+            "PanelBackground",
+            "PanelBorder",
+            "PanelSeparator",
+            "ControlHoverBackground",
+            "ControlPressedBackground",
+            "TextPrimary",
+            "TextSecondary",
+            "TextDisabled",
+            "TextDanger",
+            "AccentCheckBackground",
+            "AccentCheckBorder"
+        })
+        {
+            CopyResourceToContextMenu(key);
+        }
+
+        ImageContextMenu.Background = GetContextMenuBrush("PanelBackground", Brushes.White);
+        ImageContextMenu.BorderBrush = GetContextMenuBrush("PanelBorder", Brushes.LightGray);
+        ImageContextMenu.Foreground = GetContextMenuBrush("TextPrimary", Brushes.Black);
+    }
+
+    private void CopyResourceToContextMenu(string key)
+    {
+        if (Resources[key] is not null)
+        {
+            ImageContextMenu.Resources[key] = Resources[key];
+        }
+    }
+
+    private Brush GetContextMenuBrush(string key, Brush fallback)
+    {
+        return ImageContextMenu.Resources[key] as Brush ??
+            Resources[key] as Brush ??
+            fallback;
     }
 
     private Brush GetToolbarIconBrush()
@@ -2860,6 +2905,11 @@ public partial class MainWindow : Window
     private Brush GetToolbarDangerBrush()
     {
         return Resources["TextDanger"] as Brush ?? Brushes.Firebrick;
+    }
+
+    private Brush GetToolbarDisabledBrush()
+    {
+        return Resources["TextDisabled"] as Brush ?? Brushes.Gray;
     }
 
     private enum DwmWindowCornerPreference
@@ -2953,7 +3003,7 @@ public partial class MainWindow : Window
     {
         PreviousButton.IsEnabled = _navigator.CanMovePrevious;
         NextButton.IsEnabled = _navigator.CanMoveNext;
-        ActualPixelsButton.IsEnabled = CanToggleActualPixels();
+        UpdateActualPixelsIcon();
         ShowInFolderButton.IsEnabled = CanShowCurrentImageInFolder();
         var canDelete = CanDeleteCurrentImage();
         DeleteButton.IsEnabled = canDelete;
@@ -2985,7 +3035,6 @@ public partial class MainWindow : Window
             ? "-"
             : $"{_viewerState.Zoom * 100:0}%";
         UpdateZoomSlider();
-        ActualPixelsButton.IsEnabled = CanToggleActualPixels();
         UpdateActualPixelsIcon();
         UpdateToolbarDensity();
     }
@@ -3055,7 +3104,9 @@ public partial class MainWindow : Window
 
     internal static bool CanToggleActualPixelsForState(bool hasImage, bool fitsAtActualPixels, double zoom)
     {
-        return hasImage && (!fitsAtActualPixels || zoom > 1.0 + ActualPixelZoomTolerance);
+        return hasImage &&
+            (zoom < 1.0 - ActualPixelZoomTolerance ||
+                zoom > 1.0 + ActualPixelZoomTolerance);
     }
 
     private bool CanDeleteCurrentImage()

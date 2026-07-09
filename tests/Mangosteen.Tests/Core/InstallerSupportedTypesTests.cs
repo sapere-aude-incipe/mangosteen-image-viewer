@@ -40,6 +40,19 @@ public sealed partial class InstallerSupportedTypesTests
     }
 
     [TestMethod]
+    public void Inno_Setup_Registers_Jpeg_Family_For_Windows_File_Associations()
+    {
+        var text = GetInstallerScriptText();
+
+        StringAssert.Contains(text, "#define AppImageProgId \"Mangosteen.Image\"");
+        StringAssert.Contains(text, @"Subkey: ""Software\RegisteredApplications""");
+        StringAssert.Contains(text, @"Subkey: ""Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations""; ValueType: string; ValueName: "".jpg""; ValueData: ""{#AppImageProgId}""; Flags: uninsdeletekey; Tasks: associatefiles");
+        StringAssert.Contains(text, @"Subkey: ""Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations""; ValueType: string; ValueName: "".jpe""; ValueData: ""{#AppImageProgId}""; Flags: uninsdeletekey; Tasks: associatefiles");
+        StringAssert.Contains(text, @"Subkey: ""Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations""; ValueType: string; ValueName: "".jpeg""; ValueData: ""{#AppImageProgId}""; Flags: uninsdeletekey; Tasks: associatefiles");
+        StringAssert.Contains(text, @"Subkey: ""Software\Classes\.jpeg\OpenWithProgids""; ValueType: string; ValueName: ""{#AppImageProgId}""; ValueData: """"; Flags: uninsdeletevalue; Tasks: associatefiles");
+    }
+
+    [TestMethod]
     public void Inno_Setup_Does_Not_Register_Duplicate_SupportedTypes()
     {
         var supportedTypes = GetInstallerSupportedTypes();
@@ -97,6 +110,6 @@ public sealed partial class InstallerSupportedTypesTests
         throw new DirectoryNotFoundException("Could not locate the Mangosteen repository root.");
     }
 
-    [GeneratedRegex("ValueName: \"(?<extension>\\.[^\"]+)\"", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"SupportedTypes""; ValueType: string; ValueName: ""(?<extension>\.[^""]+)""", RegexOptions.CultureInvariant)]
     private static partial Regex SupportedTypeRegex();
 }

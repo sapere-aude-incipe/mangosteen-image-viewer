@@ -57,6 +57,24 @@ public sealed class MainWindowSchedulingTests
     }
 
     [TestMethod]
+    public void ActualPixels_Command_Is_Enabled_For_Large_Image_Fit_Below_One_To_One()
+    {
+        Assert.IsTrue(MainWindow.CanToggleActualPixelsForState(
+            hasImage: true,
+            fitsAtActualPixels: false,
+            zoom: 0.72));
+    }
+
+    [TestMethod]
+    public void ActualPixels_Command_Is_Disabled_For_Large_Image_Already_At_One_To_One()
+    {
+        Assert.IsFalse(MainWindow.CanToggleActualPixelsForState(
+            hasImage: true,
+            fitsAtActualPixels: false,
+            zoom: 1.0));
+    }
+
+    [TestMethod]
     public void Mouse_Thumb_Buttons_Map_To_Previous_And_Next_Image()
     {
         Assert.AreEqual(-1, MainWindow.GetNavigationDeltaForMouseButton(System.Windows.Input.MouseButton.XButton1));

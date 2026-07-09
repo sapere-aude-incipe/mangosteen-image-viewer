@@ -108,6 +108,10 @@ jobs:
         shell: pwsh
         run: ./scripts/build-installer.ps1 -Version "${{ steps.version.outputs.version }}" -Configuration Release -NoRestore
 
+      - name: Write release notes
+        shell: pwsh
+        run: ./scripts/new-release-notes.ps1 -Version "${{ steps.version.outputs.version }}" -Tag "${{ steps.version.outputs.tag }}" -Repository "${{ github.repository }}" -OutputPath "dist\RELEASE_NOTES.md"
+
       - name: Verify checksums
         shell: pwsh
         run: |
@@ -173,10 +177,7 @@ jobs:
             dist/SHA256SUMS.txt
           fail_on_unmatched_files: true
           preserve_order: true
-          generate_release_notes: true
+          body_path: dist/RELEASE_NOTES.md
+          generate_release_notes: false
           prerelease: ${{ needs.package.outputs.is_prerelease }}
           make_latest: ${{ needs.package.outputs.make_latest }}
-          body: |
-            Unsigned Windows build of Mangosteen Image Viewer.
-
-            Download the installer or portable zip from the assets below. Verify downloads with `SHA256SUMS.txt` before running them. Windows SmartScreen may warn until the project has code signing in place.
