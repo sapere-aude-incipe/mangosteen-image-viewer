@@ -3098,15 +3098,37 @@ public partial class MainWindow : Window
     {
         return CanToggleActualPixelsForState(
             _image is not null,
+            _image?.IsFullResolution ?? false,
             _viewerState.FitsAtActualPixels,
-            _viewerState.Zoom);
+            _viewerState.Zoom,
+            _viewerState.Mode);
     }
 
-    internal static bool CanToggleActualPixelsForState(bool hasImage, bool fitsAtActualPixels, double zoom)
+    internal static bool CanToggleActualPixelsForState(
+        bool hasImage,
+        bool isFullResolution,
+        bool fitsAtActualPixels,
+        double zoom,
+        ViewerFitMode mode)
     {
-        return hasImage &&
-            (zoom < 1.0 - ActualPixelZoomTolerance ||
-                zoom > 1.0 + ActualPixelZoomTolerance);
+        if (!hasImage)
+        {
+            return false;
+        }
+
+        if (!isFullResolution)
+        {
+            return true;
+        }
+
+        if (!fitsAtActualPixels)
+        {
+            return true;
+        }
+
+        return mode != ViewerFitMode.Fit ||
+            zoom < 1.0 - ActualPixelZoomTolerance ||
+            zoom > 1.0 + ActualPixelZoomTolerance;
     }
 
     private bool CanDeleteCurrentImage()
