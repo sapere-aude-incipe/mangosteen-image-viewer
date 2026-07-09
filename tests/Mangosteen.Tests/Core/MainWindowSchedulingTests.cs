@@ -1,4 +1,5 @@
 ﻿using Mangosteen;
+using Mangosteen.Rendering;
 
 namespace Mangosteen.Tests.Core;
 
@@ -43,8 +44,10 @@ public sealed class MainWindowSchedulingTests
     {
         Assert.IsTrue(MainWindow.CanToggleActualPixelsForState(
             hasImage: true,
+            isFullResolution: true,
             fitsAtActualPixels: true,
-            zoom: 14.56));
+            zoom: 14.56,
+            mode: ViewerFitMode.Custom));
     }
 
     [TestMethod]
@@ -52,8 +55,10 @@ public sealed class MainWindowSchedulingTests
     {
         Assert.IsFalse(MainWindow.CanToggleActualPixelsForState(
             hasImage: true,
+            isFullResolution: true,
             fitsAtActualPixels: true,
-            zoom: 1.0));
+            zoom: 1.0,
+            mode: ViewerFitMode.Fit));
     }
 
     [TestMethod]
@@ -61,17 +66,43 @@ public sealed class MainWindowSchedulingTests
     {
         Assert.IsTrue(MainWindow.CanToggleActualPixelsForState(
             hasImage: true,
+            isFullResolution: true,
             fitsAtActualPixels: false,
-            zoom: 0.72));
+            zoom: 0.72,
+            mode: ViewerFitMode.Fit));
     }
 
     [TestMethod]
-    public void ActualPixels_Command_Is_Disabled_For_Large_Image_Already_At_One_To_One()
+    public void ActualPixels_Command_Is_Enabled_For_Large_Image_Already_At_One_To_One()
+    {
+        Assert.IsTrue(MainWindow.CanToggleActualPixelsForState(
+            hasImage: true,
+            isFullResolution: true,
+            fitsAtActualPixels: false,
+            zoom: 1.0,
+            mode: ViewerFitMode.ActualPixels));
+    }
+
+    [TestMethod]
+    public void ActualPixels_Command_Is_Enabled_For_Preview_Only_Image_At_One_To_One()
+    {
+        Assert.IsTrue(MainWindow.CanToggleActualPixelsForState(
+            hasImage: true,
+            isFullResolution: false,
+            fitsAtActualPixels: true,
+            zoom: 1.0,
+            mode: ViewerFitMode.Fit));
+    }
+
+    [TestMethod]
+    public void ActualPixels_Command_Is_Disabled_When_No_Image_Is_Loaded()
     {
         Assert.IsFalse(MainWindow.CanToggleActualPixelsForState(
-            hasImage: true,
+            hasImage: false,
+            isFullResolution: false,
             fitsAtActualPixels: false,
-            zoom: 1.0));
+            zoom: 1.0,
+            mode: ViewerFitMode.Fit));
     }
 
     [TestMethod]
