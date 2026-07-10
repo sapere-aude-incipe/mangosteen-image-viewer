@@ -15,6 +15,8 @@ internal sealed class AppSettings
         WriteIndented = true
     };
 
+    private static readonly AppSettingsJsonContext JsonContext = new(JsonOptions);
+
     public bool IsDarkMode { get; init; } = true;
     public bool UseSmoothSampling { get; init; } = true;
     public bool IsPreloadEnabled { get; init; } = true;
@@ -36,7 +38,7 @@ internal sealed class AppSettings
                 return new AppSettings();
             }
 
-            var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), JsonOptions);
+            var settings = JsonSerializer.Deserialize(File.ReadAllText(path), JsonContext.AppSettings);
             return Normalize(settings);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
@@ -66,7 +68,7 @@ internal sealed class AppSettings
                 Directory.CreateDirectory(directory);
             }
 
-            var json = JsonSerializer.Serialize(Normalize(this), JsonOptions);
+            var json = JsonSerializer.Serialize(Normalize(this), JsonContext.AppSettings);
             File.WriteAllText(path, json);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)

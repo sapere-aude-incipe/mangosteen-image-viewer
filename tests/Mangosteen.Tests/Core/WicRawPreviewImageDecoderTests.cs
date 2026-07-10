@@ -57,6 +57,18 @@ public sealed class WicRawPreviewImageDecoderTests
         Assert.IsFalse(usable);
     }
 
+    [TestMethod]
+    public async Task DecodeAsync_Rejects_FullResolution_Request()
+    {
+        var decoder = new WicRawPreviewImageDecoder();
+
+        var ex = await Assert.ThrowsExactlyAsync<InvalidDataException>(() => decoder.DecodeAsync(
+            new ImageDecodeRequest("sample.raf", FullResolution: true),
+            CancellationToken.None));
+
+        StringAssert.Contains(ex.Message, "does not perform full-resolution RAW decode");
+    }
+
     private static string CreateTempFilePath(string extension)
     {
         return Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}{extension}");

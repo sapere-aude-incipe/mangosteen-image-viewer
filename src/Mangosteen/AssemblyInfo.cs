@@ -1,7 +1,11 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Resources;
+using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("Mangosteen.Tests")]
+[assembly: NeutralResourcesLanguage("en")]
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located

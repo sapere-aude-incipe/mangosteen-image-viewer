@@ -15,4 +15,14 @@ public sealed class ToolbarIconTests
             Assert.IsFalse(geometry.Bounds.IsEmpty, $"{icon} should have non-empty geometry.");
         }
     }
+
+    [TestMethod]
+    public void Toolbar_Icon_Geometries_Are_Frozen_And_Reused()
+    {
+        var first = ToolbarIcon.GetGeometry(ToolbarIconKind.Zoom);
+        var second = ToolbarIcon.GetGeometry(ToolbarIconKind.Zoom);
+
+        Assert.AreSame(first, second);
+        Assert.IsTrue(first.IsFrozen);
+    }
 }

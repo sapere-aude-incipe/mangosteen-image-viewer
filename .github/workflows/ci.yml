@@ -36,4 +36,11 @@ jobs:
         run: dotnet build Mangosteen.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test Mangosteen.slnx --configuration Release --no-build
+        run: dotnet test Mangosteen.slnx --configuration Release --no-build --collect:"Code Coverage;Format=cobertura" --results-directory TestResults
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mangosteen-coverage-${{ github.run_id }}
+          path: TestResults/**/*.cobertura.xml
+          if-no-files-found: error

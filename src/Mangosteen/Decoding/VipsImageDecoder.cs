@@ -209,9 +209,14 @@ public sealed class VipsImageDecoder : IImageDecoder
         try
         {
             var pixels = rgba.WriteToMemory<byte>();
-            var bgra = ConvertRgbaToBgra(pixels, rgba.Width, rgba.Height);
-            var info = new SKImageInfo(rgba.Width, rgba.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
-            PinnedPixelBuffer? pinnedPixels = new(bgra);
+            var expectedLength = checked(rgba.Width * rgba.Height * 4);
+            if (pixels.Length != expectedLength)
+            {
+                throw new InvalidDataException("libvips returned an unexpected pixel buffer size.");
+            }
+
+            var info = new SKImageInfo(rgba.Width, rgba.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+            PinnedPixelBuffer? pinnedPixels = new(pixels);
             try
             {
                 using var pixmap = new SKPixmap(info, pinnedPixels.Pointer, info.RowBytes);
@@ -252,26 +257,6 @@ public sealed class VipsImageDecoder : IImageDecoder
         }
 
         throw new InvalidDataException($"libvips returned an unsupported band count: {image.Bands}.");
-    }
-
-    private static byte[] ConvertRgbaToBgra(byte[] rgba, int width, int height)
-    {
-        var expectedLength = checked(width * height * 4);
-        if (rgba.Length != expectedLength)
-        {
-            throw new InvalidDataException("libvips returned an unexpected pixel buffer size.");
-        }
-
-        var bgra = new byte[rgba.Length];
-        for (var offset = 0; offset < rgba.Length; offset += 4)
-        {
-            bgra[offset] = rgba[offset + 2];
-            bgra[offset + 1] = rgba[offset + 1];
-            bgra[offset + 2] = rgba[offset];
-            bgra[offset + 3] = rgba[offset + 3];
-        }
-
-        return bgra;
     }
 
     private static void ReleasePinnedPixels(IntPtr address, object context)

@@ -108,6 +108,14 @@ jobs:
         shell: pwsh
         run: ./scripts/build-installer.ps1 -Version "${{ steps.version.outputs.version }}" -Configuration Release -NoRestore
 
+      - name: Smoke-test installer
+        shell: pwsh
+        run: |
+          ./scripts/test-installer.ps1 `
+            -InstallerPath "dist\Mangosteen-Setup-${{ steps.version.outputs.version }}-x64.exe" `
+            -InstallDirectory (Join-Path $env:RUNNER_TEMP "MangosteenInstallerSmoke") `
+            -AllowedRoot $env:RUNNER_TEMP
+
       - name: Write release notes
         shell: pwsh
         run: ./scripts/new-release-notes.ps1 -Version "${{ steps.version.outputs.version }}" -Tag "${{ steps.version.outputs.tag }}" -Repository "${{ github.repository }}" -OutputPath "dist\RELEASE_NOTES.md"

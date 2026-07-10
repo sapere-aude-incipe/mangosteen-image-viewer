@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net.Http;
@@ -9,6 +11,9 @@ namespace Mangosteen.Updates;
 
 internal sealed class GitHubUpdateService : IDisposable
 {
+    private const int DownloadBufferSize = 128 * 1024;
+    private const long DownloadProgressIntervalBytes = 1024 * 1024;
+
     public const string ReleasesPageUrl = "https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases";
 
     private const string LatestReleaseUrl =
@@ -46,7 +51,7 @@ internal sealed class GitHubUpdateService : IDisposable
     public async Task<string> DownloadInstallerAsync(
         UpdateCheckResult update,
         string downloadDirectory,
-        IProgress<string>? progress,
+        IProgress<UpdateDownloadProgress>? progress,
         CancellationToken cancellationToken)
     {
         if (update.InstallerAsset is null)
@@ -59,7 +64,6 @@ internal sealed class GitHubUpdateService : IDisposable
         var expectedSha256 = update.InstallerAsset.Sha256;
         if (string.IsNullOrWhiteSpace(expectedSha256) && update.ChecksumAsset is not null)
         {
-            progress?.Report("Downloading checksums...");
             var checksums = await _httpClient.GetStringAsync(
                 update.ChecksumAsset.DownloadUrl,
                 cancellationToken).ConfigureAwait(false);
@@ -71,7 +75,6 @@ internal sealed class GitHubUpdateService : IDisposable
             throw new InvalidOperationException("The release does not include a SHA256 checksum for the installer.");
         }
 
-        progress?.Report("Downloading installer...");
         var installerPath = Path.Combine(downloadDirectory, update.InstallerAsset.Name);
         var temporaryPath = installerPath + ".tmp";
         if (File.Exists(temporaryPath))
@@ -79,26 +82,48 @@ internal sealed class GitHubUpdateService : IDisposable
             File.Delete(temporaryPath);
         }
 
-        using (var response = await _httpClient.GetAsync(
-            update.InstallerAsset.DownloadUrl,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken).ConfigureAwait(false))
+        var completed = false;
+        try
         {
-            response.EnsureSuccessStatusCode();
-            await using var source = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            await using var destination = File.Create(temporaryPath);
-            await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
-        }
+            using (var response = await _httpClient.GetAsync(
+                update.InstallerAsset.DownloadUrl,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken).ConfigureAwait(false))
+            {
+                response.EnsureSuccessStatusCode();
+                await using var source = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var destination = new FileStream(
+                    temporaryPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    DownloadBufferSize,
+                    useAsync: true);
+                await CopyToAsync(
+                    source,
+                    destination,
+                    response.Content.Headers.ContentLength,
+                    progress,
+                    cancellationToken).ConfigureAwait(false);
+            }
 
-        var actualSha256 = await ComputeSha256Async(temporaryPath, cancellationToken).ConfigureAwait(false);
-        if (!string.Equals(actualSha256, expectedSha256, StringComparison.OrdinalIgnoreCase))
+            var actualSha256 = await ComputeSha256Async(temporaryPath, cancellationToken).ConfigureAwait(false);
+            if (!string.Equals(actualSha256, expectedSha256, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("The downloaded installer did not match the published SHA256 checksum.");
+            }
+
+            File.Move(temporaryPath, installerPath, overwrite: true);
+            completed = true;
+            return installerPath;
+        }
+        finally
         {
-            File.Delete(temporaryPath);
-            throw new InvalidOperationException("The downloaded installer did not match the published SHA256 checksum.");
+            if (!completed)
+            {
+                TryDeleteTemporaryFile(temporaryPath);
+            }
         }
-
-        File.Move(temporaryPath, installerPath, overwrite: true);
-        return installerPath;
     }
 
     internal static UpdateCheckResult ParseLatestRelease(ReleaseVersion currentVersion, string json)
@@ -221,9 +246,65 @@ internal sealed class GitHubUpdateService : IDisposable
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    private static async Task CopyToAsync(
+        Stream source,
+        Stream destination,
+        long? totalBytes,
+        IProgress<UpdateDownloadProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(DownloadBufferSize);
+        var downloadedBytes = 0L;
+        var nextProgressReport = DownloadProgressIntervalBytes;
+        progress?.Report(new UpdateDownloadProgress(downloadedBytes, totalBytes));
+
+        try
+        {
+            while (true)
+            {
+                var bytesRead = await source.ReadAsync(
+                    buffer.AsMemory(0, DownloadBufferSize),
+                    cancellationToken).ConfigureAwait(false);
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+
+                await destination.WriteAsync(
+                    buffer.AsMemory(0, bytesRead),
+                    cancellationToken).ConfigureAwait(false);
+                downloadedBytes += bytesRead;
+
+                if (downloadedBytes >= nextProgressReport)
+                {
+                    progress?.Report(new UpdateDownloadProgress(downloadedBytes, totalBytes));
+                    nextProgressReport = downloadedBytes + DownloadProgressIntervalBytes;
+                }
+            }
+
+            progress?.Report(new UpdateDownloadProgress(downloadedBytes, totalBytes));
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
     private static bool IsSha256(string value)
     {
         return value.Length == 64 && value.All(Uri.IsHexDigit);
+    }
+
+    private static void TryDeleteTemporaryFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceWarning($"Failed to remove incomplete update download '{path}': {ex}");
+        }
     }
 
     public void Dispose()
@@ -250,6 +331,10 @@ internal sealed record UpdateAsset(
     string Name,
     string DownloadUrl,
     string? Sha256);
+
+internal readonly record struct UpdateDownloadProgress(
+    long BytesDownloaded,
+    long? TotalBytes);
 
 internal readonly record struct ReleaseVersion(
     int Major,
@@ -312,7 +397,50 @@ internal readonly record struct ReleaseVersion(
             return -1;
         }
 
-        return string.Compare(Prerelease, other.Prerelease, StringComparison.OrdinalIgnoreCase);
+        return ComparePrereleaseIdentifiers(Prerelease!, other.Prerelease!);
+    }
+
+    private static int ComparePrereleaseIdentifiers(string left, string right)
+    {
+        var leftIdentifiers = left.Split('.');
+        var rightIdentifiers = right.Split('.');
+        var sharedLength = Math.Min(leftIdentifiers.Length, rightIdentifiers.Length);
+
+        for (var index = 0; index < sharedLength; index++)
+        {
+            var comparison = ComparePrereleaseIdentifier(leftIdentifiers[index], rightIdentifiers[index]);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+        }
+
+        return leftIdentifiers.Length.CompareTo(rightIdentifiers.Length);
+    }
+
+    private static int ComparePrereleaseIdentifier(string left, string right)
+    {
+        var leftIsNumeric = left.Length > 0 && left.All(char.IsAsciiDigit);
+        var rightIsNumeric = right.Length > 0 && right.All(char.IsAsciiDigit);
+        if (leftIsNumeric && rightIsNumeric)
+        {
+            var normalizedLeft = left.TrimStart('0');
+            var normalizedRight = right.TrimStart('0');
+            normalizedLeft = normalizedLeft.Length == 0 ? "0" : normalizedLeft;
+            normalizedRight = normalizedRight.Length == 0 ? "0" : normalizedRight;
+
+            var lengthComparison = normalizedLeft.Length.CompareTo(normalizedRight.Length);
+            return lengthComparison != 0
+                ? lengthComparison
+                : string.Compare(normalizedLeft, normalizedRight, StringComparison.Ordinal);
+        }
+
+        if (leftIsNumeric != rightIsNumeric)
+        {
+            return leftIsNumeric ? -1 : 1;
+        }
+
+        return string.Compare(left, right, StringComparison.Ordinal);
     }
 
     public override string ToString()
