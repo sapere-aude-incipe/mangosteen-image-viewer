@@ -67,7 +67,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Separator">
                         <Border Height="1"
-                                Margin="24,4,8,4"
+                                Margin="32,4,12,4"
                                 Background="{DynamicResource PanelSeparator}" />
                     </ControlTemplate>
                 </Setter.Value>
@@ -122,40 +122,46 @@
                             </Border>
 
                             <Border x:Name="SubmenuBorder"
-                                    MinHeight="28"
-                                    Margin="0,1"
+                                    MinHeight="30"
+                                    Margin="2,1"
                                     Padding="0"
                                     Background="Transparent"
                                     CornerRadius="4">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="24" />
+                                        <ColumnDefinition Width="28" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="20" />
                                     </Grid.ColumnDefinitions>
 
                                     <Border x:Name="CheckBox"
                                             Grid.Column="0"
-                                            Width="20"
-                                            Height="20"
+                                            Width="16"
+                                            Height="16"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Background="Transparent"
                                             BorderBrush="Transparent"
-                                            BorderThickness="1">
+                                            BorderThickness="1"
+                                            CornerRadius="2">
                                         <Path x:Name="CheckGlyph"
-                                              Data="M5.25,11.5 L9,15.25 L16.75,6.75"
+                                              Width="10"
+                                              Height="7"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Data="M0,3.5 L3.5,7 L10,0"
                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
-                                              StrokeThickness="1.8"
+                                              StrokeThickness="1.6"
                                               StrokeStartLineCap="Round"
                                               StrokeEndLineCap="Round"
                                               StrokeLineJoin="Round"
+                                              Stretch="Fill"
                                               Visibility="Collapsed" />
                                     </Border>
 
                                     <ContentPresenter Grid.Column="1"
-                                                      Margin="4,0,16,0"
+                                                      Margin="4,0,14,0"
                                                       VerticalAlignment="Center"
                                                       ContentSource="Header"
                                                       RecognizesAccessKey="True" />
@@ -168,8 +174,8 @@
 
                                     <Path x:Name="SubmenuArrow"
                                           Grid.Column="3"
-                                          Width="4"
-                                          Height="8"
+                                          Width="5"
+                                          Height="9"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
                                           Data="M0,0 L4,4 L0,8 Z"
