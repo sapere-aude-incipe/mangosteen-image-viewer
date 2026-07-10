@@ -1,5 +1,6 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Media;
+using System.Collections.Concurrent;
 using System.Windows.Shapes;
 
 namespace Mangosteen.Icons;
@@ -32,6 +33,8 @@ internal static class ToolbarIcon
             [ToolbarIconKind.Folder] = "M4.3,7.4 H9.4 L11.2,9.2 H19.7 V17.5 Q19.7,19.1 18.1,19.1 H5.9 Q4.3,19.1 4.3,17.5 Z M4.3,7.4 V6.5 Q4.3,5.4 5.4,5.4 H8.8 L10.6,7.4 H18.5 Q19.7,7.4 19.7,8.6 V9.2",
             [ToolbarIconKind.Delete] = "M5.25,7.4 H18.75 M9.6,7.4 V6 Q9.6,4.9 10.7,4.9 H13.3 Q14.4,4.9 14.4,6 V7.4 M6.9,7.4 L7.7,17.7 Q7.8,19.1 9.25,19.1 H14.75 Q16.2,19.1 16.3,17.7 L17.1,7.4 M10.4,10.5 V15.9 M13.6,10.5 V15.9"
         };
+
+    private static readonly ConcurrentDictionary<ToolbarIconKind, Geometry> GeometryCache = new();
 
     internal static Viewbox Create(ToolbarIconKind kind, Brush stroke, double size = 20.0)
     {
@@ -72,7 +75,16 @@ internal static class ToolbarIcon
 
     internal static Geometry GetGeometry(ToolbarIconKind kind)
     {
-        return Geometry.Parse(PathData[kind]);
+        return GeometryCache.GetOrAdd(kind, static iconKind =>
+        {
+            var geometry = Geometry.Parse(PathData[iconKind]);
+            if (geometry.CanFreeze)
+            {
+                geometry.Freeze();
+            }
+
+            return geometry;
+        });
     }
 
     internal static IEnumerable<ToolbarIconKind> AllKinds => PathData.Keys;

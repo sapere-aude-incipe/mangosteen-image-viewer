@@ -1,5 +1,7 @@
 ﻿using Mangosteen;
 using Mangosteen.Rendering;
+using Mangosteen.Updates;
+using System.Globalization;
 
 namespace Mangosteen.Tests.Core;
 
@@ -126,10 +128,10 @@ public sealed class MainWindowSchedulingTests
             fallbackWidth: 1080,
             fallbackHeight: 720);
 
-        Assert.AreEqual(1498, placement.Width);
-        Assert.AreEqual(811, placement.Height);
-        Assert.AreEqual(211, placement.Left);
-        Assert.AreEqual(115, placement.Top);
+        Assert.AreEqual(1651, placement.Width);
+        Assert.AreEqual(894, placement.Height);
+        Assert.AreEqual(135, placement.Left);
+        Assert.AreEqual(73, placement.Top);
     }
 
     [TestMethod]
@@ -145,10 +147,10 @@ public sealed class MainWindowSchedulingTests
             fallbackWidth: 1080,
             fallbackHeight: 720);
 
-        Assert.AreEqual(1997, placement.Width);
-        Assert.AreEqual(1092, placement.Height);
-        Assert.AreEqual(2202, placement.Left);
-        Assert.AreEqual(194, placement.Top);
+        Assert.AreEqual(2202, placement.Width);
+        Assert.AreEqual(1204, placement.Height);
+        Assert.AreEqual(2099, placement.Left);
+        Assert.AreEqual(138, placement.Top);
     }
 
     [TestMethod]
@@ -157,8 +159,8 @@ public sealed class MainWindowSchedulingTests
         var placement = MainWindow.CalculateInitialWindowPlacement(
             workAreaLeft: 0,
             workAreaTop: 0,
-            workAreaWidth: 640,
-            workAreaHeight: 420,
+            workAreaWidth: 560,
+            workAreaHeight: 400,
             minWidth: 520,
             minHeight: 360,
             fallbackWidth: 1080,
@@ -166,7 +168,27 @@ public sealed class MainWindowSchedulingTests
 
         Assert.AreEqual(520, placement.Width);
         Assert.AreEqual(360, placement.Height);
-        Assert.AreEqual(60, placement.Left);
-        Assert.AreEqual(30, placement.Top);
+        Assert.AreEqual(20, placement.Left);
+        Assert.AreEqual(20, placement.Top);
+    }
+
+    [TestMethod]
+    public void Update_Progress_Details_Include_Downloaded_And_Total_Megabytes()
+    {
+        var text = MainWindow.FormatUpdateProgressDetails(
+            new UpdateDownloadProgress(5L * 1024 * 1024, 20L * 1024 * 1024),
+            CultureInfo.InvariantCulture);
+
+        Assert.AreEqual("5.0 MB / 20.0 MB", text);
+    }
+
+    [TestMethod]
+    public void Update_Progress_Details_Work_When_Total_Size_Is_Unknown()
+    {
+        var text = MainWindow.FormatUpdateProgressDetails(
+            new UpdateDownloadProgress(3L * 1024 * 1024, null),
+            CultureInfo.InvariantCulture);
+
+        Assert.AreEqual("3.0 MB", text);
     }
 }

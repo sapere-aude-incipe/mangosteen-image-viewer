@@ -303,6 +303,41 @@ public sealed class ImagePreloadCacheTests
         Assert.ThrowsExactly<ArgumentNullException>(() => cache.Store("photo.jpg", null!));
     }
 
+    [TestMethod]
+    public async Task Concurrent_Stores_And_Takes_Keep_Budget_Accounting_Coherent()
+    {
+        const int imageCount = 32;
+        const long imageBytes = 10 * 10 * 4L;
+        using var cache = new ImagePreloadCache
+        {
+            BudgetBytes = imageCount * imageBytes
+        };
+        var images = Enumerable.Range(0, imageCount)
+            .Select(index => CreateImage($"photo-{index}.jpg", 10, 10, isFull: true))
+            .ToArray();
+
+        var stored = await Task.WhenAll(Enumerable.Range(0, imageCount).Select(index => Task.Run(
+            () => cache.Store($"photo-{index}.jpg", images[index]))));
+
+        Assert.IsTrue(stored.All(static value => value));
+        Assert.AreEqual(imageCount * imageBytes, cache.UsedBytes);
+
+        var taken = new DecodedImage?[imageCount];
+        var removed = await Task.WhenAll(Enumerable.Range(0, imageCount).Select(index => Task.Run(() =>
+        {
+            var success = cache.TryTake($"photo-{index}.jpg", out var image);
+            taken[index] = image;
+            return success;
+        })));
+
+        Assert.IsTrue(removed.All(static value => value));
+        Assert.AreEqual(0, cache.UsedBytes);
+        foreach (var image in taken)
+        {
+            image?.Dispose();
+        }
+    }
+
     private static DecodedImage CreateImage(string path, int width, int height, bool isFull)
     {
         using var surface = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul));

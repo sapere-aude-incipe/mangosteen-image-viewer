@@ -10,11 +10,14 @@ using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -65,6 +68,7 @@ public partial class MainWindow : Window
     private const int SpiSetDesktopWallpaper = 0x0014;
     private const int SpifUpdateIniFile = 0x0001;
     private const int SpifSendChange = 0x0002;
+    private const uint ShopFilePath = 0x00000002;
     private const int WmGetMinMaxInfo = 0x0024;
     private const double EmptyStateMinimumWidth = 280.0;
     private const double EmptyStateMaximumWidth = 500.0;
@@ -73,20 +77,21 @@ public partial class MainWindow : Window
     private const double ZoomSliderMaximumValue = 100.0;
     private const double MinimumSliderZoom = 0.0001;
     private const double ActualPixelZoomTolerance = 0.0001;
-    private const double InitialWorkAreaCoverage = 0.78;
+    private const double InitialWorkAreaCoverage = 0.86;
     private const string MaximizeWindowIconGlyph = "\uE922";
     private const string RestoreWindowIconGlyph = "\uE923";
     private static readonly SKColor LightViewerBackground = new(244, 246, 248);
     private static readonly SKColor DarkViewerBackground = new(30, 33, 38);
 
-    private readonly DecoderRegistry _decoders = DecoderRegistry.CreateDefault();
+    private readonly Lazy<DecoderRegistry> _decoders = new(DecoderRegistry.CreateDefault);
     private readonly ImageNavigator _navigator = new();
     private readonly ViewerState _viewerState = new();
     private readonly DispatcherTimer _animationTimer = new();
     private readonly DispatcherTimer _autoRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly ImagePreloadCache _fullPreloadCache = new();
     private readonly ImagePreloadCache _previewPreloadCache = new();
-    private readonly GitHubUpdateService _updates = new();
+    private readonly Lazy<GitHubUpdateService> _updates = new(static () => new GitHubUpdateService());
+    private readonly SKPaint _imagePaint = new() { IsAntialias = true };
     private readonly object _preloadWorkerGate = new();
     private readonly object _backgroundFullWarmupGate = new();
     private readonly HashSet<string> _backgroundFullWarmups = new(StringComparer.OrdinalIgnoreCase);
@@ -116,20 +121,30 @@ public partial class MainWindow : Window
     private bool _isAutoRefreshReloading;
     private int _preloadBudgetGigabytes = DefaultPreloadBudgetGigabytes;
     private PreloadAggressiveness _preloadAggressiveness = PreloadAggressiveness.Balanced;
-    private SKColor _viewerBackgroundColor = LightViewerBackground;
+    private SKColor _viewerBackgroundColor = DarkViewerBackground;
     private SKPoint _lastPanPoint;
     private HwndSource? _hwndSource;
     private FileSystemWatcher? _autoRefreshWatcher;
     private string? _autoRefreshPath;
+    private ToolbarIconKind? _actualPixelsIconKind;
+    private Brush? _actualPixelsIconBrush;
+    private bool? _actualPixelsIconEnabled;
+
+    private DecoderRegistry Decoders => _decoders.Value;
+
+    private GitHubUpdateService Updates => _updates.Value;
 
     public MainWindow()
     {
         StartupDiagnostics.Mark("window.ctor.begin");
         InitializeComponent();
         StartupDiagnostics.Mark("window.initialize_component.end");
+        ContentRendered += Window_ContentRendered;
         ApplyInitialWindowPlacement();
         StartupDiagnostics.Mark("window.initial_placement_applied");
-        ApplySettings(AppSettings.Load());
+        var settings = AppSettings.Load();
+        StartupDiagnostics.Mark("window.settings_loaded");
+        ApplySettings(settings);
         StartupDiagnostics.Mark("window.settings_applied");
         ApplyLocalization();
         StartupDiagnostics.Mark("window.localization_applied");
@@ -172,7 +187,18 @@ public partial class MainWindow : Window
         _isAutoRefreshEnabled = settings.IsAutoRefreshEnabled;
         _preloadBudgetGigabytes = Math.Clamp(settings.PreloadBudgetGigabytes, 1, 15);
         _preloadAggressiveness = settings.PreloadAggressiveness;
-        ApplyTheme(settings.IsDarkMode);
+        if (settings.IsDarkMode == _isDarkMode)
+        {
+            DarkModeMenuItem.IsChecked = _isDarkMode;
+            DarkModeMenuItem.ToolTip = _isDarkMode
+                ? LocalizedText.Get(LocalizedText.UseLightMode)
+                : LocalizedText.Get(LocalizedText.UseDarkMode);
+            UpdateToolbarIcons();
+        }
+        else
+        {
+            ApplyTheme(settings.IsDarkMode);
+        }
     }
 
     private void SaveSettings()
@@ -237,20 +263,33 @@ public partial class MainWindow : Window
         DarkModeMenuItem.ToolTip = DarkModeMenuItem.IsChecked
             ? LocalizedText.Get(LocalizedText.UseLightMode)
             : LocalizedText.Get(LocalizedText.UseDarkMode);
-        PreviousButton.ToolTip = $"{LocalizedText.Get(LocalizedText.PreviousImage)} (←)";
-        NextButton.ToolTip = $"{LocalizedText.Get(LocalizedText.NextImage)} (→)";
-        ActualPixelsButton.ToolTip = $"{LocalizedText.Get(LocalizedText.ToggleActualPixels)} (1 / F)";
-        ZoomPopupButton.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
-        ShowInFolderButton.ToolTip = LocalizedText.Get(LocalizedText.ShowImageInFolder);
-        DeleteButton.ToolTip = $"{LocalizedText.Get(LocalizedText.DeleteImage)} (Del)";
+        var previousImageText = LocalizedText.Get(LocalizedText.PreviousImage);
+        var nextImageText = LocalizedText.Get(LocalizedText.NextImage);
+        var actualPixelsText = LocalizedText.Get(LocalizedText.ToggleActualPixels);
+        var zoomText = LocalizedText.Get(LocalizedText.Zoom);
+        var showInFolderText = LocalizedText.Get(LocalizedText.ShowImageInFolder);
+        var deleteImageText = LocalizedText.Get(LocalizedText.DeleteImage);
+        PreviousButton.ToolTip = $"{previousImageText} (←)";
+        NextButton.ToolTip = $"{nextImageText} (→)";
+        ActualPixelsButton.ToolTip = $"{actualPixelsText} (1 / F)";
+        ZoomPopupButton.ToolTip = zoomText;
+        ShowInFolderButton.ToolTip = showInFolderText;
+        DeleteButton.ToolTip = $"{deleteImageText} (Del)";
+        AutomationProperties.SetName(PreviousButton, previousImageText);
+        AutomationProperties.SetName(NextButton, nextImageText);
+        AutomationProperties.SetName(ActualPixelsButton, actualPixelsText);
+        AutomationProperties.SetName(ZoomPopupButton, zoomText);
+        AutomationProperties.SetName(ShowInFolderButton, showInFolderText);
+        AutomationProperties.SetName(DeleteButton, deleteImageText);
         ContextOpenWithMenuItem.Header = LocalizedText.Get(LocalizedText.OpenWith);
         ContextSetDesktopBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.SetAsDesktopBackground);
         ContextOpenFileLocationMenuItem.Header = LocalizedText.Get(LocalizedText.OpenFileLocation);
         ContextCopyMenuItem.Header = LocalizedText.Get(LocalizedText.Copy);
         ContextDeleteMenuItem.Header = LocalizedText.Get(LocalizedText.DeleteImage);
         ContextPropertiesMenuItem.Header = LocalizedText.Get(LocalizedText.Properties);
-        ZoomText.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
-        ZoomSlider.ToolTip = LocalizedText.Get(LocalizedText.Zoom);
+        ZoomText.ToolTip = zoomText;
+        ZoomSlider.ToolTip = zoomText;
+        AutomationProperties.SetName(ZoomSlider, zoomText);
         OpenMenuItem.InputGestureText = "Ctrl+O";
         DeleteMenuItem.InputGestureText = "Del";
         ContextDeleteMenuItem.InputGestureText = "Del";
@@ -283,7 +322,7 @@ public partial class MainWindow : Window
         try
         {
             ShowStatus(LocalizedText.Get(LocalizedText.CheckingForUpdates));
-            var update = await _updates.CheckLatestReleaseAsync(currentVersion, updateCheckCts.Token);
+            var update = await Updates.CheckLatestReleaseAsync(currentVersion, updateCheckCts.Token);
             if (!update.IsUpdateAvailable)
             {
                 MessageBox.Show(
@@ -343,11 +382,29 @@ public partial class MainWindow : Window
             }
 
             ShowStatus(LocalizedText.Get(LocalizedText.DownloadingUpdate));
-            var installerPath = await _updates.DownloadInstallerAsync(
-                update,
-                GetUpdateDownloadDirectory(update.LatestVersion),
-                progress: null,
-                updateCheckCts.Token);
+            ShowUpdateDownloadProgress(default);
+            var isDownloadActive = true;
+            var progress = new Progress<UpdateDownloadProgress>(value =>
+            {
+                if (isDownloadActive)
+                {
+                    ShowUpdateDownloadProgress(value);
+                }
+            });
+
+            string installerPath;
+            try
+            {
+                installerPath = await Updates.DownloadInstallerAsync(
+                    update,
+                    GetUpdateDownloadDirectory(update.LatestVersion),
+                    progress,
+                    updateCheckCts.Token);
+            }
+            finally
+            {
+                isDownloadActive = false;
+            }
 
             ShowStatus(LocalizedText.Get(LocalizedText.StartingInstaller));
             Process.Start(new ProcessStartInfo(installerPath)
@@ -454,8 +511,16 @@ public partial class MainWindow : Window
         _previewPreloadCache.Dispose();
         _image?.Dispose();
         _image = null;
-        _decoders.Dispose();
-        _updates.Dispose();
+        _imagePaint.Dispose();
+        if (_decoders.IsValueCreated)
+        {
+            _decoders.Value.Dispose();
+        }
+
+        if (_updates.IsValueCreated)
+        {
+            _updates.Value.Dispose();
+        }
         base.OnClosed(e);
     }
 
@@ -588,7 +653,7 @@ public partial class MainWindow : Window
                 return null;
             }
 
-            var preview = await _decoders.DecodeAsync(
+            var preview = await Decoders.DecodeAsync(
                 new ImageDecodeRequest(
                     path,
                     previewSize,
@@ -713,7 +778,7 @@ public partial class MainWindow : Window
             }
 
             var request = new ImageDecodeRequest(path, FullResolution: true, MaxDecodedBytes: maxDecodedBytes);
-            var full = await _decoders.DecodeAsync(request, token, decoderFilter);
+            var full = await Decoders.DecodeAsync(request, token, decoderFilter);
             if (token.IsCancellationRequested || shouldContinue?.Invoke() == false)
             {
                 full.Dispose();
@@ -833,12 +898,7 @@ public partial class MainWindow : Window
 
         var frame = _image.Frames[Math.Clamp(_frameIndex, 0, _image.FrameCount - 1)];
         var destination = _viewerState.GetDestinationRect();
-        using var paint = new SKPaint
-        {
-            IsAntialias = true
-        };
-
-        canvas.DrawImage(frame.Image, destination, GetRenderSamplingOptions(), paint);
+        canvas.DrawImage(frame.Image, destination, GetRenderSamplingOptions(), _imagePaint);
     }
 
     private void ImageSurface_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1145,6 +1205,12 @@ public partial class MainWindow : Window
         UpdateToolbarDensity();
     }
 
+    private void Window_ContentRendered(object? sender, EventArgs e)
+    {
+        ContentRendered -= Window_ContentRendered;
+        StartupDiagnostics.Mark("window.content_rendered");
+    }
+
     private void Window_SourceInitialized(object? sender, EventArgs e)
     {
         var source = (HwndSource?)PresentationSource.FromVisual(this);
@@ -1322,7 +1388,7 @@ public partial class MainWindow : Window
         {
             Title = LocalizedText.Get(LocalizedText.OpenImage),
             Filter = ImageDialogFilter.Build(
-                _decoders.SupportedExtensions,
+                Decoders.SupportedExtensions,
                 LocalizedText.Get(LocalizedText.ImageFiles),
                 LocalizedText.Get(LocalizedText.AllFiles))
         };
@@ -1469,11 +1535,16 @@ public partial class MainWindow : Window
             return;
         }
 
-        Process.Start(new ProcessStartInfo(path)
+        var ownerHandle = _hwndSource?.Handle ?? new WindowInteropHelper(this).Handle;
+        if (SHObjectProperties(ownerHandle, ShopFilePath, path, propertyPage: null))
         {
-            UseShellExecute = true,
-            Verb = "properties"
-        });
+            return;
+        }
+
+        var error = Marshal.GetLastWin32Error();
+        throw error == 0
+            ? new InvalidOperationException(LocalizedText.Get(LocalizedText.UnexpectedError))
+            : new Win32Exception(error);
     }
 
     private async Task DeleteCurrentImageAsync()
@@ -2162,7 +2233,7 @@ public partial class MainWindow : Window
     private async Task LoadFolderIndexAsync(string path, int openGeneration, CancellationTokenSource cts)
     {
         var token = cts.Token;
-        var supportedExtensions = ImageFileExtensions.BuildFolderScanExtensions(_decoders.SupportedExtensions, path);
+        var supportedExtensions = ImageFileExtensions.BuildFolderScanExtensions(Decoders.SupportedExtensions, path);
 
         try
         {
@@ -2327,12 +2398,12 @@ public partial class MainWindow : Window
             Mangosteen.Decoding.ImageMetadata metadata;
             try
             {
-                if (!PreloadDecoderPolicy.HasPreloadCandidate(_decoders, path, _isClosing, token))
+                if (!PreloadDecoderPolicy.HasPreloadCandidate(Decoders, path, _isClosing, token))
                 {
                     continue;
                 }
 
-                metadata = await _decoders.LoadMetadataAsync(path, token, PreloadDecoderPolicy.IsPreloadDecoder);
+                metadata = await Decoders.LoadMetadataAsync(path, token, PreloadDecoderPolicy.IsPreloadDecoder);
             }
             catch (OperationCanceledException)
             {
@@ -2381,7 +2452,7 @@ public partial class MainWindow : Window
                 continue;
             }
 
-            if (!PreloadDecoderPolicy.HasFullPreloadCandidate(_decoders, path, _isClosing, token))
+            if (!PreloadDecoderPolicy.HasFullPreloadCandidate(Decoders, path, _isClosing, token))
             {
                 continue;
             }
@@ -2391,7 +2462,7 @@ public partial class MainWindow : Window
                 IsFullDecodeInProgress ||
                 _fullPreloadCache.ContainsFullResolution(path) ||
                 !_fullPreloadCache.CanStore(path, fullBytes, priority) ||
-                !PreloadDecoderPolicy.HasFullPreloadCandidate(_decoders, path, _isClosing, token))
+                !PreloadDecoderPolicy.HasFullPreloadCandidate(Decoders, path, _isClosing, token))
             {
                 continue;
             }
@@ -2457,7 +2528,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var preview = await _decoders.DecodeAsync(
+            var preview = await Decoders.DecodeAsync(
                 new ImageDecodeRequest(path, previewSize, FullResolution: false, MaxDecodedBytes: maxDecodedBytes),
                 token,
                 PreloadDecoderPolicy.IsPreloadDecoder);
@@ -2746,10 +2817,19 @@ public partial class MainWindow : Window
             ? ToolbarIconKind.FitToWindow
             : ToolbarIconKind.ActualPixels;
         var canToggle = CanToggleActualPixels();
+        var brush = canToggle ? GetToolbarIconBrush() : GetToolbarDisabledBrush();
         ActualPixelsButton.IsEnabled = canToggle;
-        ActualPixelsButton.Content = ToolbarIcon.Create(
-            icon,
-            canToggle ? GetToolbarIconBrush() : GetToolbarDisabledBrush());
+        if (_actualPixelsIconKind == icon &&
+            _actualPixelsIconEnabled == canToggle &&
+            ReferenceEquals(_actualPixelsIconBrush, brush))
+        {
+            return;
+        }
+
+        ActualPixelsButton.Content = ToolbarIcon.Create(icon, brush);
+        _actualPixelsIconKind = icon;
+        _actualPixelsIconEnabled = canToggle;
+        _actualPixelsIconBrush = brush;
     }
 
     private void UpdateToolbarIcons()
@@ -2982,6 +3062,14 @@ public partial class MainWindow : Window
         int parameter,
         string value,
         int update);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SHObjectProperties(
+        nint ownerWindow,
+        uint objectType,
+        string objectName,
+        string? propertyPage);
 
     private static SolidColorBrush CreateBrush(byte red, byte green, byte blue)
     {
@@ -3234,6 +3322,7 @@ public partial class MainWindow : Window
 
     private void ShowStatus(string text)
     {
+        HideUpdateDownloadProgress();
         HidePreviewOnlyBadge();
         UpdateStatusOverlayMaxWidth();
         var isEmptyState = string.Equals(text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
@@ -3261,8 +3350,51 @@ public partial class MainWindow : Window
 
     private void HideStatus()
     {
+        HideUpdateDownloadProgress();
         StatusOverlay.Visibility = Visibility.Collapsed;
         UpdateStatusOverlayOpenState();
+    }
+
+    private void ShowUpdateDownloadProgress(UpdateDownloadProgress progress)
+    {
+        var hasKnownTotal = progress.TotalBytes is > 0;
+        UpdateProgressBar.IsIndeterminate = !hasKnownTotal;
+        if (progress.TotalBytes is long totalBytes && totalBytes > 0)
+        {
+            UpdateProgressBar.Maximum = totalBytes;
+            UpdateProgressBar.Value = Math.Clamp(progress.BytesDownloaded, 0, totalBytes);
+        }
+        else
+        {
+            UpdateProgressBar.Maximum = 1;
+            UpdateProgressBar.Value = 0;
+        }
+
+        UpdateProgressDetailsText.Text = FormatUpdateProgressDetails(progress, CultureInfo.CurrentCulture);
+        UpdateProgressPanel.Visibility = Visibility.Visible;
+    }
+
+    private void HideUpdateDownloadProgress()
+    {
+        UpdateProgressPanel.Visibility = Visibility.Collapsed;
+        UpdateProgressBar.IsIndeterminate = false;
+        UpdateProgressBar.Value = 0;
+        UpdateProgressDetailsText.Text = string.Empty;
+    }
+
+    internal static string FormatUpdateProgressDetails(UpdateDownloadProgress progress, CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+
+        const double megabyte = 1024.0 * 1024.0;
+        var downloadedMegabytes = Math.Max(0, progress.BytesDownloaded) / megabyte;
+        if (progress.TotalBytes is long totalBytes && totalBytes > 0)
+        {
+            var totalMegabytes = totalBytes / megabyte;
+            return string.Format(culture, "{0:0.0} MB / {1:0.0} MB", downloadedMegabytes, totalMegabytes);
+        }
+
+        return string.Format(culture, "{0:0.0} MB", downloadedMegabytes);
     }
 
     private void UpdateStatusOverlayMaxWidth()

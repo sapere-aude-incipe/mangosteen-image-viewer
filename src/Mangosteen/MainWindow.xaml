@@ -14,7 +14,7 @@
         MinHeight="360"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Background="#F4F6F8"
+        Background="#1E2126"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         AllowDrop="True"
@@ -36,38 +36,38 @@
 
     <Window.Resources>
         <!-- Shared design tokens: one surface language for menu bar, menus, dock, and overlays.
-             Values here are the light theme; ApplyToolbarThemeResources swaps them per theme. -->
-        <SolidColorBrush x:Key="ChromeBackground" Color="#F4F6F8" />
-        <SolidColorBrush x:Key="ChromeSurfaceBackground" Color="#EEF3F7" />
-        <SolidColorBrush x:Key="ChromeSurfaceBorder" Color="#D7DFE7" />
-        <SolidColorBrush x:Key="ChromeButtonForeground" Color="#243240" />
-        <SolidColorBrush x:Key="ChromeButtonHoverBackground" Color="#E5ECF3" />
-        <SolidColorBrush x:Key="ChromeButtonPressedBackground" Color="#D7E1EA" />
+             Values here match the default dark theme so startup does not rebuild every brush. -->
+        <SolidColorBrush x:Key="ChromeBackground" Color="#1E2126" />
+        <SolidColorBrush x:Key="ChromeSurfaceBackground" Color="#272B32" />
+        <SolidColorBrush x:Key="ChromeSurfaceBorder" Color="#3E4550" />
+        <SolidColorBrush x:Key="ChromeButtonForeground" Color="#ECF0F5" />
+        <SolidColorBrush x:Key="ChromeButtonHoverBackground" Color="#363D48" />
+        <SolidColorBrush x:Key="ChromeButtonPressedBackground" Color="#404854" />
         <SolidColorBrush x:Key="ChromeCloseHoverBackground" Color="#C42B1C" />
         <SolidColorBrush x:Key="ChromeCloseHoverForeground" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="EmptyStateBackground" Color="#0A243240" />
-        <SolidColorBrush x:Key="EmptyStateBorder" Color="#7B8794" />
-        <SolidColorBrush x:Key="EmptyStateIcon" Color="#7B8794" />
-        <SolidColorBrush x:Key="PanelBackground" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="PanelBorder" Color="#D4DBE3" />
-        <SolidColorBrush x:Key="PanelSeparator" Color="#E2E8EE" />
-        <SolidColorBrush x:Key="ControlHoverBackground" Color="#EBF1F7" />
-        <SolidColorBrush x:Key="ControlPressedBackground" Color="#DDE6EF" />
-        <SolidColorBrush x:Key="TextPrimary" Color="#243240" />
-        <SolidColorBrush x:Key="TextSecondary" Color="#5E6C7A" />
-        <SolidColorBrush x:Key="TextDisabled" Color="#93A0AD" />
-        <SolidColorBrush x:Key="TextDanger" Color="#B23730" />
-        <SolidColorBrush x:Key="AccentCheckBackground" Color="#E8F1FB" />
-        <SolidColorBrush x:Key="AccentCheckBorder" Color="#7FA8D1" />
-        <SolidColorBrush x:Key="BadgeBackground" Color="#FFF7E4" />
-        <SolidColorBrush x:Key="BadgeBorder" Color="#D9A03F" />
-        <SolidColorBrush x:Key="BadgeForeground" Color="#6B4A00" />
+        <SolidColorBrush x:Key="EmptyStateBackground" Color="#0EFFFFFF" />
+        <SolidColorBrush x:Key="EmptyStateBorder" Color="#606872" />
+        <SolidColorBrush x:Key="EmptyStateIcon" Color="#969DA6" />
+        <SolidColorBrush x:Key="PanelBackground" Color="#2B2F36" />
+        <SolidColorBrush x:Key="PanelBorder" Color="#464C56" />
+        <SolidColorBrush x:Key="PanelSeparator" Color="#3E444E" />
+        <SolidColorBrush x:Key="ControlHoverBackground" Color="#3C434D" />
+        <SolidColorBrush x:Key="ControlPressedBackground" Color="#48505C" />
+        <SolidColorBrush x:Key="TextPrimary" Color="#ECF0F5" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#A0AAB6" />
+        <SolidColorBrush x:Key="TextDisabled" Color="#7A8490" />
+        <SolidColorBrush x:Key="TextDanger" Color="#EB8780" />
+        <SolidColorBrush x:Key="AccentCheckBackground" Color="#34485E" />
+        <SolidColorBrush x:Key="AccentCheckBorder" Color="#78AADC" />
+        <SolidColorBrush x:Key="BadgeBackground" Color="#3A3526" />
+        <SolidColorBrush x:Key="BadgeBorder" Color="#8A6D2F" />
+        <SolidColorBrush x:Key="BadgeForeground" Color="#E8C97A" />
         <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Separator">
                         <Border Height="1"
-                                Margin="30,4,8,4"
+                                Margin="24,4,8,4"
                                 Background="{DynamicResource PanelSeparator}" />
                     </ControlTemplate>
                 </Setter.Value>
@@ -83,7 +83,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ContextMenu">
                         <Border MinWidth="230"
-                                Padding="1,4"
+                                Padding="4"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1"
@@ -100,7 +100,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Height" Value="28" />
+            <Setter Property="Height" Value="30" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="ToolTipService.InitialShowDelay" Value="350" />
@@ -110,10 +110,10 @@
                     <ControlTemplate TargetType="MenuItem">
                         <Grid SnapsToDevicePixels="True">
                             <Border x:Name="TopLevelBorder"
-                                    Margin="2,2"
-                                    Padding="11,0"
+                                    Margin="1,2"
+                                    Padding="10,0"
                                     Background="Transparent"
-                                    CornerRadius="6"
+                                    CornerRadius="4"
                                     Visibility="Collapsed">
                                 <ContentPresenter ContentSource="Header"
                                                   HorizontalAlignment="Center"
@@ -123,22 +123,22 @@
 
                             <Border x:Name="SubmenuBorder"
                                     MinHeight="28"
-                                    Margin="3,1"
+                                    Margin="0,1"
                                     Padding="0"
                                     Background="Transparent"
-                                    CornerRadius="5">
+                                    CornerRadius="4">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="28" />
+                                        <ColumnDefinition Width="24" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="16" />
                                     </Grid.ColumnDefinitions>
 
                                     <Border x:Name="CheckBox"
                                             Grid.Column="0"
-                                            Width="22"
-                                            Height="22"
+                                            Width="20"
+                                            Height="20"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Background="Transparent"
@@ -155,13 +155,13 @@
                                     </Border>
 
                                     <ContentPresenter Grid.Column="1"
-                                                      Margin="2,0,22,0"
+                                                      Margin="4,0,16,0"
                                                       VerticalAlignment="Center"
                                                       ContentSource="Header"
                                                       RecognizesAccessKey="True" />
 
                                     <TextBlock Grid.Column="2"
-                                               Margin="14,0,8,0"
+                                               Margin="12,0,8,0"
                                                VerticalAlignment="Center"
                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
                                                Text="{TemplateBinding InputGestureText}" />
@@ -182,12 +182,12 @@
                                    AllowsTransparency="True"
                                    Focusable="False"
                                    IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                   HorizontalOffset="3"
+                                   HorizontalOffset="2"
                                    Placement="Right"
                                    PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
                                    PopupAnimation="None">
                                 <Border MinWidth="220"
-                                        Padding="1,3"
+                                        Padding="4"
                                         Background="{DynamicResource PanelBackground}"
                                         BorderBrush="{DynamicResource PanelBorder}"
                                         BorderThickness="1"
@@ -254,7 +254,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="ButtonBorder"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="6"
+                                CornerRadius="5"
                                 SnapsToDevicePixels="True">
                             <ContentPresenter x:Name="ButtonContent"
                                               HorizontalAlignment="Center"
@@ -420,6 +420,51 @@
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        </Style>
+
+        <Style x:Key="UpdateProgressBarStyle" TargetType="ProgressBar">
+            <Setter Property="Width" Value="260" />
+            <Setter Property="Height" Value="4" />
+            <Setter Property="Minimum" Value="0" />
+            <Setter Property="Maximum" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid x:Name="PART_Track"
+                              ClipToBounds="True">
+                            <Border Background="{DynamicResource PanelSeparator}"
+                                    CornerRadius="2" />
+                            <Border x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Background="{DynamicResource AccentCheckBorder}"
+                                    CornerRadius="2">
+                                <Border.RenderTransform>
+                                    <TranslateTransform x:Name="IndeterminateTransform" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsIndeterminate" Value="True">
+                                <Setter TargetName="PART_Indicator" Property="Width" Value="72" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard x:Name="IndeterminateAnimation">
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimation Storyboard.TargetName="IndeterminateTransform"
+                                                             Storyboard.TargetProperty="X"
+                                                             From="-72"
+                                                             To="260"
+                                                             Duration="0:0:1.1" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <RemoveStoryboard BeginStoryboardName="IndeterminateAnimation" />
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
     </Window.Resources>
@@ -656,19 +701,34 @@
                 <Border x:Name="StatusMessagePanel"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
+                        MaxWidth="640"
                         Background="{DynamicResource PanelBackground}"
                         BorderBrush="{DynamicResource PanelBorder}"
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="18,12"
                         Visibility="Collapsed">
-                    <TextBlock x:Name="StatusMessageText"
-                               Text=""
-                               Foreground="{DynamicResource TextPrimary}"
-                               FontSize="14"
-                               TextAlignment="Center"
-                               TextTrimming="CharacterEllipsis"
-                               TextWrapping="Wrap" />
+                    <StackPanel>
+                        <TextBlock x:Name="StatusMessageText"
+                                   Text=""
+                                   Foreground="{DynamicResource TextPrimary}"
+                                   FontSize="14"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap" />
+                        <StackPanel x:Name="UpdateProgressPanel"
+                                    Margin="0,11,0,0"
+                                    HorizontalAlignment="Center"
+                                    Visibility="Collapsed">
+                            <ProgressBar x:Name="UpdateProgressBar"
+                                         Style="{StaticResource UpdateProgressBarStyle}" />
+                            <TextBlock x:Name="UpdateProgressDetailsText"
+                                       Margin="0,7,0,0"
+                                       Foreground="{DynamicResource TextSecondary}"
+                                       FontSize="12"
+                                       TextAlignment="Center"
+                                       TextOptions.TextFormattingMode="Display" />
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
             </Grid>
         </Border>

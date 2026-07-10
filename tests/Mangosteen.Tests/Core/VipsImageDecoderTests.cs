@@ -1,6 +1,7 @@
 ﻿using Mangosteen.Core;
 using Mangosteen.Decoding;
 using ImageMagick;
+using SkiaSharp;
 
 namespace Mangosteen.Tests.Core;
 
@@ -29,6 +30,44 @@ public sealed class VipsImageDecoderTests
             Assert.AreEqual(32, image.Height);
             Assert.AreEqual(16, image.Frames[0].Image.Width);
             Assert.AreEqual(8, image.Frames[0].Image.Height);
+
+            using var bitmap = SKBitmap.FromImage(image.Frames[0].Image);
+            var pixel = bitmap.GetPixel(0, 0);
+            Assert.IsGreaterThan((byte)240, pixel.Red);
+            Assert.IsLessThan((byte)15, pixel.Green);
+            Assert.IsLessThan((byte)15, pixel.Blue);
+            Assert.IsGreaterThan((byte)240, pixel.Alpha);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task DecodeAsync_Decodes_FullResolution_Image()
+    {
+        var path = CreateTempImagePath(".png");
+        try
+        {
+            using (var source = new MagickImage(MagickColors.CornflowerBlue, 64, 32))
+            {
+                source.Write(path);
+            }
+
+            var decoder = new VipsImageDecoder();
+            using var image = await decoder.DecodeAsync(
+                new ImageDecodeRequest(path, FullResolution: true),
+                CancellationToken.None);
+
+            Assert.IsTrue(image.IsFullResolution);
+            Assert.AreEqual(64, image.Width);
+            Assert.AreEqual(32, image.Height);
+            Assert.AreEqual(64, image.Frames[0].Image.Width);
+            Assert.AreEqual(32, image.Frames[0].Image.Height);
         }
         finally
         {
