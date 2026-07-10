@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory = $true)]
     [string] $InstallerPath,
-    [string] $InstallDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) "MangosteenInstallerSmoke")
+    [string] $InstallDirectory,
+    [string] $AllowedRoot = [System.IO.Path]::GetTempPath()
 )
 
 $ErrorActionPreference = "Stop"
@@ -41,10 +42,17 @@ function Get-RegistryValueOrNull {
 }
 
 $resolvedInstaller = (Resolve-Path -LiteralPath $InstallerPath).Path
-$tempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+$resolvedAllowedRoot = [System.IO.Path]::GetFullPath($AllowedRoot).TrimEnd(
+    [System.IO.Path]::DirectorySeparatorChar,
+    [System.IO.Path]::AltDirectorySeparatorChar)
+if ([string]::IsNullOrWhiteSpace($InstallDirectory)) {
+    $InstallDirectory = Join-Path $resolvedAllowedRoot "MangosteenInstallerSmoke"
+}
+
 $resolvedInstallDirectory = [System.IO.Path]::GetFullPath($InstallDirectory)
-if (-not $resolvedInstallDirectory.StartsWith($tempRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "Installer smoke-test directory must remain under the temporary directory: $tempRoot"
+$allowedPrefix = $resolvedAllowedRoot + [System.IO.Path]::DirectorySeparatorChar
+if (-not $resolvedInstallDirectory.StartsWith($allowedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Installer smoke-test directory must remain under the allowed root: $resolvedAllowedRoot"
 }
 
 if (Test-Path -LiteralPath $resolvedInstallDirectory) {

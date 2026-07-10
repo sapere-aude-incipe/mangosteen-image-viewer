@@ -71,7 +71,8 @@ jobs:
         run: |
           ./scripts/test-installer.ps1 `
             -InstallerPath "dist\Mangosteen-Setup-${{ steps.version.outputs.version }}-x64.exe" `
-            -InstallDirectory (Join-Path $env:RUNNER_TEMP "MangosteenInstallerSmoke")
+            -InstallDirectory (Join-Path $env:RUNNER_TEMP "MangosteenInstallerSmoke") `
+            -AllowedRoot $env:RUNNER_TEMP
 
       - name: Verify checksums
         shell: pwsh
