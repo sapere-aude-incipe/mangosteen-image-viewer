@@ -210,6 +210,9 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>正在下載更新...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>取消更新</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>正在啟動安裝程式...</value>
   </data>

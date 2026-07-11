@@ -210,6 +210,9 @@ Yakındaki görüntüleri ön yükle, olası sonraki ve önceki görüntüleri a
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Güncelleme indiriliyor...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>Güncellemeyi iptal et</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>Yükleyici başlatılıyor...</value>
   </data>

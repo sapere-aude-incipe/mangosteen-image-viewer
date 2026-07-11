@@ -210,6 +210,9 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>更新をダウンロードしています...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>更新をキャンセル</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>インストーラーを起動しています...</value>
   </data>

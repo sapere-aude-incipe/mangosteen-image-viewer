@@ -26,6 +26,22 @@ public sealed class UpdateServiceTests
     }
 
     [TestMethod]
+    public void ReleaseVersion_Treats_Equal_Stable_Versions_As_Equal()
+    {
+        Assert.IsTrue(ReleaseVersion.TryParse("0.2.4", out var current));
+        Assert.IsTrue(ReleaseVersion.TryParse("v0.2.4", out var latest));
+
+        Assert.AreEqual(0, latest.CompareTo(current));
+        Assert.IsFalse(new UpdateCheckResult(
+            current,
+            latest,
+            "Mangosteen 0.2.4",
+            GitHubUpdateService.ReleasesPageUrl,
+            InstallerAsset: null,
+            ChecksumAsset: null).IsUpdateAvailable);
+    }
+
+    [TestMethod]
     public void ReleaseVersion_Orders_Numeric_Prerelease_Identifiers_Numerically()
     {
         Assert.IsTrue(ReleaseVersion.TryParse("0.2.4-preview.2", out var preview2));
@@ -237,6 +253,48 @@ public sealed class UpdateServiceTests
         }
     }
 
+    [TestMethod]
+    public async Task DownloadInstallerAsync_Removes_Partial_File_When_Cancelled()
+    {
+        var payload = CreatePayload(256 * 1024);
+        var sha256 = Convert.ToHexString(SHA256.HashData(payload)).ToLowerInvariant();
+        var stream = new BlockingReadStream(payload, bytesBeforeBlock: 64 * 1024);
+        using var client = new HttpClient(new StaticResponseHandler(_ =>
+        {
+            var content = new StreamContent(stream);
+            content.Headers.ContentLength = payload.LongLength;
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+        }));
+        using var service = new GitHubUpdateService(client);
+        using var cts = new CancellationTokenSource();
+        var update = CreateUpdate(sha256);
+        var directory = CreateDownloadDirectory();
+
+        try
+        {
+            var downloadTask = service.DownloadInstallerAsync(update, directory, progress: null, cts.Token);
+            await stream.Blocked.WaitAsync(TimeSpan.FromSeconds(5));
+            cts.Cancel();
+
+            try
+            {
+                await downloadTask;
+                Assert.Fail("The download should have been cancelled.");
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            Assert.IsFalse(File.Exists(Path.Combine(directory, update.InstallerAsset!.Name)));
+            Assert.IsFalse(File.Exists(Path.Combine(directory, update.InstallerAsset.Name + ".tmp")));
+        }
+        finally
+        {
+            DeleteDownloadDirectory(directory);
+            stream.Dispose();
+        }
+    }
+
     private static UpdateCheckResult CreateUpdate(string? sha256, UpdateAsset? checksumAsset = null)
     {
         return new UpdateCheckResult(
@@ -324,6 +382,31 @@ public sealed class UpdateServiceTests
 
             var remainingBeforeFailure = bytesBeforeFailure - (int)Position;
             return base.ReadAsync(buffer[..Math.Min(buffer.Length, remainingBeforeFailure)], cancellationToken);
+        }
+    }
+
+    private sealed class BlockingReadStream(byte[] bytes, int bytesBeforeBlock) : MemoryStream(bytes, writable: false)
+    {
+        private readonly TaskCompletionSource<bool> _blocked = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task Blocked => _blocked.Task;
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Position >= bytesBeforeBlock)
+            {
+                _blocked.TrySetResult(true);
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                return 0;
+            }
+
+            var remainingBeforeBlock = bytesBeforeBlock - (int)Position;
+            return await base.ReadAsync(
+                buffer[..Math.Min(buffer.Length, remainingBeforeBlock)],
+                cancellationToken);
         }
     }
 }
