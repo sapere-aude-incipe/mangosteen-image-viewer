@@ -210,6 +210,9 @@ Die Vorablade-Aggressivität steuert, wie weit Mangosteen voraus scannt und wie 
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Update wird heruntergeladen...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>Update abbrechen</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>Installer wird gestartet...</value>
   </data>

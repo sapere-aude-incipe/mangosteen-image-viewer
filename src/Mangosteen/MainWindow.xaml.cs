@@ -224,6 +224,9 @@ public partial class MainWindow : Window
         OptionsMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsMenu);
         HelpMenuItem.Header = LocalizedText.Get(LocalizedText.HelpMenu);
         CheckForUpdatesMenuItem.Header = LocalizedText.Get(LocalizedText.CheckForUpdates);
+        var cancelUpdateText = LocalizedText.Get(LocalizedText.CancelUpdate);
+        CancelUpdateButton.Content = cancelUpdateText;
+        AutomationProperties.SetName(CancelUpdateButton, cancelUpdateText);
         SamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Upscaling);
         SmoothSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Smooth);
         NearestSamplingMenuItem.Header = LocalizedText.Get(LocalizedText.Nearest);
@@ -382,6 +385,7 @@ public partial class MainWindow : Window
             }
 
             ShowStatus(LocalizedText.Get(LocalizedText.DownloadingUpdate));
+            CancelUpdateButton.IsEnabled = true;
             ShowUpdateDownloadProgress(default);
             var isDownloadActive = true;
             var progress = new Progress<UpdateDownloadProgress>(value =>
@@ -406,6 +410,7 @@ public partial class MainWindow : Window
                 isDownloadActive = false;
             }
 
+            updateCheckCts.Token.ThrowIfCancellationRequested();
             ShowStatus(LocalizedText.Get(LocalizedText.StartingInstaller));
             Process.Start(new ProcessStartInfo(installerPath)
             {
@@ -413,7 +418,7 @@ public partial class MainWindow : Window
             });
             Close();
         }
-        catch (OperationCanceledException) when (_isClosing)
+        catch (OperationCanceledException) when (_isClosing || updateCheckCts.IsCancellationRequested)
         {
         }
         catch (Exception ex)
@@ -440,6 +445,17 @@ public partial class MainWindow : Window
                 CheckForUpdatesMenuItem.IsEnabled = true;
             }
         }
+    }
+
+    private void CancelUpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_updateCheckCts is null || _updateCheckCts.IsCancellationRequested)
+        {
+            return;
+        }
+
+        CancelUpdateButton.IsEnabled = false;
+        _updateCheckCts.Cancel();
     }
 
     private void UpdateWindowTitle(string? fileName = null)
@@ -1407,18 +1423,25 @@ public partial class MainWindow : Window
             return;
         }
 
-        var directory = Path.GetDirectoryName(path);
-        if (!File.Exists(path) && (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)))
-        {
-            UpdateNavigationButtons();
-            return;
-        }
-
         try
         {
-            var startInfo = new ProcessStartInfo("explorer.exe");
-            startInfo.ArgumentList.Add(File.Exists(path) ? $"/select,{path}" : directory!);
-            Process.Start(startInfo);
+            var fullPath = Path.GetFullPath(path);
+            var directory = Path.GetDirectoryName(fullPath);
+            if (!File.Exists(fullPath) && (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)))
+            {
+                UpdateNavigationButtons();
+                return;
+            }
+
+            if (File.Exists(fullPath) && WindowsShell.TryOpenFolderAndSelectItem(fullPath))
+            {
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo(directory!)
+            {
+                UseShellExecute = true
+            });
         }
         catch (Exception ex)
         {
@@ -3380,6 +3403,7 @@ public partial class MainWindow : Window
         UpdateProgressBar.IsIndeterminate = false;
         UpdateProgressBar.Value = 0;
         UpdateProgressDetailsText.Text = string.Empty;
+        CancelUpdateButton.IsEnabled = true;
     }
 
     internal static string FormatUpdateProgressDetails(UpdateDownloadProgress progress, CultureInfo culture)

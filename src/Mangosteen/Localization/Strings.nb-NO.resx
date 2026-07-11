@@ -210,6 +210,9 @@ Hvor aggressiv forhåndslasting er styrer hvor langt fram Mangosteen skanner og 
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Laster ned oppdatering...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>Avbryt oppdatering</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>Starter installasjonsprogram...</value>
   </data>

@@ -87,7 +87,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="8"
+                                CornerRadius="10"
                                 SnapsToDevicePixels="True">
                             <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
                         </Border>
@@ -100,7 +100,7 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Height" Value="30" />
+            <Setter Property="Height" Value="32" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="ToolTipService.InitialShowDelay" Value="350" />
@@ -113,7 +113,7 @@
                                     Margin="1,2"
                                     Padding="10,0"
                                     Background="Transparent"
-                                    CornerRadius="4"
+                                    CornerRadius="6"
                                     Visibility="Collapsed">
                                 <ContentPresenter ContentSource="Header"
                                                   HorizontalAlignment="Center"
@@ -122,11 +122,11 @@
                             </Border>
 
                             <Border x:Name="SubmenuBorder"
-                                    MinHeight="30"
-                                    Margin="2,1"
+                                    MinHeight="28"
+                                    Margin="3,1"
                                     Padding="0"
                                     Background="Transparent"
-                                    CornerRadius="4">
+                                    CornerRadius="6">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="28" />
@@ -197,7 +197,7 @@
                                         Background="{DynamicResource PanelBackground}"
                                         BorderBrush="{DynamicResource PanelBorder}"
                                         BorderThickness="1"
-                                        CornerRadius="8"
+                                        CornerRadius="10"
                                         SnapsToDevicePixels="True">
                                     <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
                                 </Border>
@@ -473,6 +473,48 @@
             </Setter>
         </Style>
 
+        <Style x:Key="UpdateCancelButtonStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="104" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="0,10,0,0" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlHoverBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource TextDisabled}" />
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.72" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
     <Grid>
@@ -733,6 +775,9 @@
                                        FontSize="12"
                                        TextAlignment="Center"
                                        TextOptions.TextFormattingMode="Display" />
+                            <Button x:Name="CancelUpdateButton"
+                                    Style="{StaticResource UpdateCancelButtonStyle}"
+                                    Click="CancelUpdateButton_Click" />
                         </StackPanel>
                     </StackPanel>
                 </Border>

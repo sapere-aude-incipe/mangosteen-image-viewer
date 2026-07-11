@@ -387,17 +387,17 @@ internal readonly record struct ReleaseVersion(
         var patch = Patch.CompareTo(other.Patch);
         if (patch != 0) return patch;
 
-        if (string.IsNullOrWhiteSpace(Prerelease) && !string.IsNullOrWhiteSpace(other.Prerelease))
+        if (string.IsNullOrWhiteSpace(Prerelease))
         {
-            return 1;
+            return string.IsNullOrWhiteSpace(other.Prerelease) ? 0 : 1;
         }
 
-        if (!string.IsNullOrWhiteSpace(Prerelease) && string.IsNullOrWhiteSpace(other.Prerelease))
+        if (string.IsNullOrWhiteSpace(other.Prerelease))
         {
             return -1;
         }
 
-        return ComparePrereleaseIdentifiers(Prerelease!, other.Prerelease!);
+        return ComparePrereleaseIdentifiers(Prerelease, other.Prerelease);
     }
 
     private static int ComparePrereleaseIdentifiers(string left, string right)

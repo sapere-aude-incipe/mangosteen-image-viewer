@@ -210,6 +210,9 @@ Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly i
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Downloading update...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>Cancel update</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>Starting installer...</value>
   </data>

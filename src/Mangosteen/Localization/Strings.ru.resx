@@ -210,6 +210,9 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Загрузка обновления...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>Отменить обновление</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>Запуск установщика...</value>
   </data>

@@ -210,6 +210,9 @@ La agresividad de precarga controla hasta dónde escanea Mangosteen y con qué i
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Descargando actualización...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>Cancelar actualización</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>Iniciando instalador...</value>
   </data>

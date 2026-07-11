@@ -210,6 +210,9 @@ A agressividade do pré-carregamento controla até onde o Mangosteen verifica e 
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>Baixando atualização...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>Cancelar atualização</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>Iniciando instalador...</value>
   </data>

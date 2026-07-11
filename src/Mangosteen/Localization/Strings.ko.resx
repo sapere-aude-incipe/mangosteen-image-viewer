@@ -210,6 +210,9 @@
   <data name="DownloadingUpdate" xml:space="preserve">
     <value>업데이트를 다운로드하는 중...</value>
   </data>
+  <data name="CancelUpdate" xml:space="preserve">
+    <value>업데이트 취소</value>
+  </data>
   <data name="StartingInstaller" xml:space="preserve">
     <value>설치 관리자를 시작하는 중...</value>
   </data>

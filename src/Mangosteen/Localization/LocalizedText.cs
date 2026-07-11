@@ -13,6 +13,7 @@ internal static class LocalizedText
     public const string AutoRefreshCurrentImageTooltip = nameof(AutoRefreshCurrentImageTooltip);
     public const string Balanced = nameof(Balanced);
     public const string BalancedPreloadTooltip = nameof(BalancedPreloadTooltip);
+    public const string CancelUpdate = nameof(CancelUpdate);
     public const string CheckForUpdates = nameof(CheckForUpdates);
     public const string CheckForUpdatesTooltip = nameof(CheckForUpdatesTooltip);
     public const string CheckingForUpdates = nameof(CheckingForUpdates);
@@ -109,6 +110,7 @@ internal static class LocalizedText
         AutoRefreshCurrentImageTooltip,
         Balanced,
         BalancedPreloadTooltip,
+        CancelUpdate,
         CheckForUpdates,
         CheckForUpdatesTooltip,
         CheckingForUpdates,
