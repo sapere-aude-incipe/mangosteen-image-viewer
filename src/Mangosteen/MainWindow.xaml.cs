@@ -1423,18 +1423,25 @@ public partial class MainWindow : Window
             return;
         }
 
-        var directory = Path.GetDirectoryName(path);
-        if (!File.Exists(path) && (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)))
-        {
-            UpdateNavigationButtons();
-            return;
-        }
-
         try
         {
-            var startInfo = new ProcessStartInfo("explorer.exe");
-            startInfo.ArgumentList.Add(File.Exists(path) ? $"/select,{path}" : directory!);
-            Process.Start(startInfo);
+            var fullPath = Path.GetFullPath(path);
+            var directory = Path.GetDirectoryName(fullPath);
+            if (!File.Exists(fullPath) && (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)))
+            {
+                UpdateNavigationButtons();
+                return;
+            }
+
+            if (File.Exists(fullPath) && WindowsShell.TryOpenFolderAndSelectItem(fullPath))
+            {
+                return;
+            }
+
+            Process.Start(new ProcessStartInfo(directory!)
+            {
+                UseShellExecute = true
+            });
         }
         catch (Exception ex)
         {
