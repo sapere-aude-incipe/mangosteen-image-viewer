@@ -242,4 +242,18 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>Den nyeste utgivelsen inneholder ikke et Windows-installasjonsprogram ennå.</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>Bruk</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>Vil du bruke denne rotasjonen på «{0}»?</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>Bruker rotasjon...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>Dette bildet bruker komprimering med kvalitetstap. Lagring av rotasjonen komprimerer bildet på nytt og kan redusere bildekvaliteten. Vil du fortsette?</value></data>
+  <data name="No" xml:space="preserve"><value>Nei</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>Dette formatet kan ikke overskrives på en trygg måte. Vil du lagre det roterte bildet som en PNG-kopi i stedet?</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>Tilbakestill</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>Roter mot venstre</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>Roter mot høyre</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>En fil med navnet «{0}» finnes allerede. Vil du erstatte den?</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>Roter bilde</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>Kunne ikke bruke rotasjonen: {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Lagre som PNG</value></data>
+  <data name="Yes" xml:space="preserve"><value>Ja</value></data>
 </root>

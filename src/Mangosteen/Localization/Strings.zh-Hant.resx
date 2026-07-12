@@ -242,4 +242,18 @@
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>最新版本尚未包含 Windows 安裝程式。</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>套用</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>要將此旋轉套用至「{0}」嗎？</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>正在套用旋轉...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>此影像使用有損壓縮。儲存旋轉會重新壓縮影像，並可能降低影像品質。是否繼續？</value></data>
+  <data name="No" xml:space="preserve"><value>否</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>無法安全覆寫此格式。是否將旋轉後的影像另存為 PNG 複本？</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>重設</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>向左旋轉</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>向右旋轉</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>名為「{0}」的檔案已存在。是否取代？</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>旋轉影像</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>無法套用旋轉：{0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>另存為 PNG</value></data>
+  <data name="Yes" xml:space="preserve"><value>是</value></data>
 </root>

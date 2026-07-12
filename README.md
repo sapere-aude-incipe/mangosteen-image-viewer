@@ -27,6 +27,7 @@ Mangosteen keeps the interface quiet, starts quickly, supports modern image form
 - Mouse-wheel zoom.
 - Left-button drag panning for oversized images.
 - Actual-pixel viewing for `1:1` physical pixel mapping.
+- Non-destructive rotation previews with explicit Apply or Reset controls.
 - Show the current image in File Explorer.
 - Recycle-bin delete with confirmation.
 - Smooth or nearest-neighbor upscaling.

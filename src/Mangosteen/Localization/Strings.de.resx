@@ -242,4 +242,18 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>Die neueste Veröffentlichung enthält noch keinen Windows-Installer.</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>Anwenden</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>Diese Drehung auf "{0}" anwenden?</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>Drehung wird angewendet...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>Dieses Bild verwendet verlustbehaftete Komprimierung. Beim Speichern der Drehung wird es erneut komprimiert, wodurch die Bildqualität sinken kann. Möchten Sie fortfahren?</value></data>
+  <data name="No" xml:space="preserve"><value>Nein</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>Dieses Format kann nicht sicher überschrieben werden. Das gedrehte Bild stattdessen als PNG-Kopie speichern?</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>Zurücksetzen</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>Nach links drehen</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>Nach rechts drehen</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Eine Datei namens "{0}" ist bereits vorhanden. Ersetzen?</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>Bild drehen</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>Die Drehung konnte nicht angewendet werden: {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Als PNG speichern</value></data>
+  <data name="Yes" xml:space="preserve"><value>Ja</value></data>
 </root>

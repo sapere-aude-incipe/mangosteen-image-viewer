@@ -9,6 +9,9 @@ internal static class LocalizedText
     public const string AllFiles = nameof(AllFiles);
     public const string Aggressive = nameof(Aggressive);
     public const string AppTitle = nameof(AppTitle);
+    public const string ApplyRotation = nameof(ApplyRotation);
+    public const string ApplyRotationConfirmationFormat = nameof(ApplyRotationConfirmationFormat);
+    public const string ApplyingRotation = nameof(ApplyingRotation);
     public const string AutoRefreshCurrentImage = nameof(AutoRefreshCurrentImage);
     public const string AutoRefreshCurrentImageTooltip = nameof(AutoRefreshCurrentImageTooltip);
     public const string Balanced = nameof(Balanced);
@@ -32,10 +35,12 @@ internal static class LocalizedText
     public const string ImageFiles = nameof(ImageFiles);
     public const string ImagePositionFormat = nameof(ImagePositionFormat);
     public const string Loading = nameof(Loading);
+    public const string LossyRotationWarning = nameof(LossyRotationWarning);
     public const string Manual = nameof(Manual);
     public const string Nearest = nameof(Nearest);
     public const string NearestUpscalingTooltip = nameof(NearestUpscalingTooltip);
     public const string NextImage = nameof(NextImage);
+    public const string No = nameof(No);
     public const string NoImage = nameof(NoImage);
     public const string NoUpdatesAvailableFormat = nameof(NoUpdatesAvailableFormat);
     public const string OpenCommand = nameof(OpenCommand);
@@ -57,6 +62,14 @@ internal static class LocalizedText
     public const string PreloadNearbyImagesTooltip = nameof(PreloadNearbyImagesTooltip);
     public const string PreviewOnly = nameof(PreviewOnly);
     public const string PreviousImage = nameof(PreviousImage);
+    public const string PngCopyOnlyWarning = nameof(PngCopyOnlyWarning);
+    public const string ResetRotation = nameof(ResetRotation);
+    public const string RotateLeft = nameof(RotateLeft);
+    public const string RotateRight = nameof(RotateRight);
+    public const string RotatedCopyExistsFormat = nameof(RotatedCopyExistsFormat);
+    public const string RotationDialogTitle = nameof(RotationDialogTitle);
+    public const string RotationFailedFormat = nameof(RotationFailedFormat);
+    public const string SaveAsPng = nameof(SaveAsPng);
     public const string Smooth = nameof(Smooth);
     public const string SmoothUpscalingTooltip = nameof(SmoothUpscalingTooltip);
     public const string ShowImageInFolder = nameof(ShowImageInFolder);
@@ -77,6 +90,7 @@ internal static class LocalizedText
     public const string UpscalingTooltip = nameof(UpscalingTooltip);
     public const string UseDarkMode = nameof(UseDarkMode);
     public const string UseLightMode = nameof(UseLightMode);
+    public const string Yes = nameof(Yes);
     public const string Zoom = nameof(Zoom);
 
     private static readonly ResourceManager Resources = new(
@@ -106,6 +120,9 @@ internal static class LocalizedText
         Aggressive,
         AggressivePreloadTooltip,
         AppTitle,
+        ApplyRotation,
+        ApplyRotationConfirmationFormat,
+        ApplyingRotation,
         AutoRefreshCurrentImage,
         AutoRefreshCurrentImageTooltip,
         Balanced,
@@ -128,10 +145,12 @@ internal static class LocalizedText
         ImageFiles,
         ImagePositionFormat,
         Loading,
+        LossyRotationWarning,
         Manual,
         Nearest,
         NearestUpscalingTooltip,
         NextImage,
+        No,
         NoImage,
         NoUpdatesAvailableFormat,
         OpenCommand,
@@ -153,6 +172,14 @@ internal static class LocalizedText
         PreloadNearbyImagesTooltip,
         PreviewOnly,
         PreviousImage,
+        PngCopyOnlyWarning,
+        ResetRotation,
+        RotateLeft,
+        RotateRight,
+        RotatedCopyExistsFormat,
+        RotationDialogTitle,
+        RotationFailedFormat,
+        SaveAsPng,
         Smooth,
         SmoothUpscalingTooltip,
         ShowImageInFolder,
@@ -173,6 +200,7 @@ internal static class LocalizedText
         UpscalingTooltip,
         UseDarkMode,
         UseLightMode,
+        Yes,
         Zoom
     ];
 

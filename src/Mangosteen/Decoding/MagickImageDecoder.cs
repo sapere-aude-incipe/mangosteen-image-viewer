@@ -8,23 +8,6 @@ namespace Mangosteen.Decoding;
 
 public sealed class MagickImageDecoder : IImageDecoder
 {
-    private static readonly SemaphoreSlim ResourceLimitGate = new(1, 1);
-
-    // Initializing Magick.NET loads its ~25 MB native library; deferred to first decode
-    // so app startup does not pay for it.
-    private static readonly Lazy<bool> NativeRuntime = new(
-        static () =>
-        {
-            MagickNET.Initialize();
-            return true;
-        },
-        LazyThreadSafetyMode.ExecutionAndPublication);
-
-    private static void EnsureNativeRuntime()
-    {
-        _ = NativeRuntime.Value;
-    }
-
     public string Name => "Magick.NET";
 
     public int Priority => 10;
@@ -38,29 +21,29 @@ public sealed class MagickImageDecoder : IImageDecoder
 
     public async Task<ImageMetadata> LoadMetadataAsync(string path, CancellationToken token)
     {
-        await ResourceLimitGate.WaitAsync(token).ConfigureAwait(false);
+        await MagickRuntime.OperationGate.WaitAsync(token).ConfigureAwait(false);
         try
         {
             return await Task.Run(() =>
             {
-                EnsureNativeRuntime();
+                MagickRuntime.EnsureInitialized();
                 return LoadMetadata(path, token);
             }, token).ConfigureAwait(false);
         }
         finally
         {
-            ResourceLimitGate.Release();
+            MagickRuntime.OperationGate.Release();
         }
     }
 
     public async Task<DecodedImage> DecodeAsync(ImageDecodeRequest request, CancellationToken token)
     {
-        await ResourceLimitGate.WaitAsync(token).ConfigureAwait(false);
+        await MagickRuntime.OperationGate.WaitAsync(token).ConfigureAwait(false);
         try
         {
             return await Task.Run(() =>
             {
-                EnsureNativeRuntime();
+                MagickRuntime.EnsureInitialized();
                 using var resourceLimits = MagickResourceLimitScope.Enter(request.MaxDecodedBytes);
                 token.ThrowIfCancellationRequested();
                 var animated = IsAnimatedFormat(request.Path);
@@ -137,7 +120,7 @@ public sealed class MagickImageDecoder : IImageDecoder
         }
         finally
         {
-            ResourceLimitGate.Release();
+            MagickRuntime.OperationGate.Release();
         }
     }
 

@@ -242,4 +242,18 @@ Wersje przenośne nie mogą aktualizować się w miejscu. Otworzyć stronę GitH
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>Najnowsza wersja nie zawiera jeszcze instalatora Windows.</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>Zastosuj</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>Zastosować ten obrót do pliku „{0}”?</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>Stosowanie obrotu...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>Ten obraz używa kompresji stratnej. Zapisanie obrotu spowoduje ponowną kompresję i może obniżyć jakość obrazu. Czy chcesz kontynuować?</value></data>
+  <data name="No" xml:space="preserve"><value>Nie</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>Tego formatu nie można bezpiecznie nadpisać. Czy zapisać obrócony obraz jako kopię PNG?</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>Resetuj</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>Obróć w lewo</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>Obróć w prawo</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Plik o nazwie „{0}” już istnieje. Zastąpić go?</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>Obróć obraz</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>Nie można zastosować obrotu: {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Zapisz jako PNG</value></data>
+  <data name="Yes" xml:space="preserve"><value>Tak</value></data>
 </root>

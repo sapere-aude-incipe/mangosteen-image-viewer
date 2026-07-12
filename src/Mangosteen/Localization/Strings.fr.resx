@@ -242,4 +242,18 @@ Les versions portables ne peuvent pas se mettre à jour sur place. Ouvrir la pag
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>La dernière release ne contient pas encore d’installateur Windows.</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>Appliquer</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>Appliquer cette rotation à « {0} » ?</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>Application de la rotation...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>Cette image utilise une compression avec perte. Enregistrer la rotation recomprimera l'image et peut réduire sa qualité. Voulez-vous continuer ?</value></data>
+  <data name="No" xml:space="preserve"><value>Non</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>Ce format ne peut pas être remplacé en toute sécurité. Enregistrer plutôt l'image tournée sous forme de copie PNG ?</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>Réinitialiser</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>Tourner à gauche</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>Tourner à droite</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Un fichier nommé « {0} » existe déjà. Le remplacer ?</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>Faire pivoter l'image</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>Impossible d'appliquer la rotation : {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Enregistrer en PNG</value></data>
+  <data name="Yes" xml:space="preserve"><value>Oui</value></data>
 </root>
