@@ -254,6 +254,6 @@
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>名为“{0}”的文件已存在。是否替换？</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>旋转图像</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>无法应用旋转：{0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>另存为 PNG</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>将副本另存为 PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>是</value></data>
 </root>

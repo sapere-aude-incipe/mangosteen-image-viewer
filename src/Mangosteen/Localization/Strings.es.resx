@@ -254,6 +254,6 @@ Las versiones portables no pueden actualizarse en el mismo lugar. ¿Abrir la pá
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Ya existe un archivo llamado «{0}». ¿Desea reemplazarlo?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>Girar imagen</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>No se pudo aplicar la rotación: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>Guardar como PNG</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Guardar copia como PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Sí</value></data>
 </root>

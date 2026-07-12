@@ -254,6 +254,6 @@
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>"{0}" 파일이 이미 있습니다. 바꾸시겠습니까?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>이미지 회전</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>회전을 적용할 수 없습니다: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>PNG로 저장</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>PNG 복사본으로 저장</value></data>
   <data name="Yes" xml:space="preserve"><value>예</value></data>
 </root>

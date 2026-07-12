@@ -254,6 +254,6 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>"{0}" adlı bir dosya zaten var. Değiştirilsin mi?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>Görüntüyü döndür</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>Döndürme uygulanamadı: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>PNG olarak kaydet</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Kopyayı PNG olarak kaydet</value></data>
   <data name="Yes" xml:space="preserve"><value>Evet</value></data>
 </root>

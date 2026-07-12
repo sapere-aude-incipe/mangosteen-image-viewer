@@ -254,6 +254,6 @@ Portable Builds k√∂nnen sich nicht direkt aktualisieren. GitHub Releases-Seite √
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Eine Datei namens "{0}" ist bereits vorhanden. Ersetzen?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>Bild drehen</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>Die Drehung konnte nicht angewendet werden: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>Als PNG speichern</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Kopie als PNG speichern</value></data>
   <data name="Yes" xml:space="preserve"><value>Ja</value></data>
 </root>

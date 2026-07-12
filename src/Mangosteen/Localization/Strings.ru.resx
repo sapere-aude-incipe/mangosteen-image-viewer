@@ -254,6 +254,6 @@
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Файл с именем «{0}» уже существует. Заменить его?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>Поворот изображения</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>Не удалось применить поворот: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>Сохранить как PNG</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Сохранить копию как PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Да</value></data>
 </root>

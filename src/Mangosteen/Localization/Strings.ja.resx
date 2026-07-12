@@ -254,6 +254,6 @@
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>「{0}」という名前のファイルは既に存在します。置き換えますか？</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>画像を回転</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>回転を適用できませんでした: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>PNG として保存</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>コピーを PNG として保存</value></data>
   <data name="Yes" xml:space="preserve"><value>はい</value></data>
 </root>

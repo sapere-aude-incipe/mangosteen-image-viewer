@@ -254,6 +254,6 @@ Portable builds cannot update in place. Open the GitHub Releases page?</value>
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>A file named "{0}" already exists. Replace it?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>Rotate image</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>Could not apply the rotation: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>Save as PNG</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Save copy as PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Yes</value></data>
 </root>

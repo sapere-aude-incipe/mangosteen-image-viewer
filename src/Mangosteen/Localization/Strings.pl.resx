@@ -254,6 +254,6 @@ Wersje przenośne nie mogą aktualizować się w miejscu. Otworzyć stronę GitH
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Plik o nazwie „{0}” już istnieje. Zastąpić go?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>Obróć obraz</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>Nie można zastosować obrotu: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>Zapisz jako PNG</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Zapisz kopię jako PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Tak</value></data>
 </root>

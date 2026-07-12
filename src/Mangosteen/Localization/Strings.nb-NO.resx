@@ -254,6 +254,6 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>En fil med navnet «{0}» finnes allerede. Vil du erstatte den?</value></data>
   <data name="RotationDialogTitle" xml:space="preserve"><value>Roter bilde</value></data>
   <data name="RotationFailedFormat" xml:space="preserve"><value>Kunne ikke bruke rotasjonen: {0}</value></data>
-  <data name="SaveAsPng" xml:space="preserve"><value>Lagre som PNG</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Lagre kopi som PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Ja</value></data>
 </root>
