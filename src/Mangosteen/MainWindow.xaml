@@ -912,15 +912,15 @@
                         <StackPanel Grid.Column="0"
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal">
+                            <Button x:Name="ShowInFolderButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="ShowInFolderButton_Click" />
                             <Button x:Name="ZoomPopupButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="ZoomPopupButton_Click" />
                             <Button x:Name="ActualPixelsButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="ActualPixelsButton_Click" />
-                            <Button x:Name="RotateLeftButton"
-                                    Style="{StaticResource DockButtonStyle}"
-                                    Click="RotateLeftButton_Click" />
                         </StackPanel>
 
                         <Rectangle Grid.Column="1"
@@ -961,12 +961,12 @@
                         <StackPanel Grid.Column="4"
                                     HorizontalAlignment="Left"
                                     Orientation="Horizontal">
+                            <Button x:Name="RotateLeftButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="RotateLeftButton_Click" />
                             <Button x:Name="RotateRightButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="RotateRightButton_Click" />
-                            <Button x:Name="ShowInFolderButton"
-                                    Style="{StaticResource DockButtonStyle}"
-                                    Click="ShowInFolderButton_Click" />
                             <Button x:Name="DeleteButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="DeleteButton_Click" />
