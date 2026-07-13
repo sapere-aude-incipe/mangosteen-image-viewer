@@ -9,7 +9,12 @@ dotnet list .\tests\Mangosteen.Tests\Mangosteen.Tests.csproj package --include-t
 
 ## Icon assets
 
-Mangosteen toolbar icons are original app-native vector geometry. They are not copied from a third-party icon pack.
+Most Mangosteen toolbar icons are original app-native vector geometry.
+
+The rotate-left and rotate-right icons are adapted from Microsoft Fluent UI System Icons (`Arrow Counterclockwise 20 Regular` and `Arrow Clockwise 20 Regular`). Fluent UI System Icons is licensed under the MIT License.
+
+- Source: https://github.com/microsoft/fluentui-system-icons
+- Copyright (c) 2020 Microsoft Corporation
 
 ## Runtime NuGet dependencies
 

@@ -242,4 +242,18 @@ Portable builds cannot update in place. Open the GitHub Releases page?</value>
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>The latest release does not include a Windows installer yet.</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>Apply</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>Apply this rotation to "{0}"?</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>Applying rotation...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>This image uses lossy compression. Saving the rotation will recompress it and may reduce image quality. Do you want to continue?</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>This format cannot be safely overwritten. Save the rotated image as a PNG copy instead?</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>Reset</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>Rotate left</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>Rotate right</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>A file named "{0}" already exists. Replace it?</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>Rotate image</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>Could not apply the rotation: {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Save copy as PNG</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
 </root>

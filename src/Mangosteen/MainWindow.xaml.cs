@@ -1,6 +1,8 @@
 ﻿using Mangosteen.Caching;
 using Mangosteen.Core;
 using Mangosteen.Decoding;
+using Mangosteen.Dialogs;
+using Mangosteen.Editing;
 using Mangosteen.Icons;
 using Mangosteen.Localization;
 using Mangosteen.Navigation;
@@ -91,6 +93,7 @@ public partial class MainWindow : Window
     private readonly ImagePreloadCache _fullPreloadCache = new();
     private readonly ImagePreloadCache _previewPreloadCache = new();
     private readonly Lazy<GitHubUpdateService> _updates = new(static () => new GitHubUpdateService());
+    private readonly ImageRotationService _rotationService = new();
     private readonly SKPaint _imagePaint = new() { IsAntialias = true };
     private readonly object _preloadWorkerGate = new();
     private readonly object _backgroundFullWarmupGate = new();
@@ -101,6 +104,7 @@ public partial class MainWindow : Window
     private LoadSession? _loadSession;
     private CancellationTokenSource? _folderIndexCts;
     private CancellationTokenSource? _updateCheckCts;
+    private CancellationTokenSource? _rotationSaveCts;
     private CancellationTokenSource _preloadCts = new();
     private CancellationTokenSource _backgroundFullWarmupCts = new();
     private Task _preloadWorkerTask = Task.CompletedTask;
@@ -109,6 +113,7 @@ public partial class MainWindow : Window
     private int _loadGeneration;
     private int _openGeneration;
     private int _fullDecodeTaskCount;
+    private int _pendingRotationQuarterTurns;
     private bool _isClosing;
     private bool _isPanning;
     private bool _isCurrentPreviewAwaitingFullResolution;
@@ -119,6 +124,7 @@ public partial class MainWindow : Window
     private bool _isUpdatingZoomSlider;
     private bool _isDarkMode = true;
     private bool _isAutoRefreshReloading;
+    private bool _isApplyingRotation;
     private int _preloadBudgetGigabytes = DefaultPreloadBudgetGigabytes;
     private PreloadAggressiveness _preloadAggressiveness = PreloadAggressiveness.Balanced;
     private SKColor _viewerBackgroundColor = DarkViewerBackground;
@@ -272,18 +278,28 @@ public partial class MainWindow : Window
         var zoomText = LocalizedText.Get(LocalizedText.Zoom);
         var showInFolderText = LocalizedText.Get(LocalizedText.ShowImageInFolder);
         var deleteImageText = LocalizedText.Get(LocalizedText.DeleteImage);
+        var rotateLeftText = LocalizedText.Get(LocalizedText.RotateLeft);
+        var rotateRightText = LocalizedText.Get(LocalizedText.RotateRight);
         PreviousButton.ToolTip = $"{previousImageText} (←)";
         NextButton.ToolTip = $"{nextImageText} (→)";
         ActualPixelsButton.ToolTip = $"{actualPixelsText} (1 / F)";
         ZoomPopupButton.ToolTip = zoomText;
         ShowInFolderButton.ToolTip = showInFolderText;
         DeleteButton.ToolTip = $"{deleteImageText} (Del)";
+        RotateLeftButton.ToolTip = rotateLeftText;
+        RotateRightButton.ToolTip = rotateRightText;
+        ResetRotationButton.Content = LocalizedText.Get(LocalizedText.ResetRotation);
+        ApplyRotationButton.Content = LocalizedText.Get(LocalizedText.ApplyRotation);
         AutomationProperties.SetName(PreviousButton, previousImageText);
         AutomationProperties.SetName(NextButton, nextImageText);
         AutomationProperties.SetName(ActualPixelsButton, actualPixelsText);
         AutomationProperties.SetName(ZoomPopupButton, zoomText);
         AutomationProperties.SetName(ShowInFolderButton, showInFolderText);
         AutomationProperties.SetName(DeleteButton, deleteImageText);
+        AutomationProperties.SetName(RotateLeftButton, rotateLeftText);
+        AutomationProperties.SetName(RotateRightButton, rotateRightText);
+        AutomationProperties.SetName(ResetRotationButton, LocalizedText.Get(LocalizedText.ResetRotation));
+        AutomationProperties.SetName(ApplyRotationButton, LocalizedText.Get(LocalizedText.ApplyRotation));
         ContextOpenWithMenuItem.Header = LocalizedText.Get(LocalizedText.OpenWith);
         ContextSetDesktopBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.SetAsDesktopBackground);
         ContextOpenFileLocationMenuItem.Header = LocalizedText.Get(LocalizedText.OpenFileLocation);
@@ -298,6 +314,7 @@ public partial class MainWindow : Window
         ContextDeleteMenuItem.InputGestureText = "Del";
         UpdateSettingsMenuChecks();
         UpdateZoomText();
+        UpdateRotationControls();
     }
 
     private void OptionsHelpMenuItem_Click(object sender, RoutedEventArgs e)
@@ -484,6 +501,7 @@ public partial class MainWindow : Window
         }
 
         var fullPath = Path.GetFullPath(path);
+        DiscardPendingRotation(refitImage: false);
         var openGeneration = ++_openGeneration;
         _navigator.LoadSingle(fullPath);
         StartupDiagnostics.Mark("open_path.navigator_loaded", Path.GetFileName(fullPath));
@@ -520,6 +538,8 @@ public partial class MainWindow : Window
         _loadSession?.CancelAndDisposeWhenInactive();
         _loadSession = null;
         CancelUpdateCheck();
+        _rotationSaveCts?.Cancel();
+        _rotationSaveCts = null;
         CancelFolderIndexing();
         CancelPreloadWorker(replaceToken: false);
         CancelBackgroundFullWarmups(replaceToken: false);
@@ -832,7 +852,11 @@ public partial class MainWindow : Window
         _isCurrentPreviewAwaitingFullResolution = false;
         ApplyPreloadCacheBudget();
         _frameIndex = 0;
-        _viewerState.SetImage(image.Width, image.Height, fitToWindow);
+        var displaySize = ImageRotation.GetRotatedSize(
+            image.Width,
+            image.Height,
+            _pendingRotationQuarterTurns);
+        _viewerState.SetImage(displaySize.Width, displaySize.Height, fitToWindow);
         ConfigureAnimationTimer();
         HideStatus();
         HidePreviewOnlyBadge();
@@ -878,12 +902,14 @@ public partial class MainWindow : Window
         old?.Dispose();
         _image = null;
         _isCurrentPreviewAwaitingFullResolution = false;
+        _pendingRotationQuarterTurns = 0;
         _viewerState.ClearImage();
         ApplyPreloadCacheBudget();
         RequestMemoryCleanup(oldBytes);
         _frameIndex = 0;
         HidePreviewOnlyBadge();
         UpdateZoomText();
+        UpdateRotationControls();
         ImageSurface.InvalidateVisual();
     }
 
@@ -914,7 +940,23 @@ public partial class MainWindow : Window
 
         var frame = _image.Frames[Math.Clamp(_frameIndex, 0, _image.FrameCount - 1)];
         var destination = _viewerState.GetDestinationRect();
-        canvas.DrawImage(frame.Image, destination, GetRenderSamplingOptions(), _imagePaint);
+        if (_pendingRotationQuarterTurns == 0)
+        {
+            canvas.DrawImage(frame.Image, destination, GetRenderSamplingOptions(), _imagePaint);
+            return;
+        }
+
+        var sourceWidth = (float)(_image.Width * _viewerState.Zoom);
+        var sourceHeight = (float)(_image.Height * _viewerState.Zoom);
+        canvas.Save();
+        canvas.Translate(destination.MidX, destination.MidY);
+        canvas.RotateDegrees((float)ImageRotation.GetClockwiseDegrees(_pendingRotationQuarterTurns));
+        canvas.DrawImage(
+            frame.Image,
+            new SKRect(-sourceWidth / 2f, -sourceHeight / 2f, sourceWidth / 2f, sourceHeight / 2f),
+            GetRenderSamplingOptions(),
+            _imagePaint);
+        canvas.Restore();
     }
 
     private void ImageSurface_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1031,16 +1073,28 @@ public partial class MainWindow : Window
 
     private async Task NavigatePreviousAsync()
     {
+        if (_isApplyingRotation)
+        {
+            return;
+        }
+
         if (_navigator.CanMovePrevious && _navigator.MovePrevious() is not null)
         {
+            DiscardPendingRotation(refitImage: false);
             await LoadCurrentImageAsync(fitToWindow: true);
         }
     }
 
     private async Task NavigateNextAsync()
     {
+        if (_isApplyingRotation)
+        {
+            return;
+        }
+
         if (_navigator.CanMoveNext && _navigator.MoveNext() is not null)
         {
+            DiscardPendingRotation(refitImage: false);
             await LoadCurrentImageAsync(fitToWindow: true);
         }
     }
@@ -1053,6 +1107,26 @@ public partial class MainWindow : Window
     private void ZoomPopupButton_Click(object sender, RoutedEventArgs e)
     {
         ZoomPopup.IsOpen = !ZoomPopup.IsOpen;
+    }
+
+    private void RotateLeftButton_Click(object sender, RoutedEventArgs e)
+    {
+        RotatePreview(-1);
+    }
+
+    private void RotateRightButton_Click(object sender, RoutedEventArgs e)
+    {
+        RotatePreview(1);
+    }
+
+    private void ResetRotationButton_Click(object sender, RoutedEventArgs e)
+    {
+        DiscardPendingRotation(refitImage: true);
+    }
+
+    private async void ApplyRotationButton_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(ApplyPendingRotationAsync);
     }
 
     private void ShowInFolderButton_Click(object sender, RoutedEventArgs e)
@@ -1150,6 +1224,12 @@ public partial class MainWindow : Window
     {
         await RunUiCommandAsync(async () =>
         {
+            if (_isApplyingRotation)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key == Key.O && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
             {
                 e.Handled = true;
@@ -1192,7 +1272,9 @@ public partial class MainWindow : Window
 
     private void Window_DragOver(object sender, DragEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Effects = !_isApplyingRotation && e.Data.GetDataPresent(DataFormats.FileDrop)
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
         e.Handled = true;
     }
 
@@ -1200,6 +1282,11 @@ public partial class MainWindow : Window
     {
         await RunUiCommandAsync(async () =>
         {
+            if (_isApplyingRotation)
+            {
+                return;
+            }
+
             if (e.Data.GetData(DataFormats.FileDrop) is string[] { Length: > 0 } files)
             {
                 await OpenPathAsync(files[0]);
@@ -1587,6 +1674,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        DiscardPendingRotation(refitImage: false);
+
         StopCurrentImageInteraction();
         _loadGeneration++;
         _openGeneration++;
@@ -1659,6 +1748,217 @@ public partial class MainWindow : Window
         return !_useSmoothSampling && _viewerState.Zoom > 1.0
             ? new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.None)
             : new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+    }
+
+    private bool HasPendingRotation => _pendingRotationQuarterTurns != 0;
+
+    private void RotatePreview(int quarterTurnDelta)
+    {
+        if (!CanRotateCurrentImage() || _image is null)
+        {
+            UpdateRotationControls();
+            return;
+        }
+
+        StopPanning();
+        _pendingRotationQuarterTurns = ImageRotation.NormalizeQuarterTurns(
+            _pendingRotationQuarterTurns + quarterTurnDelta);
+        var displaySize = ImageRotation.GetRotatedSize(
+            _image.Width,
+            _image.Height,
+            _pendingRotationQuarterTurns);
+        _viewerState.SetImage(displaySize.Width, displaySize.Height, fitToWindow: true);
+        UpdateRotationControls();
+        UpdateZoomText();
+        ImageSurface.InvalidateVisual();
+    }
+
+    private void DiscardPendingRotation(bool refitImage)
+    {
+        if (!HasPendingRotation)
+        {
+            UpdateRotationControls();
+            return;
+        }
+
+        _pendingRotationQuarterTurns = 0;
+        if (refitImage && _image is not null)
+        {
+            _viewerState.SetImage(_image.Width, _image.Height, fitToWindow: true);
+            UpdateZoomText();
+            ImageSurface.InvalidateVisual();
+        }
+
+        UpdateRotationControls();
+    }
+
+    private async Task ApplyPendingRotationAsync()
+    {
+        if (!HasPendingRotation || !CanRotateCurrentImage())
+        {
+            UpdateRotationControls();
+            return;
+        }
+
+        var path = _navigator.CurrentPath!;
+        var turns = _pendingRotationQuarterTurns;
+        var confirmation = MessageBox.Show(
+            this,
+            LocalizedText.Format(LocalizedText.ApplyRotationConfirmationFormat, Path.GetFileName(path)),
+            LocalizedText.Get(LocalizedText.RotationDialogTitle),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question,
+            MessageBoxResult.No);
+        if (confirmation != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var risk = await _rotationService.GetWriteRiskAsync(path, CancellationToken.None);
+        var saveMode = RotationSaveMode.ReplaceOriginal;
+        if (risk == RotationWriteRisk.PngCopyOnly)
+        {
+            var saveCopy = MessageBox.Show(
+                this,
+                LocalizedText.Get(LocalizedText.PngCopyOnlyWarning),
+                LocalizedText.Get(LocalizedText.RotationDialogTitle),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.Yes);
+            if (saveCopy != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            saveMode = RotationSaveMode.PngCopy;
+        }
+        else if (risk == RotationWriteRisk.Lossy)
+        {
+            var warning = new LossyRotationDialog(this);
+            if (warning.ShowDialog() != true || warning.Choice == LossyRotationChoice.No)
+            {
+                return;
+            }
+
+            saveMode = warning.Choice == LossyRotationChoice.SaveAsPng
+                ? RotationSaveMode.PngCopy
+                : RotationSaveMode.ReplaceOriginal;
+        }
+
+        if (saveMode == RotationSaveMode.PngCopy)
+        {
+            var copyPath = ImageRotationService.GetDefaultPngCopyPath(path);
+            if (File.Exists(copyPath))
+            {
+                var replaceCopy = MessageBox.Show(
+                    this,
+                    LocalizedText.Format(LocalizedText.RotatedCopyExistsFormat, Path.GetFileName(copyPath)),
+                    LocalizedText.Get(LocalizedText.RotationDialogTitle),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No);
+                if (replaceCopy != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+        }
+
+        _isApplyingRotation = true;
+        var rotationSaveCts = new CancellationTokenSource();
+        var rotationSaveToken = rotationSaveCts.Token;
+        _rotationSaveCts = rotationSaveCts;
+        UpdateNavigationButtons();
+        PrepareForRotationWrite(path);
+        ShowStatus(LocalizedText.Get(LocalizedText.ApplyingRotation));
+
+        try
+        {
+            var outputPath = await _rotationService.RotateAsync(
+                path,
+                turns,
+                saveMode,
+                rotationSaveToken);
+            rotationSaveToken.ThrowIfCancellationRequested();
+
+            _autoRefreshTimer.Stop();
+            _pendingRotationQuarterTurns = 0;
+            RemovePreloadedImage(path);
+            ClearImage();
+            if (saveMode == RotationSaveMode.PngCopy)
+            {
+                await OpenPathAsync(outputPath);
+            }
+            else
+            {
+                await LoadCurrentImageAsync(fitToWindow: true);
+            }
+        }
+        catch (OperationCanceledException) when (rotationSaveToken.IsCancellationRequested)
+        {
+            if (!_isClosing && _image is not null)
+            {
+                HideStatus();
+            }
+        }
+        catch (Exception ex)
+        {
+            TraceBackgroundError("Image rotation failed", ex);
+            if (!_isClosing)
+            {
+                HideStatus();
+                MessageBox.Show(
+                    this,
+                    LocalizedText.Format(LocalizedText.RotationFailedFormat, ex.Message),
+                    LocalizedText.Get(LocalizedText.RotationDialogTitle),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+        finally
+        {
+            rotationSaveCts.Dispose();
+            if (ReferenceEquals(_rotationSaveCts, rotationSaveCts))
+            {
+                _rotationSaveCts = null;
+            }
+            _isApplyingRotation = false;
+            UpdateNavigationButtons();
+        }
+    }
+
+    private void PrepareForRotationWrite(string path)
+    {
+        StopCurrentImageInteraction();
+        _loadGeneration++;
+        _setActualPixelsAfterFullLoad = false;
+        _loadSession?.CancelAndDisposeWhenInactive();
+        _loadSession = null;
+        CancelPreloadWorker();
+        CancelBackgroundFullWarmups();
+        RemovePreloadedImage(path);
+    }
+
+    private void UpdateRotationControls()
+    {
+        var canRotate = CanRotateCurrentImage();
+        RotateLeftButton.IsEnabled = canRotate;
+        RotateRightButton.IsEnabled = canRotate;
+        RotationActionsDock.Visibility = HasPendingRotation && _image is not null
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        ResetRotationButton.IsEnabled = HasPendingRotation && !_isApplyingRotation;
+        ApplyRotationButton.IsEnabled = HasPendingRotation && !_isApplyingRotation;
+        OpenMenuItem.IsEnabled = !_isApplyingRotation;
+    }
+
+    private bool CanRotateCurrentImage()
+    {
+        return !_isApplyingRotation &&
+            _image is not null &&
+            IsDisplayedImageCurrent() &&
+            _navigator.CurrentPath is { } path &&
+            File.Exists(path);
     }
 
     private void ToggleActualPixels()
@@ -2184,7 +2484,7 @@ public partial class MainWindow : Window
 
     private void ScheduleAutoRefreshReload()
     {
-        if (_isClosing || !_isAutoRefreshEnabled)
+        if (_isClosing || !_isAutoRefreshEnabled || _isApplyingRotation)
         {
             return;
         }
@@ -2196,7 +2496,7 @@ public partial class MainWindow : Window
     private async void AutoRefreshTimer_Tick(object? sender, EventArgs e)
     {
         _autoRefreshTimer.Stop();
-        if (_isClosing || !_isAutoRefreshEnabled || _isAutoRefreshReloading)
+        if (_isClosing || !_isAutoRefreshEnabled || _isAutoRefreshReloading || _isApplyingRotation)
         {
             return;
         }
@@ -2213,6 +2513,7 @@ public partial class MainWindow : Window
         _isAutoRefreshReloading = true;
         try
         {
+            DiscardPendingRotation(refitImage: false);
             RemovePreloadedImage(path);
             await RunUiCommandAsync(() => LoadCurrentImageAsync(fitToWindow: false));
         }
@@ -2839,7 +3140,7 @@ public partial class MainWindow : Window
         var icon = _viewerState.Mode != ViewerFitMode.Fit
             ? ToolbarIconKind.FitToWindow
             : ToolbarIconKind.ActualPixels;
-        var canToggle = CanToggleActualPixels();
+        var canToggle = !_isApplyingRotation && CanToggleActualPixels();
         var brush = canToggle ? GetToolbarIconBrush() : GetToolbarDisabledBrush();
         ActualPixelsButton.IsEnabled = canToggle;
         if (_actualPixelsIconKind == icon &&
@@ -2861,6 +3162,8 @@ public partial class MainWindow : Window
         PreviousButton.Content = ToolbarIcon.Create(ToolbarIconKind.Previous, iconBrush);
         NextButton.Content = ToolbarIcon.Create(ToolbarIconKind.Next, iconBrush);
         ZoomPopupButton.Content = ToolbarIcon.Create(ToolbarIconKind.Zoom, iconBrush);
+        RotateLeftButton.Content = ToolbarIcon.Create(ToolbarIconKind.RotateLeft, iconBrush);
+        RotateRightButton.Content = ToolbarIcon.Create(ToolbarIconKind.RotateRight, iconBrush);
         ShowInFolderButton.Content = ToolbarIcon.Create(ToolbarIconKind.Folder, iconBrush);
         DeleteButton.Content = ToolbarIcon.Create(ToolbarIconKind.Delete, GetToolbarDangerBrush());
         UpdateActualPixelsIcon();
@@ -3112,13 +3415,14 @@ public partial class MainWindow : Window
 
     private void UpdateNavigationButtons()
     {
-        PreviousButton.IsEnabled = _navigator.CanMovePrevious;
-        NextButton.IsEnabled = _navigator.CanMoveNext;
+        PreviousButton.IsEnabled = !_isApplyingRotation && _navigator.CanMovePrevious;
+        NextButton.IsEnabled = !_isApplyingRotation && _navigator.CanMoveNext;
         UpdateActualPixelsIcon();
-        ShowInFolderButton.IsEnabled = CanShowCurrentImageInFolder();
-        var canDelete = CanDeleteCurrentImage();
+        ShowInFolderButton.IsEnabled = !_isApplyingRotation && CanShowCurrentImageInFolder();
+        var canDelete = !_isApplyingRotation && CanDeleteCurrentImage();
         DeleteButton.IsEnabled = canDelete;
         DeleteMenuItem.IsEnabled = canDelete;
+        UpdateRotationControls();
         UpdateImageContextMenuItems();
         UpdateImagePositionText();
         UpdateAutoRefreshWatcher();
@@ -3162,7 +3466,7 @@ public partial class MainWindow : Window
         {
             ZoomSlider.Minimum = ZoomSliderMinimumValue;
             ZoomSlider.Maximum = ZoomSliderMaximumValue;
-            ZoomSlider.IsEnabled = _image is not null;
+            ZoomSlider.IsEnabled = _image is not null && !_isApplyingRotation;
             ZoomSlider.Value = _image is null
                 ? ZoomSliderMinimumValue
                 : GetSliderValueFromZoom(_viewerState.Zoom);

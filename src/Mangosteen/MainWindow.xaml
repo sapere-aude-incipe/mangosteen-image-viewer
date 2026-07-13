@@ -473,6 +473,46 @@
             </Setter>
         </Style>
 
+        <Style x:Key="RotationActionButtonStyle" TargetType="Button">
+            <Setter Property="MinWidth" Value="76" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlHoverBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource TextDisabled}" />
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.72" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="UpdateCancelButtonStyle" TargetType="Button">
             <Setter Property="MinWidth" Value="104" />
             <Setter Property="Height" Value="28" />
@@ -801,6 +841,37 @@
                        FontSize="12" />
         </Border>
 
+        <Border x:Name="RotationActionsDock"
+                Grid.Row="1"
+                Margin="0,0,0,10"
+                Padding="4"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Background="{DynamicResource PanelBackground}"
+                BorderBrush="{DynamicResource PanelBorder}"
+                BorderThickness="1"
+                CornerRadius="10"
+                SnapsToDevicePixels="True"
+                Visibility="Collapsed">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000"
+                                  Direction="270"
+                                  ShadowDepth="2"
+                                  BlurRadius="12"
+                                  Opacity="0.20" />
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="ResetRotationButton"
+                        Style="{StaticResource RotationActionButtonStyle}"
+                        Click="ResetRotationButton_Click" />
+                <Button x:Name="ApplyRotationButton"
+                        Style="{StaticResource RotationActionButtonStyle}"
+                        Background="{DynamicResource AccentCheckBackground}"
+                        BorderBrush="{DynamicResource AccentCheckBorder}"
+                        Click="ApplyRotationButton_Click" />
+            </StackPanel>
+        </Border>
+
         <Border x:Name="ToolbarHost"
                 Grid.Row="2"
                 Background="Transparent"
@@ -831,16 +902,19 @@
                     </Border.Effect>
                     <Grid VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="82" />
+                            <ColumnDefinition Width="122" />
                             <ColumnDefinition Width="13" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="13" />
-                            <ColumnDefinition Width="82" />
+                            <ColumnDefinition Width="122" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0"
                                     HorizontalAlignment="Right"
                                     Orientation="Horizontal">
+                            <Button x:Name="ShowInFolderButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="ShowInFolderButton_Click" />
                             <Button x:Name="ZoomPopupButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="ZoomPopupButton_Click" />
@@ -887,9 +961,12 @@
                         <StackPanel Grid.Column="4"
                                     HorizontalAlignment="Left"
                                     Orientation="Horizontal">
-                            <Button x:Name="ShowInFolderButton"
+                            <Button x:Name="RotateLeftButton"
                                     Style="{StaticResource DockButtonStyle}"
-                                    Click="ShowInFolderButton_Click" />
+                                    Click="RotateLeftButton_Click" />
+                            <Button x:Name="RotateRightButton"
+                                    Style="{StaticResource DockButtonStyle}"
+                                    Click="RotateRightButton_Click" />
                             <Button x:Name="DeleteButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="DeleteButton_Click" />

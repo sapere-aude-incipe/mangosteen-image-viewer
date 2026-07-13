@@ -242,4 +242,18 @@ Versões portáteis não podem ser atualizadas no local. Abrir a página GitHub 
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>A release mais recente ainda não inclui um instalador do Windows.</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>Aplicar</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>Aplicar esta rotação a "{0}"?</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>Aplicando rotação...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>Esta imagem usa compactação com perdas. Salvar a rotação compactará a imagem novamente e pode reduzir a qualidade. Deseja continuar?</value></data>
+  <data name="No" xml:space="preserve"><value>Não</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>Este formato não pode ser substituído com segurança. Salvar a imagem girada como uma cópia PNG?</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>Redefinir</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>Girar para a esquerda</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>Girar para a direita</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>Já existe um arquivo chamado "{0}". Deseja substituí-lo?</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>Girar imagem</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>Não foi possível aplicar a rotação: {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Salvar cópia como PNG</value></data>
+  <data name="Yes" xml:space="preserve"><value>Sim</value></data>
 </root>

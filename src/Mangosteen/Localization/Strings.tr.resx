@@ -242,4 +242,18 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>En son sürüm henüz bir Windows yükleyicisi içermiyor.</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>Uygula</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>Bu döndürme "{0}" dosyasına uygulansın mı?</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>Döndürme uygulanıyor...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>Bu görüntü kayıplı sıkıştırma kullanıyor. Döndürmeyi kaydetmek görüntüyü yeniden sıkıştırır ve kaliteyi düşürebilir. Devam etmek istiyor musunuz?</value></data>
+  <data name="No" xml:space="preserve"><value>Hayır</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>Bu biçimin üzerine güvenle yazılamaz. Döndürülen görüntü bunun yerine PNG kopyası olarak kaydedilsin mi?</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>Sıfırla</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>Sola döndür</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>Sağa döndür</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>"{0}" adlı bir dosya zaten var. Değiştirilsin mi?</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>Görüntüyü döndür</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>Döndürme uygulanamadı: {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>Kopyayı PNG olarak kaydet</value></data>
+  <data name="Yes" xml:space="preserve"><value>Evet</value></data>
 </root>

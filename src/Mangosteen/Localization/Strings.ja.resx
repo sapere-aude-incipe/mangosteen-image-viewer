@@ -242,4 +242,18 @@
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>最新リリースにはまだ Windows インストーラーが含まれていません。</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>適用</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>この回転を「{0}」に適用しますか？</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>回転を適用しています...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>この画像は非可逆圧縮を使用しています。回転を保存すると再圧縮され、画質が低下する可能性があります。続行しますか？</value></data>
+  <data name="No" xml:space="preserve"><value>いいえ</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>この形式は安全に上書きできません。回転した画像を PNG のコピーとして保存しますか？</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>リセット</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>左に回転</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>右に回転</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>「{0}」という名前のファイルは既に存在します。置き換えますか？</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>画像を回転</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>回転を適用できませんでした: {0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>コピーを PNG として保存</value></data>
+  <data name="Yes" xml:space="preserve"><value>はい</value></data>
 </root>

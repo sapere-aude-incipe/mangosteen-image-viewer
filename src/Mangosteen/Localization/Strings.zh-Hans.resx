@@ -242,4 +242,18 @@
   <data name="UpdateInstallerMissing" xml:space="preserve">
     <value>最新版本尚未包含 Windows 安装程序。</value>
   </data>
+  <data name="ApplyRotation" xml:space="preserve"><value>应用</value></data>
+  <data name="ApplyRotationConfirmationFormat" xml:space="preserve"><value>将此旋转应用到“{0}”吗？</value></data>
+  <data name="ApplyingRotation" xml:space="preserve"><value>正在应用旋转...</value></data>
+  <data name="LossyRotationWarning" xml:space="preserve"><value>此图像使用有损压缩。保存旋转会重新压缩图像，并可能降低图像质量。是否继续？</value></data>
+  <data name="No" xml:space="preserve"><value>否</value></data>
+  <data name="PngCopyOnlyWarning" xml:space="preserve"><value>无法安全覆盖此格式。是否将旋转后的图像另存为 PNG 副本？</value></data>
+  <data name="ResetRotation" xml:space="preserve"><value>重置</value></data>
+  <data name="RotateLeft" xml:space="preserve"><value>向左旋转</value></data>
+  <data name="RotateRight" xml:space="preserve"><value>向右旋转</value></data>
+  <data name="RotatedCopyExistsFormat" xml:space="preserve"><value>名为“{0}”的文件已存在。是否替换？</value></data>
+  <data name="RotationDialogTitle" xml:space="preserve"><value>旋转图像</value></data>
+  <data name="RotationFailedFormat" xml:space="preserve"><value>无法应用旋转：{0}</value></data>
+  <data name="SaveAsPng" xml:space="preserve"><value>将副本另存为 PNG</value></data>
+  <data name="Yes" xml:space="preserve"><value>是</value></data>
 </root>
