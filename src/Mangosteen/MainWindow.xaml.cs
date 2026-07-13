@@ -864,6 +864,7 @@ public partial class MainWindow : Window
         var oldReleasedBytes = CacheOrDisposeReplacedImage(old, image.Metadata.Path);
         RequestMemoryCleanup(oldReleasedBytes == 0 ? 0 : oldBytes);
         UpdateZoomText();
+        UpdateNavigationButtons();
         ImageSurface.InvalidateVisual();
     }
 
