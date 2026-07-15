@@ -658,6 +658,10 @@
                             <MenuItem x:Name="AutoRefreshMenuItem"
                                       IsCheckable="True"
                                       Click="AutoRefreshMenuItem_Click" />
+                            <MenuItem x:Name="KeepReadyInBackgroundMenuItem"
+                                      IsCheckable="True"
+                                      IsChecked="True"
+                                      Click="KeepReadyInBackgroundMenuItem_Click" />
                             <Separator />
                             <MenuItem x:Name="DarkModeMenuItem"
                                       IsCheckable="True"
@@ -885,6 +889,7 @@
 
                 <Border x:Name="NavigationDock"
                         Grid.Column="1"
+                        Margin="0,0,0,2"
                         Padding="5,4"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"

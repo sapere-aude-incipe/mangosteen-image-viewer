@@ -256,4 +256,8 @@
   <data name="RotationFailedFormat" xml:space="preserve"><value>회전을 적용할 수 없습니다: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>PNG 복사본으로 저장</value></data>
   <data name="Yes" xml:space="preserve"><value>예</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Mangosteen을 백그라운드에서 준비 상태로 유지</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Windows 시작 시 Mangosteen을 실행하고 뷰어를 준비 상태로 유지합니다. 창을 닫으면 백그라운드로 돌아가며, 파일 &gt; 종료를 선택하면 완전히 종료됩니다.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen이 이미 실행 중이지만 기존 인스턴스에 연결할 수 없습니다.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Windows 시작 설정을 업데이트할 수 없습니다: {0}</value></data>
 </root>

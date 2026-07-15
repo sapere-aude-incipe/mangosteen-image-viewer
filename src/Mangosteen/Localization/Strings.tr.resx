@@ -256,4 +256,8 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="RotationFailedFormat" xml:space="preserve"><value>Döndürme uygulanamadı: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Kopyayı PNG olarak kaydet</value></data>
   <data name="Yes" xml:space="preserve"><value>Evet</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Mangosteen'i arka planda hazır tut</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Mangosteen'i Windows ile başlatır ve görüntüleyiciyi hazır tutar. Pencereyi kapatmak uygulamayı arka plana gönderir; Dosya &gt; Çıkış programı tamamen kapatır.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen zaten çalışıyor, ancak mevcut örneğe ulaşılamadı.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Windows ile başlatma ayarı güncellenemedi: {0}</value></data>
 </root>

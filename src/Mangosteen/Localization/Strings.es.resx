@@ -256,4 +256,8 @@ Las versiones portables no pueden actualizarse en el mismo lugar. ¿Abrir la pá
   <data name="RotationFailedFormat" xml:space="preserve"><value>No se pudo aplicar la rotación: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Guardar copia como PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Sí</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Mantener Mangosteen listo en segundo plano</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Inicia Mangosteen con Windows y mantiene el visor listo. Al cerrar la ventana, vuelve a segundo plano; Archivo &gt; Salir cierra el programa por completo.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen ya se está ejecutando, pero no se pudo contactar con la instancia existente.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>No se pudo actualizar el inicio con Windows: {0}</value></data>
 </root>

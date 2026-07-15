@@ -256,4 +256,8 @@
   <data name="RotationFailedFormat" xml:space="preserve"><value>Не удалось применить поворот: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Сохранить копию как PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Да</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Держать Mangosteen готовым в фоновом режиме</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Запускает Mangosteen вместе с Windows и держит просмотрщик готовым. Закрытие окна возвращает его в фоновый режим; Файл &gt; Выход полностью завершает программу.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen уже запущен, но связаться с существующим экземпляром не удалось.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Не удалось обновить запуск вместе с Windows: {0}</value></data>
 </root>

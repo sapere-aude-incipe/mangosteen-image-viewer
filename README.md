@@ -24,6 +24,7 @@ Mangosteen keeps the interface quiet, starts quickly, supports modern image form
 - Free and open source under the MIT License.
 - Fast previous/next folder navigation.
 - Drag and drop, click-to-open, and Open With friendly startup.
+- Ready-in-background mode for much faster subsequent image opening.
 - Mouse-wheel zoom.
 - Left-button drag panning for oversized images.
 - Actual-pixel viewing for `1:1` physical pixel mapping.
@@ -134,6 +135,9 @@ This creates:
 - Preload nearby images: decodes likely next and previous images in the background so folder navigation can feel instant.
 - Preload memory: limits how much RAM Mangosteen may use for decoded-image cache entries.
 - Preload aggressiveness: controls how far ahead Mangosteen scans and how eagerly it warms likely next images.
+- Keep Mangosteen ready in the background: enabled by default. Mangosteen starts with Windows and keeps its already-constructed viewer shell ready. Closing the window releases the current image and caches, then returns the viewer to the background; `File > Exit` quits it completely.
+
+This readiness mode does not perform telemetry, update checks, or network activity. Disable it from `Options` to remove Mangosteen from Windows startup and restore normal close-to-exit behavior.
 
 ## Release Process
 

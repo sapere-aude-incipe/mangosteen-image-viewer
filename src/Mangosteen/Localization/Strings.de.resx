@@ -256,4 +256,8 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="RotationFailedFormat" xml:space="preserve"><value>Die Drehung konnte nicht angewendet werden: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Kopie als PNG speichern</value></data>
   <data name="Yes" xml:space="preserve"><value>Ja</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Mangosteen im Hintergrund bereithalten</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Startet Mangosteen mit Windows und hält den Viewer bereit. Beim Schließen kehrt das Fenster in den Hintergrund zurück; Datei &gt; Beenden beendet das Programm vollständig.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen wird bereits ausgeführt, aber die vorhandene Instanz konnte nicht erreicht werden.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Der Windows-Autostart konnte nicht aktualisiert werden: {0}</value></data>
 </root>

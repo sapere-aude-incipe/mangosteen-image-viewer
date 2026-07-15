@@ -256,4 +256,8 @@ Versões portáteis não podem ser atualizadas no local. Abrir a página GitHub 
   <data name="RotationFailedFormat" xml:space="preserve"><value>Não foi possível aplicar a rotação: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Salvar cópia como PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Sim</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Manter o Mangosteen pronto em segundo plano</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Inicia o Mangosteen com o Windows e mantém o visualizador pronto. Fechar a janela o devolve ao segundo plano; Arquivo &gt; Sair encerra o programa completamente.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>O Mangosteen já está em execução, mas não foi possível acessar a instância existente.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Não foi possível atualizar a inicialização com o Windows: {0}</value></data>
 </root>
