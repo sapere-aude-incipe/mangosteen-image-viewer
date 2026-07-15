@@ -256,4 +256,8 @@
   <data name="RotationFailedFormat" xml:space="preserve"><value>無法套用旋轉：{0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>將複本另存為 PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>是</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>讓 Mangosteen 在背景保持就緒</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>隨 Windows 啟動 Mangosteen 並讓檢視器保持就緒。關閉視窗會使其返回背景；「檔案」&gt;「結束」會完全結束程式。</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen 已在執行，但無法連線至現有執行個體。</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>無法更新 Windows 啟動設定：{0}</value></data>
 </root>

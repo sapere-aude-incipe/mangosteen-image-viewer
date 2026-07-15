@@ -16,6 +16,7 @@ public sealed class AppSettingsTests
         Assert.IsTrue(settings.UseSmoothSampling);
         Assert.IsTrue(settings.IsPreloadEnabled);
         Assert.IsFalse(settings.IsAutoRefreshEnabled);
+        Assert.IsTrue(settings.KeepReadyInBackground);
         Assert.AreEqual(2, settings.PreloadBudgetGigabytes);
         Assert.AreEqual(PreloadAggressiveness.Balanced, settings.PreloadAggressiveness);
     }
@@ -33,6 +34,7 @@ public sealed class AppSettingsTests
                 UseSmoothSampling = false,
                 IsPreloadEnabled = false,
                 IsAutoRefreshEnabled = true,
+                KeepReadyInBackground = false,
                 PreloadBudgetGigabytes = 10,
                 PreloadAggressiveness = PreloadAggressiveness.Aggressive
             };
@@ -44,6 +46,7 @@ public sealed class AppSettingsTests
             Assert.IsFalse(actual.UseSmoothSampling);
             Assert.IsFalse(actual.IsPreloadEnabled);
             Assert.IsTrue(actual.IsAutoRefreshEnabled);
+            Assert.IsFalse(actual.KeepReadyInBackground);
             Assert.AreEqual(10, actual.PreloadBudgetGigabytes);
             Assert.AreEqual(PreloadAggressiveness.Aggressive, actual.PreloadAggressiveness);
         }
@@ -68,6 +71,7 @@ public sealed class AppSettingsTests
             Assert.IsTrue(settings.UseSmoothSampling);
             Assert.IsTrue(settings.IsPreloadEnabled);
             Assert.IsFalse(settings.IsAutoRefreshEnabled);
+            Assert.IsTrue(settings.KeepReadyInBackground);
             Assert.AreEqual(2, settings.PreloadBudgetGigabytes);
             Assert.AreEqual(PreloadAggressiveness.Balanced, settings.PreloadAggressiveness);
         }
@@ -97,6 +101,7 @@ public sealed class AppSettingsTests
 
             Assert.AreEqual(15, settings.PreloadBudgetGigabytes);
             Assert.AreEqual(PreloadAggressiveness.Balanced, settings.PreloadAggressiveness);
+            Assert.IsTrue(settings.KeepReadyInBackground);
         }
         finally
         {

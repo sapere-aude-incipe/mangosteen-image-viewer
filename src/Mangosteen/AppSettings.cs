@@ -21,6 +21,7 @@ internal sealed class AppSettings
     public bool UseSmoothSampling { get; init; } = true;
     public bool IsPreloadEnabled { get; init; } = true;
     public bool IsAutoRefreshEnabled { get; init; }
+    public bool KeepReadyInBackground { get; init; } = true;
     public int PreloadBudgetGigabytes { get; init; } = DefaultPreloadBudgetGigabytes;
     public PreloadAggressiveness PreloadAggressiveness { get; init; } = PreloadAggressiveness.Balanced;
 
@@ -38,8 +39,15 @@ internal sealed class AppSettings
                 return new AppSettings();
             }
 
-            var settings = JsonSerializer.Deserialize(File.ReadAllText(path), JsonContext.AppSettings);
-            return Normalize(settings);
+            var json = File.ReadAllText(path);
+            using var document = JsonDocument.Parse(json);
+            var settings = JsonSerializer.Deserialize(document.RootElement, JsonContext.AppSettings);
+            var keepReadyInBackground = document.RootElement.TryGetProperty(
+                nameof(KeepReadyInBackground),
+                out _)
+                ? settings?.KeepReadyInBackground
+                : true;
+            return Normalize(settings, keepReadyInBackground);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
         {
@@ -83,7 +91,9 @@ internal sealed class AppSettings
         return Path.Combine(root, "Mangosteen Image Viewer", "settings.json");
     }
 
-    private static AppSettings Normalize(AppSettings? settings)
+    private static AppSettings Normalize(
+        AppSettings? settings,
+        bool? keepReadyInBackground = null)
     {
         if (settings is null)
         {
@@ -100,6 +110,7 @@ internal sealed class AppSettings
             UseSmoothSampling = settings.UseSmoothSampling,
             IsPreloadEnabled = settings.IsPreloadEnabled,
             IsAutoRefreshEnabled = settings.IsAutoRefreshEnabled,
+            KeepReadyInBackground = keepReadyInBackground ?? settings.KeepReadyInBackground,
             PreloadBudgetGigabytes = Math.Clamp(
                 settings.PreloadBudgetGigabytes,
                 MinimumPreloadBudgetGigabytes,

@@ -34,6 +34,8 @@ internal static class LocalizedText
     public const string HelpMenu = nameof(HelpMenu);
     public const string ImageFiles = nameof(ImageFiles);
     public const string ImagePositionFormat = nameof(ImagePositionFormat);
+    public const string KeepReadyInBackground = nameof(KeepReadyInBackground);
+    public const string KeepReadyInBackgroundTooltip = nameof(KeepReadyInBackgroundTooltip);
     public const string Loading = nameof(Loading);
     public const string LossyRotationWarning = nameof(LossyRotationWarning);
     public const string Manual = nameof(Manual);
@@ -64,6 +66,7 @@ internal static class LocalizedText
     public const string PreviousImage = nameof(PreviousImage);
     public const string PngCopyOnlyWarning = nameof(PngCopyOnlyWarning);
     public const string ResetRotation = nameof(ResetRotation);
+    public const string RunningInstanceUnavailable = nameof(RunningInstanceUnavailable);
     public const string RotateLeft = nameof(RotateLeft);
     public const string RotateRight = nameof(RotateRight);
     public const string RotatedCopyExistsFormat = nameof(RotatedCopyExistsFormat);
@@ -74,6 +77,7 @@ internal static class LocalizedText
     public const string SmoothUpscalingTooltip = nameof(SmoothUpscalingTooltip);
     public const string ShowImageInFolder = nameof(ShowImageInFolder);
     public const string StartingInstaller = nameof(StartingInstaller);
+    public const string StartupRegistrationFailedFormat = nameof(StartupRegistrationFailedFormat);
     public const string Copy = nameof(Copy);
     public const string Properties = nameof(Properties);
     public const string SetAsDesktopBackground = nameof(SetAsDesktopBackground);
@@ -144,6 +148,8 @@ internal static class LocalizedText
         HelpMenu,
         ImageFiles,
         ImagePositionFormat,
+        KeepReadyInBackground,
+        KeepReadyInBackgroundTooltip,
         Loading,
         LossyRotationWarning,
         Manual,
@@ -174,6 +180,7 @@ internal static class LocalizedText
         PreviousImage,
         PngCopyOnlyWarning,
         ResetRotation,
+        RunningInstanceUnavailable,
         RotateLeft,
         RotateRight,
         RotatedCopyExistsFormat,
@@ -184,6 +191,7 @@ internal static class LocalizedText
         SmoothUpscalingTooltip,
         ShowImageInFolder,
         StartingInstaller,
+        StartupRegistrationFailedFormat,
         Copy,
         Properties,
         SetAsDesktopBackground,

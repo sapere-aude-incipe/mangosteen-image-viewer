@@ -256,4 +256,8 @@ Wersje przenośne nie mogą aktualizować się w miejscu. Otworzyć stronę GitH
   <data name="RotationFailedFormat" xml:space="preserve"><value>Nie można zastosować obrotu: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Zapisz kopię jako PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Tak</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Utrzymuj Mangosteen w gotowości w tle</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Uruchamia Mangosteen wraz z systemem Windows i utrzymuje przeglądarkę w gotowości. Zamknięcie okna przenosi ją do tła; Plik &gt; Zakończ całkowicie zamyka program.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen jest już uruchomiony, ale nie można połączyć się z istniejącą instancją.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Nie można zaktualizować uruchamiania z systemem Windows: {0}</value></data>
 </root>

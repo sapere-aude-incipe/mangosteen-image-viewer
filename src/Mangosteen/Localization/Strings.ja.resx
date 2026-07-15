@@ -256,4 +256,8 @@
   <data name="RotationFailedFormat" xml:space="preserve"><value>回転を適用できませんでした: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>コピーを PNG として保存</value></data>
   <data name="Yes" xml:space="preserve"><value>はい</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Mangosteen をバックグラウンドで待機</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Windows と同時に Mangosteen を起動し、ビューアーを待機させます。ウィンドウを閉じるとバックグラウンドに戻り、[ファイル] &gt; [終了] で完全に終了します。</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen は既に実行中ですが、既存のインスタンスに接続できませんでした。</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Windows スタートアップを更新できませんでした: {0}</value></data>
 </root>

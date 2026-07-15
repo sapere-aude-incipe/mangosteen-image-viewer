@@ -121,10 +121,14 @@ public partial class MainWindow : Window
     private bool _useSmoothSampling = true;
     private bool _isPreloadEnabled = true;
     private bool _isAutoRefreshEnabled;
+    private bool _keepReadyInBackground = true;
     private bool _isUpdatingZoomSlider;
     private bool _isDarkMode = true;
     private bool _isAutoRefreshReloading;
     private bool _isApplyingRotation;
+    private bool _exitRequested;
+    private bool _isBackgroundWarmup;
+    private bool _activationRequestedDuringWarmup;
     private int _preloadBudgetGigabytes = DefaultPreloadBudgetGigabytes;
     private PreloadAggressiveness _preloadAggressiveness = PreloadAggressiveness.Balanced;
     private SKColor _viewerBackgroundColor = DarkViewerBackground;
@@ -141,14 +145,19 @@ public partial class MainWindow : Window
     private GitHubUpdateService Updates => _updates.Value;
 
     public MainWindow()
+        : this(AppSettings.Load())
     {
+    }
+
+    internal MainWindow(AppSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
         StartupDiagnostics.Mark("window.ctor.begin");
         InitializeComponent();
         StartupDiagnostics.Mark("window.initialize_component.end");
         ContentRendered += Window_ContentRendered;
         ApplyInitialWindowPlacement();
         StartupDiagnostics.Mark("window.initial_placement_applied");
-        var settings = AppSettings.Load();
         StartupDiagnostics.Mark("window.settings_loaded");
         ApplySettings(settings);
         StartupDiagnostics.Mark("window.settings_applied");
@@ -191,6 +200,7 @@ public partial class MainWindow : Window
         _useSmoothSampling = settings.UseSmoothSampling;
         _isPreloadEnabled = settings.IsPreloadEnabled;
         _isAutoRefreshEnabled = settings.IsAutoRefreshEnabled;
+        _keepReadyInBackground = settings.KeepReadyInBackground;
         _preloadBudgetGigabytes = Math.Clamp(settings.PreloadBudgetGigabytes, 1, 15);
         _preloadAggressiveness = settings.PreloadAggressiveness;
         if (settings.IsDarkMode == _isDarkMode)
@@ -215,6 +225,7 @@ public partial class MainWindow : Window
             UseSmoothSampling = _useSmoothSampling,
             IsPreloadEnabled = _isPreloadEnabled,
             IsAutoRefreshEnabled = _isAutoRefreshEnabled,
+            KeepReadyInBackground = _keepReadyInBackground,
             PreloadBudgetGigabytes = _preloadBudgetGigabytes,
             PreloadAggressiveness = _preloadAggressiveness
         }.Save();
@@ -243,6 +254,7 @@ public partial class MainWindow : Window
         BalancedPreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Balanced);
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
         AutoRefreshMenuItem.Header = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImage);
+        KeepReadyInBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.KeepReadyInBackground);
         DarkModeMenuItem.Header = LocalizedText.Get(LocalizedText.ToggleDarkMode);
         OptionsHelpMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsHelp);
         SamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.UpscalingTooltip);
@@ -252,6 +264,7 @@ public partial class MainWindow : Window
         PreloadMemoryBudgetMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadMemoryBudgetTooltip);
         PreloadAggressivenessMenuItem.ToolTip = LocalizedText.Get(LocalizedText.PreloadAggressivenessTooltip);
         AutoRefreshMenuItem.ToolTip = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImageTooltip);
+        KeepReadyInBackgroundMenuItem.ToolTip = LocalizedText.Get(LocalizedText.KeepReadyInBackgroundTooltip);
         ConservativePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ConservativePreloadTooltip);
         BalancedPreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.BalancedPreloadTooltip);
         AggressivePreloadMenuItem.ToolTip = LocalizedText.Get(LocalizedText.AggressivePreloadTooltip);
@@ -433,7 +446,7 @@ public partial class MainWindow : Window
             {
                 UseShellExecute = true
             });
-            Close();
+            RequestApplicationExit();
         }
         catch (OperationCanceledException) when (_isClosing || updateCheckCts.IsCancellationRequested)
         {
@@ -525,6 +538,106 @@ public partial class MainWindow : Window
         ShowStatus(string.IsNullOrWhiteSpace(message) ? LocalizedText.Get(LocalizedText.UnexpectedError) : message);
     }
 
+    internal async Task WarmForBackgroundAsync()
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        _isBackgroundWarmup = true;
+        _activationRequestedDuringWarmup = false;
+        ShowActivated = false;
+        ShowInTaskbar = false;
+        Opacity = 0;
+        IsHitTestVisible = false;
+        Show();
+
+        try
+        {
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle);
+        }
+        finally
+        {
+            _isBackgroundWarmup = false;
+            IsHitTestVisible = true;
+            Opacity = 1;
+            ShowActivated = true;
+
+            if (_activationRequestedDuringWarmup)
+            {
+                ShowInTaskbar = true;
+                BringWindowToForeground();
+            }
+            else
+            {
+                Hide();
+                ShowInTaskbar = false;
+            }
+        }
+    }
+
+    internal async Task HandleActivationAsync(AppActivationRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (request.RequestShutdown)
+        {
+            RequestApplicationExit();
+            return;
+        }
+
+        if (!request.Activate || _isClosing)
+        {
+            return;
+        }
+
+        _activationRequestedDuringWarmup = true;
+        IsHitTestVisible = true;
+        Opacity = 1;
+        ShowInTaskbar = true;
+        if (!IsVisible)
+        {
+            Show();
+        }
+
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        BringWindowToForeground();
+        if (!string.IsNullOrWhiteSpace(request.FilePath))
+        {
+            await OpenPathAsync(request.FilePath);
+            BringWindowToForeground();
+        }
+    }
+
+    internal void RequestApplicationExit()
+    {
+        if (_exitRequested)
+        {
+            return;
+        }
+
+        _exitRequested = true;
+        Application.Current.Shutdown();
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        var dispatcherIsShuttingDown = Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished;
+        if (ShouldHideOnClose(_keepReadyInBackground, _exitRequested, dispatcherIsShuttingDown))
+        {
+            e.Cancel = true;
+            EnterBackgroundMode();
+            return;
+        }
+
+        base.OnClosing(e);
+    }
+
     protected override void OnClosed(EventArgs e)
     {
         _isClosing = true;
@@ -558,6 +671,40 @@ public partial class MainWindow : Window
             _updates.Value.Dispose();
         }
         base.OnClosed(e);
+    }
+
+    internal static bool ShouldHideOnClose(
+        bool keepReadyInBackground,
+        bool exitRequested,
+        bool dispatcherIsShuttingDown)
+    {
+        return keepReadyInBackground && !exitRequested && !dispatcherIsShuttingDown;
+    }
+
+    private void EnterBackgroundMode()
+    {
+        if (_isClosing || _isBackgroundWarmup)
+        {
+            return;
+        }
+
+        ZoomPopup.IsOpen = false;
+        DiscardPendingRotation(refitImage: false);
+        ClearForMissingFile();
+        ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
+        Hide();
+        ShowInTaskbar = false;
+    }
+
+    private void BringWindowToForeground()
+    {
+        _ = Activate();
+        Focus();
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle != nint.Zero)
+        {
+            _ = SetForegroundWindow(handle);
+        }
     }
 
     private async Task LoadCurrentImageAsync(bool fitToWindow)
@@ -1218,7 +1365,7 @@ public partial class MainWindow : Window
 
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        Close();
+        RequestApplicationExit();
     }
 
     private async void Window_KeyDown(object sender, KeyEventArgs e)
@@ -1404,6 +1551,28 @@ public partial class MainWindow : Window
         SetAutoRefreshEnabled(AutoRefreshMenuItem.IsChecked == true);
     }
 
+    private void KeepReadyInBackgroundMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var requested = KeepReadyInBackgroundMenuItem.IsChecked == true;
+        if (!StartupRegistration.TrySetEnabled(requested, out var error))
+        {
+            KeepReadyInBackgroundMenuItem.IsChecked = _keepReadyInBackground;
+            MessageBox.Show(
+                this,
+                LocalizedText.Format(
+                    LocalizedText.StartupRegistrationFailedFormat,
+                    error ?? LocalizedText.Get(LocalizedText.UnexpectedError)),
+                LocalizedText.Get(LocalizedText.AppTitle),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
+        _keepReadyInBackground = requested;
+        UpdateSettingsMenuChecks();
+        SaveSettings();
+    }
+
     private void SetSmoothSampling(bool useSmoothSampling)
     {
         _useSmoothSampling = useSmoothSampling;
@@ -1473,6 +1642,7 @@ public partial class MainWindow : Window
         NearestSamplingMenuItem.IsChecked = !_useSmoothSampling;
         PreloadEnabledMenuItem.IsChecked = _isPreloadEnabled;
         AutoRefreshMenuItem.IsChecked = _isAutoRefreshEnabled;
+        KeepReadyInBackgroundMenuItem.IsChecked = _keepReadyInBackground;
 
         foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
         {
@@ -3382,6 +3552,10 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfo monitorInfo);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(nint windowHandle);
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern bool SystemParametersInfo(

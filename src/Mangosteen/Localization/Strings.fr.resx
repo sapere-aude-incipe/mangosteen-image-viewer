@@ -256,4 +256,8 @@ Les versions portables ne peuvent pas se mettre à jour sur place. Ouvrir la pag
   <data name="RotationFailedFormat" xml:space="preserve"><value>Impossible d'appliquer la rotation : {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Enregistrer une copie en PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Oui</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Garder Mangosteen prêt en arrière-plan</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Démarre Mangosteen avec Windows et garde la visionneuse prête. Fermer la fenêtre la renvoie en arrière-plan ; Fichier &gt; Quitter ferme complètement le programme.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen est déjà en cours d'exécution, mais l'instance existante est inaccessible.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Le démarrage avec Windows n'a pas pu être mis à jour : {0}</value></data>
 </root>

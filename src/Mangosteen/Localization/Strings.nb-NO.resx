@@ -256,4 +256,8 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="RotationFailedFormat" xml:space="preserve"><value>Kunne ikke bruke rotasjonen: {0}</value></data>
   <data name="SaveAsPng" xml:space="preserve"><value>Lagre kopi som PNG</value></data>
   <data name="Yes" xml:space="preserve"><value>Ja</value></data>
+  <data name="KeepReadyInBackground" xml:space="preserve"><value>Hold Mangosteen klar i bakgrunnen</value></data>
+  <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Starter Mangosteen med Windows og holder bildeviseren klar. Når vinduet lukkes, går det tilbake til bakgrunnen; Fil &gt; Avslutt avslutter programmet helt.</value></data>
+  <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen kjører allerede, men den eksisterende forekomsten kunne ikke nås.</value></data>
+  <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Oppstart med Windows kunne ikke oppdateres: {0}</value></data>
 </root>
