@@ -10,6 +10,14 @@
 #define OutputDir "..\..\dist"
 #endif
 
+#ifndef OptionalComponentsDir
+#define OptionalComponentsDir "..\..\publish\optional-components"
+#endif
+
+#ifndef IncludeOptionalComponents
+#define IncludeOptionalComponents 0
+#endif
+
 #define AppIconFile "..\..\src\Mangosteen\Assets\mangosteen.ico"
 #define AppShortName "Mangosteen"
 #define AppDisplayName "Mangosteen Image Viewer"
@@ -17,6 +25,7 @@
 #define AppExeName "Mangosteen.exe"
 #define AppId "{{5505BFA7-AFF8-4C6E-8B60-52EDF84880D3}"
 #define AppImageProgId "Mangosteen.Image"
+#define AppModelProgId "Mangosteen.Model"
 
 [Setup]
 AppId={#AppId}
@@ -58,11 +67,30 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
-Name: "associatefiles"; Description: "Register supported image file types with {#AppDisplayName}"; GroupDescription: "File associations:"
+Name: "associatefiles"; Description: "Register supported image file types and installed 3D model types with {#AppDisplayName}"; GroupDescription: "File associations:"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
+[Types]
+Name: "core"; Description: "Core image viewer"
+#if IncludeOptionalComponents
+Name: "complete"; Description: "Core viewer with all optional components"
+#endif
+
+[Components]
+#if IncludeOptionalComponents
+Name: "core"; Description: "Mangosteen Image Viewer"; Types: core complete; Flags: fixed
+Name: "gpulargeimages"; Description: "GPU acceleration for large images"; Types: complete
+Name: "modelviewer"; Description: "3D model viewing (F3D 3.5.0, adds about 119 MB)"; Types: complete
+#else
+Name: "core"; Description: "Mangosteen Image Viewer"; Types: core; Flags: fixed
+#endif
+
 [Files]
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: core
+#if IncludeOptionalComponents
+Source: "{#OptionalComponentsDir}\gpu-large-images\*"; DestDir: "{app}\components\gpu-large-images"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: gpulargeimages
+Source: "{#OptionalComponentsDir}\model-viewer\*"; DestDir: "{app}\components\model-viewer"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: modelviewer
+#endif
 
 [Icons]
 Name: "{autoprograms}\{#AppDisplayName}"; Filename: "{app}\{#AppExeName}"
@@ -75,6 +103,13 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\DefaultIcon"; Va
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities"; ValueType: string; ValueName: "ApplicationName"; ValueData: "{#AppDisplayName}"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities"; ValueType: string; ValueName: "ApplicationDescription"; ValueData: "Simple, fast, privacy-respecting image viewer"; Flags: uninsdeletekey; Tasks: associatefiles
+#if IncludeOptionalComponents
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".stl"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".ply"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".obj"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".gltf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".glb"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+#endif
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".3fr"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".ari"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".arw"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
@@ -148,6 +183,16 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\Fil
 Root: HKA; Subkey: "Software\Classes\{#AppImageProgId}"; ValueType: string; ValueName: ""; ValueData: "{#AppDisplayName} image"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\{#AppImageProgId}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"",0"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\{#AppImageProgId}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletekey; Tasks: associatefiles
+#if IncludeOptionalComponents
+Root: HKA; Subkey: "Software\Classes\{#AppModelProgId}"; ValueType: string; ValueName: ""; ValueData: "{#AppDisplayName} 3D model"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\{#AppModelProgId}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"",0"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\{#AppModelProgId}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.stl\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.ply\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.obj\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.gltf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.glb\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+#endif
 Root: HKA; Subkey: "Software\Classes\.jpg\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\.jpe\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\.jpeg\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
@@ -222,6 +267,13 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes";
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".x3f"; ValueData: ""; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".xbm"; ValueData: ""; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".xpm"; ValueData: ""; Tasks: associatefiles
+#if IncludeOptionalComponents
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".stl"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".ply"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".obj"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".gltf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".glb"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+#endif
 
 [Run]
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(AppDisplayName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
@@ -230,14 +282,93 @@ Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(
 Filename: "{app}\{#AppExeName}"; Parameters: "--shutdown"; Flags: runhidden waituntilterminated skipifdoesntexist; RunOnceId: "ShutdownMangosteen"
 
 [Code]
+#if IncludeOptionalComponents
+procedure RemoveDeselectedOptionalComponents;
+var
+  RegistryRoot: Integer;
+begin
+  if IsAdminInstallMode then
+    RegistryRoot := HKEY_LOCAL_MACHINE
+  else
+    RegistryRoot := HKEY_CURRENT_USER;
+
+  if not WizardIsComponentSelected('gpulargeimages') then
+    DelTree(ExpandConstant('{app}\components\gpu-large-images'), True, True, True);
+
+  if not WizardIsComponentSelected('modelviewer') then
+  begin
+    DelTree(ExpandConstant('{app}\components\model-viewer'), True, True, True);
+    RegDeleteKeyIncludingSubkeys(RegistryRoot, 'Software\Classes\{#AppModelProgId}');
+    RegDeleteValue(RegistryRoot, 'Software\Classes\.stl\OpenWithProgids', '{#AppModelProgId}');
+    RegDeleteValue(RegistryRoot, 'Software\Classes\.ply\OpenWithProgids', '{#AppModelProgId}');
+    RegDeleteValue(RegistryRoot, 'Software\Classes\.obj\OpenWithProgids', '{#AppModelProgId}');
+    RegDeleteValue(RegistryRoot, 'Software\Classes\.gltf\OpenWithProgids', '{#AppModelProgId}');
+    RegDeleteValue(RegistryRoot, 'Software\Classes\.glb\OpenWithProgids', '{#AppModelProgId}');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
+      '.stl');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
+      '.ply');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
+      '.obj');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
+      '.gltf');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
+      '.glb');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
+      '.stl');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
+      '.ply');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
+      '.obj');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
+      '.gltf');
+    RegDeleteValue(
+      RegistryRoot,
+      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
+      '.glb');
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssInstall then
+    RemoveDeselectedOptionalComponents;
+end;
+#endif
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   ResultCode: Integer;
   ExistingApp: String;
+  StartupCommand: String;
 begin
   Result := '';
   ExistingApp := ExpandConstant('{app}\{#AppExeName}');
-  if FileExists(ExistingApp) then
+  if FileExists(ExistingApp) and
+    RegQueryStringValue(
+      HKEY_CURRENT_USER,
+      'Software\Microsoft\Windows\CurrentVersion\Run',
+      '{#AppDisplayName}',
+      StartupCommand) and
+    (Pos('--background', Lowercase(StartupCommand)) > 0) then
   begin
     Exec(ExistingApp, '--shutdown', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     Sleep(250);

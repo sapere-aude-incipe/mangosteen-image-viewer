@@ -1,0 +1,62 @@
+# Optional Rendering Components
+
+Mangosteen keeps its normal WPF and SkiaSharp image path as the default. Optional
+components are discovered only when their `component.json` manifest is present
+under the application's `components` directory. They are not loaded at startup
+and do not add work to ordinary image viewing.
+
+## GPU acceleration for large images
+
+The large-image component is intended for exceptionally large still images. It
+is selected when the estimated decoded RGBA image is at least 256 MiB, or when a
+PSB file is opened.
+
+- libvips decodes only the visible 512-pixel tiles and a one-tile margin.
+- A power-of-two pyramid supplies a suitable resolution for the current zoom.
+- OpenGL textures are kept within a 384 MiB in-memory budget.
+- Losslessly compressed tiles are cached under
+  `%LocalAppData%\Mangosteen Image Viewer\Cache\LargeImageTiles` and invalidated
+  when the source file changes.
+- 8-bit and 16-bit channels are preserved in the tile path. Embedded ICC profiles
+  are converted to sRGB for display when libvips can read them.
+- The existing preview remains visible while sharper tiles arrive.
+
+Some compressed formats cannot provide truly independent regions. In those
+cases libvips may still need to perform more decoding work than a tiled TIFF or
+pyramidal source, but Mangosteen avoids retaining a full uncompressed image.
+
+## 3D model viewing
+
+The 3D component embeds the F3D 3.5.0 engine in Mangosteen's native OpenGL
+surface. Initial browsing support covers STL, PLY, OBJ, glTF, and GLB files.
+
+- Left-drag orbits the camera.
+- The mouse wheel zooms.
+- Models are framed automatically against a fading floor grid.
+- A lower-right XYZ orientation indicator remains visible.
+- Materials, textures, vertex colors, and animations are handled by F3D when
+  present in a supported file.
+
+The official F3D Windows runtime is comparatively large, so it remains a separate
+component. Its complete license bundle is included with the component.
+
+## Installing components
+
+The installer offers both components as unchecked choices. Portable users can
+extract a component zip directly beside `Mangosteen.exe`; each archive already
+contains the required `components` directory.
+
+Release packaging also creates `Mangosteen-Complete-Portable-<version>-x64.zip`
+with both components already installed. Its unpacked build is available at
+`publish\complete-portable\Mangosteen.exe` for local testing.
+
+For source-tree development, the following environment variables enable routing
+without copying the lightweight manifest:
+
+```powershell
+$env:MANGOSTEEN_ENABLE_GPU_LARGE_IMAGES = "1"
+$env:MANGOSTEEN_ENABLE_3D_VIEWER = "1"
+```
+
+The 3D runtime must still be staged under `components\model-viewer` for F3D to
+load. Release packaging downloads a pinned archive and verifies its SHA256 hash.

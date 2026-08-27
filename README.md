@@ -38,6 +38,8 @@ Mangosteen keeps the interface quiet, starts quickly, supports modern image form
 - Animated GIF support.
 - Manual update checks through GitHub Releases.
 - Installer and portable zip builds for Windows x64.
+- Optional tiled GPU rendering for exceptionally large images.
+- Optional in-window 3D viewing for STL, PLY, OBJ, glTF, and GLB files.
 
 ## Repository Layout
 
@@ -61,12 +63,26 @@ Mangosteen uses a decoder chain instead of relying on one hard-coded codec path:
 
 The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, GIF, TIFF, WebP, AVIF, HEIC/HEIF, and several RAW-family formats. Exact support depends on file contents and, for some Windows-native paths, installed codecs.
 
+## Optional Components
+
+Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. Two separately installable components are available and unchecked by default:
+
+- **GPU acceleration for large images** uses libvips, a tiled image pyramid, a bounded GPU texture cache, and a losslessly compressed disk cache. It is intended for exceptionally large TIFF, PSB, PSD, RAW-derived, and other still images without requiring a full uncompressed image to remain in RAM.
+- **3D model viewing** embeds the F3D 3.5.0 engine for STL, PLY, OBJ, glTF, and GLB browsing, including camera orbit, zoom, automatic framing, a floor grid, an XYZ indicator, and supported materials or animation.
+
+Neither component is loaded during normal image viewing. See [Optional Rendering Components](docs/optional-components.md) for behavior, limits, caching, and development details.
+
 ## Download
 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
 - **Portable**: `Mangosteen-Portable-<version>-x64.zip` - extract anywhere and run `Mangosteen.exe`. No installation and no separate .NET runtime required.
+- **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - ready-to-run test build with GPU large-image rendering and 3D model viewing already included.
 - **Installer**: `Mangosteen-Setup-<version>-x64.exe` - classic setup with Start menu shortcut and an optional, checked-by-default file type registration step.
+- **GPU component**: `Mangosteen-GPU-Large-Images-<version>-x64.zip` - extract beside the portable `Mangosteen.exe` to enable tiled large-image rendering.
+- **3D component**: `Mangosteen-3D-Viewer-<version>-x64.zip` - extract beside the portable `Mangosteen.exe` to enable F3D model viewing.
+
+The installer contains the optional component payloads but selects only the core viewer by default. The regular portable zip contains only the core viewer, keeping the normal download lean. Use the complete portable build when you want to test every rendering feature without installing or combining component archives.
 
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 
@@ -92,6 +108,7 @@ Requirements:
 - Windows 10 or later.
 - [.NET 10 SDK](https://dotnet.microsoft.com/download).
 - Inno Setup 6, only if you want to build the installer.
+- Internet access during release packaging, to download the pinned F3D runtime when it is not already cached.
 
 Build and test:
 
@@ -118,15 +135,23 @@ This creates:
 
 - `dist\Mangosteen-Setup-<version>-x64.exe`
 - `dist\Mangosteen-Portable-<version>-x64.zip`
+- `dist\Mangosteen-Complete-Portable-<version>-x64.zip`
+- `dist\Mangosteen-GPU-Large-Images-<version>-x64.zip`
+- `dist\Mangosteen-3D-Viewer-<version>-x64.zip`
 - `dist\SHA256SUMS.txt`
+
+The unpacked all-features test executable is written to
+`publish\complete-portable\Mangosteen.exe`.
 
 ## Controls
 
 - `Left` / `Right`: previous / next image.
 - Mouse wheel: zoom around the cursor.
 - Left mouse drag: pan.
+- 3D left mouse drag: orbit the camera.
 - `F`: fit to window.
 - `Ctrl+O`: open an image.
+- `Ctrl+P`: open the Windows print dialog for the displayed image or animation frame.
 - `Del`: move the current image to the recycle bin after confirmation.
 
 ## Options

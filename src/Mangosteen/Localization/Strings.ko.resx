@@ -108,6 +108,9 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>열기...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>인쇄...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>옵션</value>
   </data>

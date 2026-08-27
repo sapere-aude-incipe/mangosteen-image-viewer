@@ -14,7 +14,7 @@
         MinHeight="360"
         WindowStyle="None"
         ResizeMode="CanResize"
-        Background="#1E2126"
+        Background="#212121"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         AllowDrop="True"
@@ -37,7 +37,7 @@
     <Window.Resources>
         <!-- Shared design tokens: one surface language for menu bar, menus, dock, and overlays.
              Values here match the default dark theme so startup does not rebuild every brush. -->
-        <SolidColorBrush x:Key="ChromeBackground" Color="#1E2126" />
+        <SolidColorBrush x:Key="ChromeBackground" Color="#212121" />
         <SolidColorBrush x:Key="ChromeSurfaceBackground" Color="#272B32" />
         <SolidColorBrush x:Key="ChromeSurfaceBorder" Color="#3E4550" />
         <SolidColorBrush x:Key="ChromeButtonForeground" Color="#ECF0F5" />
@@ -597,6 +597,8 @@
                         <MenuItem x:Name="FileMenuItem">
                             <MenuItem x:Name="OpenMenuItem"
                                       Click="OpenMenuItem_Click" />
+                            <MenuItem x:Name="PrintMenuItem"
+                                      Click="PrintMenuItem_Click" />
                             <MenuItem x:Name="DeleteMenuItem"
                                       Click="DeleteMenuItem_Click" />
                             <Separator />
@@ -706,15 +708,17 @@
             </Grid>
         </Border>
 
+        <Grid x:Name="ViewerSurfaceContainer"
+              Grid.Row="1"
+              SizeChanged="ImageSurface_SizeChanged">
         <skia:SKElement x:Name="ImageSurface"
-                        Grid.Row="1"
+                        Panel.ZIndex="1"
                         PaintSurface="ImageSurface_PaintSurface"
                         MouseWheel="ImageSurface_MouseWheel"
                         MouseDown="ImageSurface_MouseDown"
                         MouseMove="ImageSurface_MouseMove"
                         MouseUp="ImageSurface_MouseUp"
                         LostMouseCapture="ImageSurface_LostMouseCapture"
-                        SizeChanged="ImageSurface_SizeChanged"
                         ContextMenuOpening="ImageSurface_ContextMenuOpening"
                         Focusable="True">
             <skia:SKElement.ContextMenu>
@@ -739,6 +743,12 @@
                 </ContextMenu>
             </skia:SKElement.ContextMenu>
         </skia:SKElement>
+            <Canvas x:Name="NativeSurfaceMount"
+                    Panel.ZIndex="0"
+                    Background="#212121"
+                    ClipToBounds="True"
+                    IsHitTestVisible="False" />
+        </Grid>
 
         <Border x:Name="StatusOverlay"
                 Grid.Row="1"
