@@ -108,6 +108,9 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>Aç...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>Yazdır...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>Seçenekler</value>
   </data>

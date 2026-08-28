@@ -108,6 +108,9 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>Otwórz...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>Drukuj...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>Opcje</value>
   </data>

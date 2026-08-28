@@ -39,6 +39,19 @@ The rotate-left and rotate-right icons are adapted from Microsoft Fluent UI Syst
 
 Mangosteen can use Windows Imaging Component (WIC), which is provided by Windows. It is not redistributed by this project.
 
+## Optional 3D component
+
+The separately installable 3D component redistributes the official F3D 3.5.0
+Windows x64 runtime. F3D is licensed under the BSD 3-Clause License and bundles
+VTK plus optional model readers and their dependencies. The unmodified upstream
+`share\licenses` directory is included in the component so every applicable
+license and copyright notice travels with the binaries.
+
+- F3D project: https://github.com/f3d-app/f3d
+- F3D license: BSD-3-Clause
+- Pinned archive: `F3D-3.5.0-Windows-x86_64.zip`
+- SHA256: `db57f9fb7e1bbe2c022ec19dab3fd1eb38545f8c7b3d29d3906a951936a2e897`
+
 ## Notes for release maintainers
 
 Before publishing a release, review the resolved lock files and published artifacts when dependencies are updated. Some native packages may include additional upstream notices in their package contents; keep this file updated when changing decoder, rendering, or installer dependencies.

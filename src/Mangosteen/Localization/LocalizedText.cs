@@ -64,6 +64,7 @@ internal static class LocalizedText
     public const string PreloadNearbyImagesTooltip = nameof(PreloadNearbyImagesTooltip);
     public const string PreviewOnly = nameof(PreviewOnly);
     public const string PreviousImage = nameof(PreviousImage);
+    public const string PrintCommand = nameof(PrintCommand);
     public const string PngCopyOnlyWarning = nameof(PngCopyOnlyWarning);
     public const string ResetRotation = nameof(ResetRotation);
     public const string RunningInstanceUnavailable = nameof(RunningInstanceUnavailable);
@@ -178,6 +179,7 @@ internal static class LocalizedText
         PreloadNearbyImagesTooltip,
         PreviewOnly,
         PreviousImage,
+        PrintCommand,
         PngCopyOnlyWarning,
         ResetRotation,
         RunningInstanceUnavailable,

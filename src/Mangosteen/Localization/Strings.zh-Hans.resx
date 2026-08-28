@@ -108,6 +108,9 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>打开...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>打印...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>选项</value>
   </data>

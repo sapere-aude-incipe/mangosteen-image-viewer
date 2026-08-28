@@ -57,6 +57,7 @@ public sealed class DecoderRegistry : IDisposable
     {
         return new DecoderRegistry(
         [
+            new WicGifImageDecoder(),
             new WicRawPreviewImageDecoder(),
             new VipsImageDecoder(),
             new WicImageDecoder(),
