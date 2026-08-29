@@ -26,21 +26,48 @@ public sealed class ReleaseWorkflowTests
         StringAssert.Contains(text, "echo \"publish=true\" >> \"$GITHUB_OUTPUT\"");
     }
 
+    [TestMethod]
+    public void Release_Workflow_Publishes_Three_App_Packages()
+    {
+        var text = GetReleaseWorkflowText();
+
+        StringAssert.Contains(text, "dist/Mangosteen-Setup-${{ needs.package.outputs.version }}-x64.exe");
+        StringAssert.Contains(text, "dist/Mangosteen-Portable-${{ needs.package.outputs.version }}-x64.zip");
+        StringAssert.Contains(text, "dist/Mangosteen-Complete-Portable-${{ needs.package.outputs.version }}-x64.zip");
+        Assert.IsFalse(text.Contains("Mangosteen-GPU-Large-Images-", StringComparison.Ordinal));
+        Assert.IsFalse(text.Contains("Mangosteen-3D-Viewer-", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void Release_Build_Keeps_Optional_Components_Out_Of_Standard_Installer()
+    {
+        var script = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "scripts", "build-installer.ps1"));
+
+        StringAssert.Contains(script, "Mangosteen-Complete-Portable-$Version-x64.zip");
+        Assert.IsFalse(script.Contains("/DIncludeOptionalComponents=1", StringComparison.Ordinal));
+        Assert.IsFalse(script.Contains("Mangosteen-GPU-Large-Images-$Version-x64.zip", StringComparison.Ordinal));
+        Assert.IsFalse(script.Contains("Mangosteen-3D-Viewer-$Version-x64.zip", StringComparison.Ordinal));
+    }
+
     private static string GetReleaseWorkflowText()
+    {
+        return File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", "release.yml"));
+    }
+
+    private static string GetRepositoryRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         while (current is not null)
         {
-            var workflow = Path.Combine(current.FullName, ".github", "workflows", "release.yml");
-            if (File.Exists(workflow))
+            if (File.Exists(Path.Combine(current.FullName, "Mangosteen.slnx")))
             {
-                return File.ReadAllText(workflow);
+                return current.FullName;
             }
 
             current = current.Parent;
         }
 
-        throw new DirectoryNotFoundException("Could not locate the Mangosteen release workflow.");
+        throw new DirectoryNotFoundException("Could not locate the Mangosteen repository root.");
     }
 }
 
