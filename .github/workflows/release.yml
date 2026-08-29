@@ -213,8 +213,6 @@ jobs:
             dist/Mangosteen-Setup-${{ needs.package.outputs.version }}-x64.exe
             dist/Mangosteen-Portable-${{ needs.package.outputs.version }}-x64.zip
             dist/Mangosteen-Complete-Portable-${{ needs.package.outputs.version }}-x64.zip
-            dist/Mangosteen-GPU-Large-Images-${{ needs.package.outputs.version }}-x64.zip
-            dist/Mangosteen-3D-Viewer-${{ needs.package.outputs.version }}-x64.zip
             dist/SHA256SUMS.txt
           fail_on_unmatched_files: true
           preserve_order: true
