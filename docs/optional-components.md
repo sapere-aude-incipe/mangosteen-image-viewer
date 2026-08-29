@@ -40,15 +40,13 @@ surface. Initial browsing support covers STL, PLY, OBJ, glTF, and GLB files.
 The official F3D Windows runtime is comparatively large, so it remains a separate
 component. Its complete license bundle is included with the component.
 
-## Installing components
+## Getting the advanced components
 
-The installer offers both components as unchecked choices. Portable users can
-extract a component zip directly beside `Mangosteen.exe`; each archive already
-contains the required `components` directory.
-
-Release packaging also creates `Mangosteen-Complete-Portable-<version>-x64.zip`
-with both components already installed. Its unpacked build is available at
-`publish\complete-portable\Mangosteen.exe` for local testing.
+Download `Mangosteen-Complete-Portable-<version>-x64.zip` to get both components
+already installed. The standard installer and standard portable ZIP contain only
+the core image viewer, and separate component archives are not published. The
+unpacked complete build is available at `publish\complete-portable\Mangosteen.exe`
+for local testing.
 
 For source-tree development, the following environment variables enable routing
 without copying the lightweight manifest:
@@ -60,3 +58,4 @@ $env:MANGOSTEEN_ENABLE_3D_VIEWER = "1"
 
 The 3D runtime must still be staged under `components\model-viewer` for F3D to
 load. Release packaging downloads a pinned archive and verifies its SHA256 hash.
+
