@@ -67,7 +67,7 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
-Name: "associatefiles"; Description: "Register supported image file types and installed 3D model types with {#AppDisplayName}"; GroupDescription: "File associations:"
+Name: "associatefiles"; Description: "Register supported image file types with {#AppDisplayName}"; GroupDescription: "File associations:"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Types]
@@ -383,3 +383,4 @@ begin
       'Software\Microsoft\Windows\CurrentVersion\Run',
       '{#AppDisplayName}');
 end;
+
