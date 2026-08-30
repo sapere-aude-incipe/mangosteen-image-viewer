@@ -65,7 +65,7 @@ The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, 
 
 ## Optional Components
 
-Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. Two separately installable components are available and unchecked by default:
+Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. The complete portable edition includes two advanced components:
 
 - **GPU acceleration for large images** uses libvips, a tiled image pyramid, a bounded GPU texture cache, and a losslessly compressed disk cache. It is intended for exceptionally large TIFF, PSB, PSD, RAW-derived, and other still images without requiring a full uncompressed image to remain in RAM.
 - **3D model viewing** embeds the F3D 3.5.0 engine for STL, PLY, OBJ, glTF, and GLB browsing, including camera orbit, zoom, automatic framing, a floor grid, an XYZ indicator, and supported materials or animation.
@@ -76,13 +76,11 @@ Neither component is loaded during normal image viewing. See [Optional Rendering
 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
-- **Portable**: `Mangosteen-Portable-<version>-x64.zip` - extract anywhere and run `Mangosteen.exe`. No installation and no separate .NET runtime required.
-- **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - ready-to-run test build with GPU large-image rendering and 3D model viewing already included.
-- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - classic setup with Start menu shortcut and an optional, checked-by-default file type registration step.
-- **GPU component**: `Mangosteen-GPU-Large-Images-<version>-x64.zip` - extract beside the portable `Mangosteen.exe` to enable tiled large-image rendering.
-- **3D component**: `Mangosteen-3D-Viewer-<version>-x64.zip` - extract beside the portable `Mangosteen.exe` to enable F3D model viewing.
+- **Standard installer**: `Mangosteen-Setup-<version>-x64.exe` - the lightweight image viewer with a Start menu shortcut and an optional, checked-by-default file type registration step.
+- **Standard portable**: `Mangosteen-Portable-<version>-x64.zip` - the same lightweight viewer without installation or a separate .NET runtime.
+- **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - a ready-to-run portable build with GPU large-image rendering and 3D model viewing already included.
 
-The installer contains the optional component payloads but selects only the core viewer by default. The regular portable zip contains only the core viewer, keeping the normal download lean. Use the complete portable build when you want to test every rendering feature without installing or combining component archives.
+The standard installer and standard portable ZIP contain only the core viewer. Use the complete portable build when you want the advanced rendering features. Separate component archives are not published, keeping the Releases page compact and making each edition unambiguous.
 
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 
@@ -136,8 +134,6 @@ This creates:
 - `dist\Mangosteen-Setup-<version>-x64.exe`
 - `dist\Mangosteen-Portable-<version>-x64.zip`
 - `dist\Mangosteen-Complete-Portable-<version>-x64.zip`
-- `dist\Mangosteen-GPU-Large-Images-<version>-x64.zip`
-- `dist\Mangosteen-3D-Viewer-<version>-x64.zip`
 - `dist\SHA256SUMS.txt`
 
 The unpacked all-features test executable is written to
@@ -179,3 +175,4 @@ The intended signing path is SignPath Foundation once the project has enough pub
 ## License
 
 Mangosteen Image Viewer is released under the MIT License. See [LICENSE](LICENSE).
+

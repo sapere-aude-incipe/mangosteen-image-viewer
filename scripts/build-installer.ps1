@@ -122,7 +122,6 @@ $distDir = Join-Path $projectRoot "dist"
 $installerInputDir = Join-Path $projectRoot "publish\installer-input"
 $completePortableDir = Join-Path $projectRoot "publish\complete-portable"
 $optionalInputDir = Join-Path $projectRoot "publish\optional-components"
-$componentPackRoot = Join-Path $projectRoot "publish\component-pack"
 
 if ([string]::IsNullOrWhiteSpace($Version)) {
     $Version = Get-ProjectVersion $projectPath
@@ -135,7 +134,6 @@ Clear-GeneratedDirectory -Path $distDir -AllowedRoot $projectRoot
 Clear-GeneratedDirectory -Path $installerInputDir -AllowedRoot $projectRoot
 Clear-GeneratedDirectory -Path $completePortableDir -AllowedRoot $projectRoot
 Clear-GeneratedDirectory -Path $optionalInputDir -AllowedRoot $projectRoot
-Clear-GeneratedDirectory -Path $componentPackRoot -AllowedRoot $projectRoot
 
 $publishArgs = @(
     "publish",
@@ -203,18 +201,6 @@ if (-not $SkipOptionalComponents) {
     Copy-Item -LiteralPath (Join-Path $f3dRoot "bin") -Destination (Join-Path $modelDestination "bin") -Recurse -Force
     Copy-Item -LiteralPath (Join-Path $f3dRoot "share") -Destination (Join-Path $modelDestination "share") -Recurse -Force
 
-    $gpuPackStage = Join-Path $componentPackRoot "gpu"
-    New-Item -ItemType Directory -Path (Join-Path $gpuPackStage "components") -Force | Out-Null
-    Copy-Item -LiteralPath $gpuDestination -Destination (Join-Path $gpuPackStage "components\gpu-large-images") -Recurse -Force
-    $gpuPack = Join-Path $distDir "Mangosteen-GPU-Large-Images-$Version-x64.zip"
-    Compress-Archive -Path (Join-Path $gpuPackStage "*") -DestinationPath $gpuPack -Force
-
-    $modelPackStage = Join-Path $componentPackRoot "model"
-    New-Item -ItemType Directory -Path (Join-Path $modelPackStage "components") -Force | Out-Null
-    Copy-Item -LiteralPath $modelDestination -Destination (Join-Path $modelPackStage "components\model-viewer") -Recurse -Force
-    $modelPack = Join-Path $distDir "Mangosteen-3D-Viewer-$Version-x64.zip"
-    Compress-Archive -Path (Join-Path $modelPackStage "*") -DestinationPath $modelPack -Force
-
     Write-Host "Creating complete portable build..."
     Copy-Item -Path (Join-Path $installerInputDir "*") -Destination $completePortableDir -Recurse -Force
     $completeComponentsDir = Join-Path $completePortableDir "components"
@@ -225,8 +211,6 @@ if (-not $SkipOptionalComponents) {
     $completePortableZip = Join-Path $distDir "Mangosteen-Complete-Portable-$Version-x64.zip"
     Compress-Archive -Path (Join-Path $completePortableDir "*") -DestinationPath $completePortableZip -Force
 
-    Write-Host "GPU component pack: $gpuPack"
-    Write-Host "3D component pack: $modelPack"
     Write-Host "Complete portable build: $completePortableZip"
     Write-Host "Complete portable executable: $(Join-Path $completePortableDir 'Mangosteen.exe')"
 }
@@ -242,12 +226,8 @@ $iscc = Find-InnoCompiler $InnoCompilerPath
 $installerArgs = @(
     "/DAppVersion=$Version",
     "/DSourceDir=$installerInputDir",
-    "/DOptionalComponentsDir=$optionalInputDir",
     "/DOutputDir=$distDir"
 )
-if (-not $SkipOptionalComponents) {
-    $installerArgs += "/DIncludeOptionalComponents=1"
-}
 $installerArgs += $issPath
 
 Write-Host "Compiling installer with $iscc..."
@@ -258,3 +238,4 @@ $installerPath = Join-Path $distDir "Mangosteen-Setup-$Version-x64.exe"
 Write-Host "Installer: $installerPath"
 Write-Host "Portable zip: $portableZip"
 Write-Sha256Checksums -Directory $distDir
+

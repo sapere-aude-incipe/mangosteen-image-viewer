@@ -63,7 +63,6 @@ $installedExe = Join-Path $resolvedInstallDirectory "Mangosteen.exe"
 $uninstaller = Join-Path $resolvedInstallDirectory "unins000.exe"
 $gpuManifest = Join-Path $resolvedInstallDirectory "components\gpu-large-images\component.json"
 $modelManifest = Join-Path $resolvedInstallDirectory "components\model-viewer\component.json"
-$f3dApi = Join-Path $resolvedInstallDirectory "components\model-viewer\bin\f3d_c_api.dll"
 $registeredApplicationsPath = "HKCU:\Software\RegisteredApplications"
 $capabilitiesPath = "HKCU:\Software\Classes\Applications\Mangosteen.exe\Capabilities\FileAssociations"
 $uninstallPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{5505BFA7-AFF8-4C6E-8B60-52EDF84880D3}_is1"
@@ -124,57 +123,6 @@ try {
         throw "Uninstaller left its uninstall registry entry behind."
     }
 
-    Invoke-HiddenProcess -FilePath $resolvedInstaller -Arguments @(
-        "/VERYSILENT",
-        "/SUPPRESSMSGBOXES",
-        "/NORESTART",
-        "/DIR=`"$resolvedInstallDirectory`"",
-        "/TYPE=complete",
-        "/TASKS=associatefiles"
-    )
-    $installed = $true
-
-    foreach ($componentFile in @($gpuManifest, $modelManifest, $f3dApi)) {
-        if (-not (Test-Path -LiteralPath $componentFile)) {
-            throw "Complete installation is missing optional component file: $componentFile"
-        }
-    }
-
-    $modelProgId = Get-RegistryValueOrNull -Path $capabilitiesPath -Name ".stl"
-    if ($modelProgId -ne "Mangosteen.Model") {
-        throw "The complete installation did not register optional model associations."
-    }
-
-    Invoke-HiddenProcess -FilePath $resolvedInstaller -Arguments @(
-        "/VERYSILENT",
-        "/SUPPRESSMSGBOXES",
-        "/NORESTART",
-        "/DIR=`"$resolvedInstallDirectory`"",
-        "/TYPE=core",
-        "/TASKS=associatefiles"
-    )
-
-    foreach ($componentFile in @($gpuManifest, $modelManifest, $f3dApi)) {
-        if (Test-Path -LiteralPath $componentFile) {
-            throw "Core reinstall left a deselected optional component file behind: $componentFile"
-        }
-    }
-
-    if ($null -ne (Get-RegistryValueOrNull -Path $capabilitiesPath -Name ".stl")) {
-        throw "Core reinstall left the optional model association registered."
-    }
-
-    Invoke-HiddenProcess -FilePath $uninstaller -Arguments @(
-        "/VERYSILENT",
-        "/SUPPRESSMSGBOXES",
-        "/NORESTART"
-    )
-    $installed = $false
-
-    if (Test-Path -LiteralPath $installedExe) {
-        throw "Uninstaller left the complete application installation behind."
-    }
-
     Write-Host "Installer smoke test passed."
 }
 finally {
@@ -190,3 +138,4 @@ finally {
         Remove-Item -LiteralPath $resolvedInstallDirectory -Recurse -Force
     }
 }
+
