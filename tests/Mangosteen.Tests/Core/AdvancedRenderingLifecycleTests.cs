@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.ComponentModel;
 using System.Windows.Interop;
 using Mangosteen.Decoding;
 using Mangosteen.Rendering;
@@ -55,7 +56,34 @@ public sealed class AdvancedRenderingLifecycleTests
     {
         using var source = new HwndSource(new HwndSourceParameters("Mangosteen surface test") { Width = 32, Height = 32, WindowStyle = 0 });
         using var host = new NativeGlHost { Width = 16, Height = 16 };
-        source.RootVisual = host;
+        try
+        {
+            source.RootVisual = host;
+        }
+        catch (Win32Exception ex) when (ex.Message == "Could not create the OpenGL rendering context.")
+        {
+            // Dimensions must already be initialized, even on GPU-less runners.
+        }
+        Assert.IsGreaterThan(0, host.PixelWidth);
+        Assert.IsGreaterThan(0, host.PixelHeight);
+        source.RootVisual = null;
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
+    [TestCategory("NativeOpenGL")]
+    public Task Native_Surface_Can_Render_When_OpenGl_Is_Available() => StaTest.RunAsync(() =>
+    {
+        using var source = new HwndSource(new HwndSourceParameters("Mangosteen render test") { Width = 32, Height = 32, WindowStyle = 0 });
+        using var host = new NativeGlHost { Width = 16, Height = 16 };
+        try
+        {
+            source.RootVisual = host;
+        }
+        catch (Win32Exception ex) when (ex.Message == "Could not create the OpenGL rendering context.")
+        {
+            Assert.Inconclusive("This machine cannot create a WGL context. Run the NativeOpenGL test on a Windows graphics workstation.");
+        }
         host.Measure(new System.Windows.Size(16, 16));
         host.Arrange(new System.Windows.Rect(0, 0, 16, 16));
         host.UpdateLayout();
