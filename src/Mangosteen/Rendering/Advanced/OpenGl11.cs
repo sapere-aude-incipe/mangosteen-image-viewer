@@ -27,6 +27,9 @@ internal static partial class OpenGl11
     public const uint SrcAlpha = 0x0302;
     public const uint OneMinusSrcAlpha = 0x0303;
 
+    [LibraryImport("opengl32.dll", EntryPoint = "glGetError")]
+    public static partial uint GetError();
+
     [LibraryImport("opengl32.dll", EntryPoint = "glViewport")]
     public static partial void Viewport(int x, int y, int width, int height);
 

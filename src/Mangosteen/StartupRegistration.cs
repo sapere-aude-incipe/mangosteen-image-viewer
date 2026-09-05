@@ -10,7 +10,7 @@ internal static class StartupRegistration
     internal const string ValueName = "Mangosteen Image Viewer";
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
-    public static bool TrySetEnabled(bool enabled, out string? error)
+    public static bool TrySetEnabled(bool enabled, out string? error, bool replaceExisting = true)
     {
         error = null;
 
@@ -23,13 +23,14 @@ internal static class StartupRegistration
                 return false;
             }
 
+            var commandLine = BuildCommandLine(GetExecutablePath());
+            var currentValue = runKey.GetValue(
+                ValueName, defaultValue: null,
+                RegistryValueOptions.DoNotExpandEnvironmentNames) as string;
+            if (!MayReplaceEntry(currentValue, commandLine, replaceExisting)) return true;
+
             if (enabled)
             {
-                var commandLine = BuildCommandLine(GetExecutablePath());
-                var currentValue = runKey.GetValue(
-                    ValueName,
-                    defaultValue: null,
-                    RegistryValueOptions.DoNotExpandEnvironmentNames) as string;
                 if (!string.Equals(currentValue, commandLine, StringComparison.Ordinal))
                 {
                     runKey.SetValue(ValueName, commandLine, RegistryValueKind.String);
@@ -55,6 +56,10 @@ internal static class StartupRegistration
         ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
         return $"\"{executablePath}\" --background";
     }
+
+    internal static bool MayReplaceEntry(string? currentValue, string commandLine, bool explicitlyRequested) =>
+        explicitlyRequested || string.IsNullOrWhiteSpace(currentValue) ||
+        string.Equals(currentValue, commandLine, StringComparison.OrdinalIgnoreCase);
 
     private static string GetExecutablePath()
     {

@@ -23,6 +23,7 @@ internal sealed class F3dModelRenderer : IDisposable
     private int _generation;
     private bool _disposed;
     private bool _resourcesDisposed;
+    private volatile bool _darkMode;
 
     public F3dModelRenderer(NativeGlHost host, string componentDirectory)
     {
@@ -37,12 +38,17 @@ internal sealed class F3dModelRenderer : IDisposable
     public async Task OpenAsync(string path, bool darkMode, CancellationToken token)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        _darkMode = darkMode;
+        _animationTimer.Stop();
+        _hasAnimation = false;
         if (!_host.IsSurfaceReady)
         {
             await _host.Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Loaded, token);
         }
 
         token.ThrowIfCancellationRequested();
+        if (!_host.IsSurfaceReady) throw new InvalidOperationException("The 3D rendering surface is not ready.");
         var generation = Interlocked.Increment(ref _generation);
         _hasOpenScene = false;
         await Task.Run(async () =>
@@ -51,27 +57,28 @@ internal sealed class F3dModelRenderer : IDisposable
             try
             {
                 token.ThrowIfCancellationRequested();
-                if (generation != Volatile.Read(ref _generation))
+                if (_disposed || generation != Volatile.Read(ref _generation))
                 {
                     throw new OperationCanceledException(token);
                 }
 
-                _host.Render(() =>
+                var rendered = _host.Render(() =>
                 {
-                    EnsureEngine(darkMode);
+                    EnsureEngine(_darkMode);
                     _api!.ClearScene(_scene);
                     if (!_api.Supports(_scene, path) || !_api.AddSceneFile(_scene, path))
                     {
                         throw new NotSupportedException($"F3D could not load '{Path.GetFileName(path)}'.");
                     }
 
-                    if (generation != Volatile.Read(ref _generation))
+                    if (_disposed || token.IsCancellationRequested || generation != Volatile.Read(ref _generation))
                     {
                         _api.ClearScene(_scene);
                         return;
                     }
 
                     ResizeCore();
+                    SetBackground(_darkMode);
                     _api.ResetToBounds(_camera, 0.68);
                     _api.Azimuth(_camera, -28);
                     _api.Elevation(_camera, 18);
@@ -81,6 +88,7 @@ internal sealed class F3dModelRenderer : IDisposable
                         throw new InvalidOperationException("F3D could not render the model.");
                     }
                 });
+                if (!rendered) throw new InvalidOperationException("The 3D rendering surface became unavailable.");
 
                 token.ThrowIfCancellationRequested();
                 if (generation != Volatile.Read(ref _generation))
@@ -94,7 +102,10 @@ internal sealed class F3dModelRenderer : IDisposable
             }
         }, token);
 
+        token.ThrowIfCancellationRequested();
+        if (_disposed || generation != Volatile.Read(ref _generation)) throw new OperationCanceledException(token);
         _hasOpenScene = true;
+        ApplyTheme(_darkMode);
 
         if (_hasAnimation)
         {
@@ -129,12 +140,8 @@ internal sealed class F3dModelRenderer : IDisposable
 
     public void ApplyTheme(bool darkMode)
     {
-        if (_api is null || _engine == nint.Zero) return;
-        _host.Render(() =>
-        {
-            SetBackground(darkMode);
-            _api.Render(_window);
-        });
+        _darkMode = darkMode;
+        RenderWithCamera(static () => { });
     }
 
     public void CloseCurrent()
@@ -144,7 +151,7 @@ internal sealed class F3dModelRenderer : IDisposable
         _animationClock.Reset();
         _hasAnimation = false;
         _hasOpenScene = false;
-        _ = ClearSceneWhenIdleAsync(generation);
+        _ = Task.Run(() => ClearSceneWhenIdleAsync(generation));
     }
 
     public void Dispose()
@@ -193,13 +200,35 @@ internal sealed class F3dModelRenderer : IDisposable
             _api = null;
             _resourcesDisposed = true;
             _operationGate.Release();
-            _operationGate.Dispose();
+            // Queued cleanup requests still need to acquire/release this gate.
         }
     }
 
     private void EnsureEngine(bool darkMode)
     {
         if (_engine != nint.Zero) return;
+        try
+        {
+            InitializeEngine(darkMode);
+        }
+        catch
+        {
+            try
+            {
+                if (_engine != nint.Zero) _api?.DeleteEngine(_engine);
+            }
+            finally
+            {
+                _engine = _window = _scene = _camera = nint.Zero;
+                _api?.Dispose();
+                _api = null;
+            }
+            throw;
+        }
+    }
+
+    private void InitializeEngine(bool darkMode)
+    {
         _api = new F3dNativeApi(_componentDirectory);
         _engine = _api.CreateEngine();
         if (_engine == nint.Zero)
@@ -208,12 +237,17 @@ internal sealed class F3dModelRenderer : IDisposable
         }
 
         var options = _api.GetOptions(_engine);
+        if (options == nint.Zero) throw new InvalidOperationException("F3D did not expose its options.");
         _api.SetBool(options, "render.grid.enable", true);
         _api.SetBool(options, "render.grid.absolute", true);
         _api.SetBool(options, "ui.axis", true);
         _api.SetBool(options, "render.effect.ambient_occlusion", true);
         _window = _api.GetWindow(_engine);
         _scene = _api.GetScene(_engine);
+        if (_window == nint.Zero || _scene == nint.Zero)
+        {
+            throw new InvalidOperationException("The optional F3D engine did not expose a renderable scene.");
+        }
         _camera = _api.GetCamera(_window);
         if (_window == nint.Zero || _scene == nint.Zero || _camera == nint.Zero)
         {
@@ -244,12 +278,20 @@ internal sealed class F3dModelRenderer : IDisposable
 
     private void RenderWithCamera(Action cameraAction)
     {
-        if (!IsOpen || _disposed) return;
-        _host.Render(() =>
+        if (!IsOpen || _disposed || _api is null || _window == nint.Zero || !_operationGate.Wait(0)) return;
+        try
         {
-            cameraAction();
-            _api!.Render(_window);
-        });
+            _host.TryRender(() =>
+            {
+                SetBackground(_darkMode);
+                cameraAction();
+                _api!.Render(_window);
+            });
+        }
+        finally
+        {
+            _operationGate.Release();
+        }
     }
 
     private async Task ClearSceneWhenIdleAsync(int generation)
@@ -276,19 +318,15 @@ internal sealed class F3dModelRenderer : IDisposable
         catch (ObjectDisposedException)
         {
         }
-        catch (Exception) when (_disposed || generation != Volatile.Read(ref _generation))
+        catch (Exception ex)
         {
+            Trace.WriteLine($"F3D scene cleanup failed: {ex}");
         }
     }
 
     private void Host_SurfaceSizeChanged(object? sender, EventArgs e)
     {
-        if (!IsOpen) return;
-        _host.Render(() =>
-        {
-            ResizeCore();
-            _api!.Render(_window);
-        });
+        RenderWithCamera(ResizeCore);
     }
 
     private void ResizeCore()
@@ -301,10 +339,6 @@ internal sealed class F3dModelRenderer : IDisposable
         if (!_hasAnimation || !IsOpen) return;
         var duration = _animationMaximum - _animationMinimum;
         var time = _animationMinimum + (_animationClock.Elapsed.TotalSeconds % duration);
-        _host.Render(() =>
-        {
-            _api!.LoadAnimationTime(_scene, time);
-            _api.Render(_window);
-        });
+        RenderWithCamera(() => _api!.LoadAnimationTime(_scene, time));
     }
 }

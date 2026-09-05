@@ -20,6 +20,9 @@ PSB file is opened.
 - 8-bit and 16-bit channels are preserved in the tile path. Embedded ICC profiles
   are converted to sRGB for display when libvips can read them.
 - The existing preview remains visible while sharper tiles arrive.
+- Tile requests are bounded and obsolete requests are cancelled after panning,
+  zooming, or changing files. A disk-cache write failure does not prevent display;
+  a decoding or texture-upload failure falls back to the standard image path.
 
 Some compressed formats cannot provide truly independent regions. In those
 cases libvips may still need to perform more decoding work than a tiled TIFF or
@@ -36,6 +39,9 @@ surface. Initial browsing support covers STL, PLY, OBJ, glTF, and GLB files.
 - A lower-right XYZ orientation indicator remains visible.
 - Materials, textures, vertex colors, and animations are handled by F3D when
   present in a supported file.
+- A model import does not block navigation or window controls. F3D's native
+  import itself cannot be interrupted mid-call; cancelled results are discarded
+  and a newer import starts when the engine is available.
 
 The official F3D Windows runtime is comparatively large, so it remains a separate
 component. Its complete license bundle is included with the component.
@@ -58,4 +64,3 @@ $env:MANGOSTEEN_ENABLE_3D_VIEWER = "1"
 
 The 3D runtime must still be staged under `components\model-viewer` for F3D to
 load. Release packaging downloads a pinned archive and verifies its SHA256 hash.
-

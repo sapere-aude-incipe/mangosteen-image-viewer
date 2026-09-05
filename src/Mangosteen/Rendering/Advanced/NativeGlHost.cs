@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 
@@ -8,9 +9,19 @@ namespace Mangosteen.Rendering.Advanced;
 
 internal readonly record struct NativePointerEvent(int X, int Y, int Delta = 0);
 
+internal sealed class NativeKeyEventArgs(Key key, ModifierKeys modifiers) : EventArgs
+{
+    public Key Key { get; } = key;
+
+    public ModifierKeys Modifiers { get; } = modifiers;
+
+    public bool Handled { get; set; }
+}
+
 internal sealed partial class NativeGlHost : HwndHost
 {
     private const int WmSize = 0x0005;
+    private const int WmKeyDown = 0x0100;
     private const int WmMouseMove = 0x0200;
     private const int WmLButtonDown = 0x0201;
     private const int WmLButtonUp = 0x0202;
@@ -19,6 +30,9 @@ internal sealed partial class NativeGlHost : HwndHost
     private const int WmXButtonDown = 0x020B;
     private const int XButton1 = 0x0001;
     private const int XButton2 = 0x0002;
+    private const int VkShift = 0x10;
+    private const int VkControl = 0x11;
+    private const int VkMenu = 0x12;
     private const uint WsChild = 0x40000000;
     private const uint WsVisible = 0x10000000;
     private const uint WsClipSiblings = 0x04000000;
@@ -54,6 +68,8 @@ internal sealed partial class NativeGlHost : HwndHost
 
     public event EventHandler? ContextMenuRequested;
 
+    public event EventHandler<NativeKeyEventArgs>? KeyPressed;
+
     public int PixelWidth { get; private set; }
 
     public int PixelHeight { get; private set; }
@@ -63,6 +79,10 @@ internal sealed partial class NativeGlHost : HwndHost
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
     {
         EnsureWindowClassRegistered();
+        // Creation-time WM_SIZE can precede HwndHost's message hook.
+        var dpi = VisualTreeHelper.GetDpi(this);
+        PixelWidth = Math.Max(1, (int)Math.Ceiling(ActualWidth * dpi.DpiScaleX));
+        PixelHeight = Math.Max(1, (int)Math.Ceiling(ActualHeight * dpi.DpiScaleY));
         _windowHandle = NativeMethods.CreateWindowEx(
             0,
             WindowClassName,
@@ -70,8 +90,8 @@ internal sealed partial class NativeGlHost : HwndHost
             WsChild | WsVisible | WsClipSiblings | WsClipChildren,
             0,
             0,
-            Math.Max(1, (int)ActualWidth),
-            Math.Max(1, (int)ActualHeight),
+            PixelWidth,
+            PixelHeight,
             hwndParent.Handle,
             nint.Zero,
             NativeMethods.GetModuleHandle(null),
@@ -187,6 +207,16 @@ internal sealed partial class NativeGlHost : HwndHost
                 PixelHeight = HighWord(lParam);
                 SurfaceSizeChanged?.Invoke(this, EventArgs.Empty);
                 break;
+            case WmKeyDown:
+                var keyArgs = new NativeKeyEventArgs(
+                    KeyInterop.KeyFromVirtualKey(unchecked((int)(long)wParam)),
+                    GetModifierKeys());
+                KeyPressed?.Invoke(this, keyArgs);
+                if (keyArgs.Handled)
+                {
+                    handled = true;
+                }
+                break;
             case WmLButtonDown:
                 _capturingPointer = true;
                 NativeMethods.SetCapture(hwnd);
@@ -229,10 +259,10 @@ internal sealed partial class NativeGlHost : HwndHost
         return nint.Zero;
     }
 
-    public void Render(Action action)
+    public bool Render(Action action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        if (!IsSurfaceReady || PixelWidth <= 0 || PixelHeight <= 0) return;
+        if (!IsSurfaceReady || PixelWidth <= 0 || PixelHeight <= 0) return false;
         lock (_contextGate)
         {
             MakeCurrentCore();
@@ -245,6 +275,22 @@ internal sealed partial class NativeGlHost : HwndHost
             {
                 NativeMethods.WglMakeCurrent(nint.Zero, nint.Zero);
             }
+        }
+        return true;
+    }
+
+    public bool TryRender(Action action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        if (!Monitor.TryEnter(_contextGate)) return false;
+        try
+        {
+            if (!IsSurfaceReady || PixelWidth <= 0 || PixelHeight <= 0) return false;
+            return Render(action);
+        }
+        finally
+        {
+            Monitor.Exit(_contextGate);
         }
     }
 
@@ -307,6 +353,18 @@ internal sealed partial class NativeGlHost : HwndHost
     private static int SignedLowWord(nint value) => unchecked((short)((long)value & 0xffff));
 
     private static int SignedHighWord(nint value) => unchecked((short)(((long)value >> 16) & 0xffff));
+
+    private static ModifierKeys GetModifierKeys()
+    {
+        var modifiers = ModifierKeys.None;
+        if (IsKeyDown(VkShift)) modifiers |= ModifierKeys.Shift;
+        if (IsKeyDown(VkControl)) modifiers |= ModifierKeys.Control;
+        if (IsKeyDown(VkMenu)) modifiers |= ModifierKeys.Alt;
+        return modifiers;
+    }
+
+    private static bool IsKeyDown(int virtualKey) =>
+        (NativeMethods.GetKeyState(virtualKey) & 0x8000) != 0;
 
     private static void EnsureWindowClassRegistered()
     {
@@ -419,6 +477,9 @@ internal sealed partial class NativeGlHost : HwndHost
 
         [LibraryImport("user32.dll", EntryPoint = "DefWindowProcW")]
         internal static partial nint DefWindowProc(nint hwnd, uint message, nint wParam, nint lParam);
+
+        [LibraryImport("user32.dll")]
+        internal static partial short GetKeyState(int virtualKey);
 
         [LibraryImport("user32.dll", SetLastError = true)]
         internal static partial nint GetDC(nint hwnd);

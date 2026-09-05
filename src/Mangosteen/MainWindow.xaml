@@ -25,6 +25,7 @@
         SourceInitialized="Window_SourceInitialized"
         SizeChanged="Window_SizeChanged"
         StateChanged="Window_StateChanged"
+        PreviewKeyDown="Window_PreviewKeyDown"
         KeyDown="Window_KeyDown">
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="48"
