@@ -70,7 +70,7 @@
     <value>GerÃ§ek pikselleri deÄŸiÅŸtir</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Koyu modu aÃ§/kapat</value>
+    <value>Koyu mod</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>YumuÅŸak veya en yakÄ±n komÅŸu bÃ¼yÃ¼tmeyi deÄŸiÅŸtir</value>
@@ -115,7 +115,7 @@
     <value>Seçenekler</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Ön yükleme yoğunluğu</value>
+    <value>Ön yükleme miktarı</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Ön yükleme belleği</value>
@@ -263,4 +263,11 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Mangosteen'i Windows ile başlatır ve görüntüleyiciyi hazır tutar. Pencereyi kapatmak uygulamayı arka plana gönderir; Dosya &gt; Çıkış programı tamamen kapatır.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen zaten çalışıyor, ancak mevcut örneğe ulaşılamadı.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Windows ile başlatma ayarı güncellenemedi: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Performans</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Görünümü sıfırla</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Bu görüntüleme modunda döndürme kullanılamaz.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Bu komutu kullanmak için bir dosya açın.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Zaten gerçek piksel boyutunda görüntüleniyor.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Bu klasörde önceki dosya yok.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Bu klasörde sonraki dosya yok.</value></data>
 </root>

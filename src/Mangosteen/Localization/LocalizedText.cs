@@ -6,6 +6,13 @@ namespace Mangosteen.Localization;
 
 internal static class LocalizedText
 {
+    public const string Performance = nameof(Performance);
+    public const string ResetView = nameof(ResetView);
+    public const string RotationUnavailable = nameof(RotationUnavailable);
+    public const string NoFileOpen = nameof(NoFileOpen);
+    public const string AlreadyActualPixels = nameof(AlreadyActualPixels);
+    public const string NoPreviousFile = nameof(NoPreviousFile);
+    public const string NoNextFile = nameof(NoNextFile);
     public const string AllFiles = nameof(AllFiles);
     public const string Aggressive = nameof(Aggressive);
     public const string AppTitle = nameof(AppTitle);

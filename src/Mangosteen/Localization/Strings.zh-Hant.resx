@@ -70,7 +70,7 @@
     <value>切換實際像素</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>切換深色模式</value>
+    <value>深色模式</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>切換平滑或最近鄰放大</value>
@@ -115,7 +115,7 @@
     <value>選項</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>預先載入積極度</value>
+    <value>預先載入量</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>預先載入記憶體</value>
@@ -263,4 +263,11 @@
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>隨 Windows 啟動 Mangosteen 並讓檢視器保持就緒。關閉視窗會使其返回背景；「檔案」&gt;「結束」會完全結束程式。</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen 已在執行，但無法連線至現有執行個體。</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>無法更新 Windows 啟動設定：{0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>效能</value></data>
+  <data name="ResetView" xml:space="preserve"><value>重設檢視</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>此檢視模式下無法旋轉。</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>請開啟檔案以使用此命令。</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>已按實際像素顯示。</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>此資料夾中沒有上一個檔案。</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>此資料夾中沒有下一個檔案。</value></data>
 </root>

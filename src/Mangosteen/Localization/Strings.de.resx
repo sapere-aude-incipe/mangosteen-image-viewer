@@ -70,7 +70,7 @@
     <value>TatsÃ¤chliche Pixel umschalten</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Dunkelmodus umschalten</value>
+    <value>Dunkelmodus</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Glatte oder pixelgenaue Hochskalierung umschalten</value>
@@ -263,4 +263,11 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Startet Mangosteen mit Windows und hält den Viewer bereit. Beim Schließen kehrt das Fenster in den Hintergrund zurück; Datei &gt; Beenden beendet das Programm vollständig.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen wird bereits ausgeführt, aber die vorhandene Instanz konnte nicht erreicht werden.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Der Windows-Autostart konnte nicht aktualisiert werden: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Leistung</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Ansicht zurücksetzen</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Drehen ist in diesem Anzeigemodus nicht verfügbar.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Öffnen Sie eine Datei, um diesen Befehl zu verwenden.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Wird bereits in Originalgröße angezeigt.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Keine vorherige Datei in diesem Ordner.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Keine nächste Datei in diesem Ordner.</value></data>
 </root>

@@ -70,7 +70,7 @@
     <value>Przełącz rzeczywiste piksele</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Przełącz tryb ciemny</value>
+    <value>Tryb ciemny</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Przełącz gładkie skalowanie lub najbliższego sąsiada</value>
@@ -115,7 +115,7 @@
     <value>Opcje</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Agresywność wstępnego ładowania</value>
+    <value>Ilość wstępnie ładowanych danych</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Pamięć wstępnego ładowania</value>
@@ -263,4 +263,11 @@ Wersje przenośne nie mogą aktualizować się w miejscu. Otworzyć stronę GitH
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Uruchamia Mangosteen wraz z systemem Windows i utrzymuje przeglądarkę w gotowości. Zamknięcie okna przenosi ją do tła; Plik &gt; Zakończ całkowicie zamyka program.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen jest już uruchomiony, ale nie można połączyć się z istniejącą instancją.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Nie można zaktualizować uruchamiania z systemem Windows: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Wydajność</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Resetuj widok</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Obracanie jest niedostępne w tym trybie wyświetlania.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Otwórz plik, aby użyć tego polecenia.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Obraz jest już wyświetlany w rzeczywistym rozmiarze pikseli.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Brak poprzedniego pliku w tym folderze.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Brak następnego pliku w tym folderze.</value></data>
 </root>

@@ -7,6 +7,7 @@ internal static partial class OpenGl11
     public const uint ColorBufferBit = 0x00004000;
     public const uint DepthBufferBit = 0x00000100;
     public const uint DepthTest = 0x0B71;
+    public const uint ScissorTest = 0x0C11;
     public const uint Texture2D = 0x0DE1;
     public const uint Quads = 0x0007;
     public const uint Projection = 0x1701;
@@ -38,6 +39,12 @@ internal static partial class OpenGl11
 
     [LibraryImport("opengl32.dll", EntryPoint = "glClear")]
     public static partial void Clear(uint mask);
+
+    [LibraryImport("opengl32.dll", EntryPoint = "glDepthMask")]
+    public static partial void DepthMask(byte enabled);
+
+    [LibraryImport("opengl32.dll", EntryPoint = "glClearDepth")]
+    public static partial void ClearDepth(double depth);
 
     [LibraryImport("opengl32.dll", EntryPoint = "glEnable")]
     public static partial void Enable(uint capability);

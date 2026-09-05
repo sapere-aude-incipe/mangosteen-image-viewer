@@ -70,7 +70,7 @@
     <value>Alternar pixels reais</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Alternar modo escuro</value>
+    <value>Modo escuro</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Alternar ampliaÃ§Ã£o suave ou por vizinho mais prÃ³ximo</value>
@@ -115,7 +115,7 @@
     <value>Opções</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Agressividade do pré-carregamento</value>
+    <value>Quantidade de pré-carregamento</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Memória de pré-carregamento</value>
@@ -263,4 +263,11 @@ Versões portáteis não podem ser atualizadas no local. Abrir a página GitHub 
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Inicia o Mangosteen com o Windows e mantém o visualizador pronto. Fechar a janela o devolve ao segundo plano; Arquivo &gt; Sair encerra o programa completamente.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>O Mangosteen já está em execução, mas não foi possível acessar a instância existente.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Não foi possível atualizar a inicialização com o Windows: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Desempenho</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Redefinir visualização</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>A rotação não está disponível neste modo de visualização.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Abra um arquivo para usar este comando.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Já está sendo exibido em pixels reais.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Não há arquivo anterior nesta pasta.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Não há próximo arquivo nesta pasta.</value></data>
 </root>

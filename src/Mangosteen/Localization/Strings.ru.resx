@@ -70,7 +70,7 @@
     <value>Переключить реальные пиксели</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Переключить тёмный режим</value>
+    <value>Тёмный режим</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Переключить сглаженное или ближайшее масштабирование</value>
@@ -115,7 +115,7 @@
     <value>Параметры</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Агрессивность предзагрузки</value>
+    <value>Объём предзагрузки</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Память предзагрузки</value>
@@ -263,4 +263,11 @@
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Запускает Mangosteen вместе с Windows и держит просмотрщик готовым. Закрытие окна возвращает его в фоновый режим; Файл &gt; Выход полностью завершает программу.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen уже запущен, но связаться с существующим экземпляром не удалось.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Не удалось обновить запуск вместе с Windows: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Производительность</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Сбросить вид</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Поворот недоступен в этом режиме просмотра.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Откройте файл, чтобы использовать эту команду.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Уже отображается в масштабе 1:1.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>В этой папке нет предыдущего файла.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>В этой папке нет следующего файла.</value></data>
 </root>

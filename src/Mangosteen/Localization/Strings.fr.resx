@@ -70,7 +70,7 @@
     <value>Basculer les pixels rÃ©els</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Basculer le mode sombre</value>
+    <value>Mode sombre</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Basculer lâ€™agrandissement lisse ou au plus proche</value>
@@ -115,7 +115,7 @@
     <value>Options</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Intensite du prechargement</value>
+    <value>Quantité de préchargement</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Memoire de prechargement</value>
@@ -263,4 +263,11 @@ Les versions portables ne peuvent pas se mettre à jour sur place. Ouvrir la pag
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Démarre Mangosteen avec Windows et garde la visionneuse prête. Fermer la fenêtre la renvoie en arrière-plan ; Fichier &gt; Quitter ferme complètement le programme.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen est déjà en cours d'exécution, mais l'instance existante est inaccessible.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Le démarrage avec Windows n'a pas pu être mis à jour : {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Performances</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Réinitialiser la vue</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>La rotation n'est pas disponible dans ce mode d'affichage.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Ouvrez un fichier pour utiliser cette commande.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Déjà affiché en taille réelle.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Aucun fichier précédent dans ce dossier.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Aucun fichier suivant dans ce dossier.</value></data>
 </root>

@@ -70,7 +70,7 @@
     <value>Bytt faktisk pikselstÃ¸rrelse</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>SlÃ¥ mÃ¸rk modus av/pÃ¥</value>
+    <value>Mørk modus</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Bytt mellom jevn og nÃ¦rmeste-nabo-oppskalering</value>
@@ -115,7 +115,7 @@
     <value>Alternativer</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Forhåndslastingsgrad</value>
+    <value>Forhåndslastingsmengde</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Forhåndslastingsminne</value>
@@ -263,4 +263,11 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Starter Mangosteen med Windows og holder bildeviseren klar. Når vinduet lukkes, går det tilbake til bakgrunnen; Fil &gt; Avslutt avslutter programmet helt.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen kjører allerede, men den eksisterende forekomsten kunne ikke nås.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Oppstart med Windows kunne ikke oppdateres: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Ytelse</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Tilbakestill visning</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Rotering er ikke tilgjengelig i denne visningsmodusen.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Åpne en fil for å bruke denne kommandoen.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Vises allerede i faktisk pikselstørrelse.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Ingen forrige fil i denne mappen.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Ingen neste fil i denne mappen.</value></data>
 </root>
