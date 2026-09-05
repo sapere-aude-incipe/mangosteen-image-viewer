@@ -70,7 +70,7 @@
     <value>実寸表示を切り替え</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>ダークモードを切り替え</value>
+    <value>ダークモード</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>滑らか/最近傍の拡大を切り替え</value>
@@ -115,7 +115,7 @@
     <value>オプション</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>先読みの積極度</value>
+    <value>先読み量</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>先読みメモリ</value>
@@ -263,4 +263,11 @@
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Windows と同時に Mangosteen を起動し、ビューアーを待機させます。ウィンドウを閉じるとバックグラウンドに戻り、[ファイル] &gt; [終了] で完全に終了します。</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen は既に実行中ですが、既存のインスタンスに接続できませんでした。</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Windows スタートアップを更新できませんでした: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>パフォーマンス</value></data>
+  <data name="ResetView" xml:space="preserve"><value>表示をリセット</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>この表示モードでは回転できません。</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>この操作を行うにはファイルを開いてください。</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>すでに実際のピクセルで表示されています。</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>このフォルダーに前のファイルはありません。</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>このフォルダーに次のファイルはありません。</value></data>
 </root>

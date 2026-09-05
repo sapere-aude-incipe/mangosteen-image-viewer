@@ -24,6 +24,12 @@ internal sealed class F3dModelRenderer : IDisposable
     private bool _disposed;
     private bool _resourcesDisposed;
     private volatile bool _darkMode;
+    private bool _needsInitialView;
+
+    public const double MinimumZoom = 0.1;
+    public const double MaximumZoom = 10;
+    public double ZoomFactor { get; private set; } = 1;
+    public event EventHandler<Exception>? RenderingFailed;
 
     public F3dModelRenderer(NativeGlHost host, string componentDirectory)
     {
@@ -77,16 +83,12 @@ internal sealed class F3dModelRenderer : IDisposable
                         return;
                     }
 
+                    _needsInitialView = true;
+                    ZoomFactor = 1;
                     ResizeCore();
                     SetBackground(_darkMode);
-                    _api.ResetToBounds(_camera, 0.68);
-                    _api.Azimuth(_camera, -28);
-                    _api.Elevation(_camera, 18);
                     ConfigureAnimation();
-                    if (!_api.Render(_window))
-                    {
-                        throw new InvalidOperationException("F3D could not render the model.");
-                    }
+                    RenderFrame();
                 });
                 if (!rendered) throw new InvalidOperationException("The 3D rendering surface became unavailable.");
 
@@ -130,12 +132,28 @@ internal sealed class F3dModelRenderer : IDisposable
 
     public void Zoom(double factor)
     {
-        RenderWithCamera(() => _api!.Dolly(_camera, factor));
+        SetZoom(ZoomFactor * factor);
+    }
+
+    public void SetZoom(double zoom)
+    {
+        if (!double.IsFinite(zoom) || zoom <= 0) return;
+        zoom = Math.Clamp(zoom, MinimumZoom, MaximumZoom);
+        RenderWithCamera(() =>
+        {
+            _api!.Dolly(_camera, zoom / ZoomFactor);
+            ZoomFactor = zoom;
+        });
     }
 
     public void ResetView()
     {
-        RenderWithCamera(() => _api!.ResetToBounds(_camera, 0.68));
+        RenderWithCamera(() =>
+        {
+            _api!.ResetDefaultView(_camera);
+            _api.ResetToBounds(_camera, 0.68);
+            ZoomFactor = 1;
+        });
     }
 
     public void ApplyTheme(bool darkMode)
@@ -279,19 +297,30 @@ internal sealed class F3dModelRenderer : IDisposable
     private void RenderWithCamera(Action cameraAction)
     {
         if (!IsOpen || _disposed || _api is null || _window == nint.Zero || !_operationGate.Wait(0)) return;
+        Exception? failure = null;
         try
         {
             _host.TryRender(() =>
             {
                 SetBackground(_darkMode);
+                if (_host.PixelWidth <= 1 || _host.PixelHeight <= 1) return;
+                ResizeCore();
+                InitializeViewIfNeeded();
                 cameraAction();
-                _api!.Render(_window);
+                RenderFrame();
             });
+        }
+        catch (Exception ex)
+        {
+            _hasOpenScene = false;
+            _animationTimer.Stop();
+            failure = ex;
         }
         finally
         {
             _operationGate.Release();
         }
+        if (failure is not null) RenderingFailed?.Invoke(this, failure);
     }
 
     private async Task ClearSceneWhenIdleAsync(int generation)
@@ -332,6 +361,36 @@ internal sealed class F3dModelRenderer : IDisposable
     private void ResizeCore()
     {
         _api!.SetWindowSize(_window, Math.Max(1, _host.PixelWidth), Math.Max(1, _host.PixelHeight));
+    }
+
+    private void RenderFrame()
+    {
+        // Fitting at WPF's hidden 1x1 size collapses the camera's viewing angle.
+        if (_host.PixelWidth <= 1 || _host.PixelHeight <= 1) return;
+        InitializeViewIfNeeded();
+        // F3D imports the external framebuffer, including depth, before drawing.
+        // A resized or previously rendered back buffer must not occlude the new scene.
+        OpenGl11.Viewport(0, 0, _host.PixelWidth, _host.PixelHeight);
+        OpenGl11.Disable(OpenGl11.ScissorTest);
+        OpenGl11.DepthMask(1);
+        OpenGl11.ClearDepth(1);
+        OpenGl11.ClearColor(0, 0, 0, 0);
+        OpenGl11.Clear(OpenGl11.ColorBufferBit | OpenGl11.DepthBufferBit);
+        if (!_api!.Render(_window))
+        {
+            throw new InvalidOperationException("F3D could not render the model.");
+        }
+    }
+
+    private void InitializeViewIfNeeded()
+    {
+        if (!_needsInitialView) return;
+        _api!.ResetToBounds(_camera, 0.68);
+        _api.Azimuth(_camera, -28);
+        _api.Elevation(_camera, 18);
+        _api.ResetToBounds(_camera, 0.68);
+        _api.StoreDefaultView(_camera);
+        _needsInitialView = false;
     }
 
     private void AnimationTimer_Tick(object? sender, EventArgs e)

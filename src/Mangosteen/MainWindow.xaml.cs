@@ -145,6 +145,8 @@ public partial class MainWindow : Window
     private bool _isAutoRefreshEnabled;
     private bool _keepReadyInBackground = true;
     private bool _isUpdatingZoomSlider;
+    private bool _isUpdatingZoomText;
+    private bool _isZoomTextDirty;
     private bool _isDarkMode = true;
     private bool _isAutoRefreshReloading;
     private bool _isApplyingRotation;
@@ -281,6 +283,7 @@ public partial class MainWindow : Window
         PreloadEnabledMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadNearbyImages);
         PreloadMemoryBudgetMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadMemoryBudget);
         PreloadAggressivenessMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadAggressiveness);
+        PerformanceMenuItem.Header = LocalizedText.Get(LocalizedText.Performance);
         ConservativePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Conservative);
         BalancedPreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Balanced);
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
@@ -351,6 +354,7 @@ public partial class MainWindow : Window
         ContextDeleteMenuItem.Header = LocalizedText.Get(LocalizedText.DeleteImage);
         ContextPropertiesMenuItem.Header = LocalizedText.Get(LocalizedText.Properties);
         ZoomText.ToolTip = zoomText;
+        AutomationProperties.SetName(ZoomText, zoomText);
         ZoomSlider.ToolTip = zoomText;
         AutomationProperties.SetName(ZoomSlider, zoomText);
         OpenMenuItem.InputGestureText = "Ctrl+O";
@@ -895,12 +899,16 @@ public partial class MainWindow : Window
                 throw new InvalidOperationException("The optional 3D rendering surface could not be initialized.");
             }
 
-            _modelRenderer ??= new F3dModelRenderer(
-                host,
-                _optionalComponents.GetComponentDirectory(OptionalComponentKind.ModelViewer));
+            if (_modelRenderer is null)
+            {
+                _modelRenderer = new F3dModelRenderer(
+                    host,
+                    _optionalComponents.GetComponentDirectory(OptionalComponentKind.ModelViewer));
+                _modelRenderer.RenderingFailed += ModelRenderer_RenderingFailed;
+            }
             await _modelRenderer.OpenAsync(path, _isDarkMode, token);
             StartupDiagnostics.Mark("model.f3d.opened", Path.GetFileName(path));
-            if (!IsCurrentLoad(generation, token))
+            if (!IsCurrentLoad(generation, token) || !_modelRenderer.IsOpen)
             {
                 return;
             }
@@ -909,6 +917,8 @@ public partial class MainWindow : Window
             ShowNativeSurface(host);
             UpdateLayout();
             host.ResizeToDips(ViewerSurfaceContainer.ActualWidth, ViewerSurfaceContainer.ActualHeight);
+            _modelRenderer.ApplyTheme(_isDarkMode);
+            if (!_modelRenderer.IsOpen) return;
             HideStatus();
             HidePreviewOnlyBadge();
             UpdateNavigationButtons();
@@ -1027,6 +1037,16 @@ public partial class MainWindow : Window
         await RunUiCommandAsync(() => LoadCurrentImageAsync(fitToWindow: false));
     }
 
+    private void ModelRenderer_RenderingFailed(object? sender, Exception error)
+    {
+        if (_isClosing || sender != _modelRenderer) return;
+        TraceBackgroundError("3D rendering failed", error);
+        CloseAdvancedContent();
+        ShowImageSurface();
+        ShowStatus(error.Message);
+        UpdateNavigationButtons();
+    }
+
     private void ShowImageSurface()
     {
         SetNativeHostVisibility(_gpuGlHost, visible: false);
@@ -1109,6 +1129,7 @@ public partial class MainWindow : Window
         if (_contentMode == ViewerContentMode.Model)
         {
             _modelRenderer?.Zoom(factor);
+            UpdateZoomText();
             return;
         }
 
@@ -1487,12 +1508,28 @@ public partial class MainWindow : Window
 
     private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_isUpdatingZoomSlider || _image is null)
+        if (_isUpdatingZoomSlider || !CanAdjustZoom)
         {
             return;
         }
 
         var targetZoom = GetZoomFromSliderValue(e.NewValue);
+        SetZoom(targetZoom);
+    }
+
+    private bool CanAdjustZoom => !_isApplyingRotation &&
+        (_contentMode == ViewerContentMode.Model ? _modelRenderer?.IsOpen == true : _image is not null && IsDisplayedImageCurrent());
+
+    private void SetZoom(double targetZoom)
+    {
+        if (!CanAdjustZoom || !double.IsFinite(targetZoom) || targetZoom <= 0) return;
+        targetZoom = Math.Clamp(targetZoom, GetSliderMinimumZoom(), GetSliderMaximumZoom());
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            _modelRenderer?.SetZoom(targetZoom);
+            UpdateZoomText();
+            return;
+        }
         if (Math.Abs(targetZoom - _viewerState.Zoom) < 0.0001 || _viewerState.Zoom <= 0)
         {
             return;
@@ -1556,6 +1593,9 @@ public partial class MainWindow : Window
 
     private void StopCurrentImageInteraction()
     {
+        // Do not apply unfinished zoom text to the next file.
+        UpdateZoomText();
+        ZoomPopup.IsOpen = false;
         _animationTimer.Stop();
         StopPanning();
     }
@@ -1622,6 +1662,64 @@ public partial class MainWindow : Window
     private void ZoomPopupButton_Click(object sender, RoutedEventArgs e)
     {
         ZoomPopup.IsOpen = !ZoomPopup.IsOpen;
+    }
+
+    private void ZoomPopup_Opened(object? sender, EventArgs e)
+    {
+        UpdateZoomText();
+        if (CanAdjustZoom) ZoomText.Focus();
+    }
+
+    private void ZoomPopup_Closed(object? sender, EventArgs e)
+    {
+        CommitZoomText();
+    }
+
+    private void ZoomText_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        ZoomText.SelectAll();
+    }
+
+    private void ZoomText_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        CommitZoomText();
+    }
+
+    private void ZoomText_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Enter or Key.Escape)) return;
+        e.Handled = true;
+        if (e.Key == Key.Enter) CommitZoomText();
+        else UpdateZoomText();
+        ZoomPopup.IsOpen = false;
+        ZoomPopupButton.Focus();
+    }
+
+    private void CommitZoomText()
+    {
+        var wasEdited = _isZoomTextDirty;
+        _isZoomTextDirty = false;
+        if (wasEdited && TryParseZoomPercentage(ZoomText.Text, CultureInfo.CurrentCulture, out var zoom)) SetZoom(zoom);
+        UpdateZoomText();
+    }
+
+    private void ZoomText_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_isUpdatingZoomText) _isZoomTextDirty = true;
+    }
+
+    internal static bool TryParseZoomPercentage(string? text, CultureInfo culture, out double zoom)
+    {
+        zoom = 0;
+        var value = text?.Trim() ?? string.Empty;
+        var symbol = culture.NumberFormat.PercentSymbol;
+        if (!string.IsNullOrEmpty(symbol) && value.EndsWith(symbol, StringComparison.Ordinal))
+            value = value[..^symbol.Length].TrimEnd();
+        else if (value.EndsWith('%')) value = value[..^1].TrimEnd();
+        if (!double.TryParse(value, NumberStyles.Float, culture, out var percent) ||
+            !double.IsFinite(percent) || percent <= 0) return false;
+        zoom = percent / 100;
+        return zoom > 0;
     }
 
     private void RotateLeftButton_Click(object sender, RoutedEventArgs e)
@@ -1761,6 +1859,7 @@ public partial class MainWindow : Window
 
     private async void Window_KeyDown(object sender, KeyEventArgs e)
     {
+        if (e.OriginalSource is TextBox) return;
         var command = ResolveKeyboardCommand(
             e.Key,
             Keyboard.Modifiers,
@@ -1873,6 +1972,12 @@ public partial class MainWindow : Window
                 ToggleActualPixels();
                 break;
             case ViewerKeyboardCommand.Fit:
+                if (_contentMode == ViewerContentMode.Model)
+                {
+                    _modelRenderer?.ResetView();
+                    UpdateZoomText();
+                    break;
+                }
                 if (IsCurrentPreviewAwaitingFullResolution)
                 {
                     break;
@@ -2681,6 +2786,12 @@ public partial class MainWindow : Window
 
     private void ToggleActualPixels()
     {
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            _modelRenderer?.ResetView();
+            UpdateZoomText();
+            return;
+        }
         if (_image is null) return;
         if (!IsDisplayedImageCurrent())
         {
@@ -3871,12 +3982,19 @@ public partial class MainWindow : Window
 
     private void UpdateActualPixelsIcon()
     {
-        var icon = _viewerState.Mode != ViewerFitMode.Fit
+        var isModel = _contentMode == ViewerContentMode.Model;
+        var icon = isModel || _viewerState.Mode != ViewerFitMode.Fit
             ? ToolbarIconKind.FitToWindow
             : ToolbarIconKind.ActualPixels;
-        var canToggle = !_isApplyingRotation && CanToggleActualPixels();
-        var brush = canToggle ? GetToolbarIconBrush() : GetToolbarDisabledBrush();
+        var canToggle = !_isApplyingRotation && (isModel ? _modelRenderer?.IsOpen == true : CanToggleActualPixels());
+        var brush = GetToolbarIconBrush();
         ActualPixelsButton.IsEnabled = canToggle;
+        var label = LocalizedText.Get(isModel ? LocalizedText.ResetView : LocalizedText.ToggleActualPixels);
+        ActualPixelsButton.ToolTip = _isApplyingRotation ? LocalizedText.Get(LocalizedText.ApplyingRotation)
+            : !canToggle && _image is not null && IsDisplayedImageCurrent()
+            ? LocalizedText.Get(LocalizedText.AlreadyActualPixels)
+            : $"{label} (1 / F)";
+        AutomationProperties.SetName(ActualPixelsButton, label);
         if (_actualPixelsIconKind == icon &&
             _actualPixelsIconEnabled == canToggle &&
             ReferenceEquals(_actualPixelsIconBrush, brush))
@@ -4049,11 +4167,6 @@ public partial class MainWindow : Window
         return Resources["TextDanger"] as Brush ?? Brushes.Firebrick;
     }
 
-    private Brush GetToolbarDisabledBrush()
-    {
-        return Resources["TextDisabled"] as Brush ?? Brushes.Gray;
-    }
-
     private enum DwmWindowCornerPreference
     {
         Default = 0,
@@ -4167,29 +4280,52 @@ public partial class MainWindow : Window
         UpdateImageContextMenuItems();
         UpdateImagePositionText();
         UpdateAutoRefreshWatcher();
+        UpdateZoomText();
+        UpdateDisabledToolbarTooltips();
+    }
+
+    private void UpdateDisabledToolbarTooltips()
+    {
+        PreviousButton.ToolTip = LocalizedText.Get(PreviousButton.IsEnabled ? LocalizedText.PreviousImage : LocalizedText.NoPreviousFile);
+        NextButton.ToolTip = LocalizedText.Get(NextButton.IsEnabled ? LocalizedText.NextImage : LocalizedText.NoNextFile);
+        ShowInFolderButton.ToolTip = LocalizedText.Get(ShowInFolderButton.IsEnabled ? LocalizedText.ShowImageInFolder : LocalizedText.NoFileOpen);
+        DeleteButton.ToolTip = LocalizedText.Get(DeleteButton.IsEnabled ? LocalizedText.DeleteImage : LocalizedText.NoFileOpen);
+        RotateLeftButton.ToolTip = LocalizedText.Get(RotateLeftButton.IsEnabled ? LocalizedText.RotateLeft : LocalizedText.RotationUnavailable);
+        RotateRightButton.ToolTip = LocalizedText.Get(RotateRightButton.IsEnabled ? LocalizedText.RotateRight : LocalizedText.RotationUnavailable);
+        if (!ActualPixelsButton.IsEnabled && _image is null) ActualPixelsButton.ToolTip = LocalizedText.Get(LocalizedText.NoFileOpen);
+        if (_isApplyingRotation)
+        {
+            foreach (var button in new[] { PreviousButton, NextButton, ShowInFolderButton, DeleteButton, RotateLeftButton, RotateRightButton, ActualPixelsButton })
+                button.ToolTip = LocalizedText.Get(LocalizedText.ApplyingRotation);
+        }
     }
 
     private void UpdateImagePositionText()
     {
-        if (_navigator.CurrentIndex >= 0 && _navigator.Files.Count > 1)
+        if (_navigator.CurrentIndex >= 0 && _navigator.Files.Count > 0)
         {
             ImagePositionText.Text = LocalizedText.Format(
                 LocalizedText.ImagePositionFormat,
                 _navigator.CurrentIndex + 1,
                 _navigator.Files.Count);
             ImagePositionText.Visibility = Visibility.Visible;
+            ImagePositionText.ToolTip = ImagePositionText.Text;
             return;
         }
 
         ImagePositionText.Text = string.Empty;
-        ImagePositionText.Visibility = Visibility.Collapsed;
+        ImagePositionText.Visibility = Visibility.Hidden;
+        ImagePositionText.ToolTip = null;
     }
 
     private void UpdateZoomText()
     {
-        ZoomText.Text = _image is null
-            ? "-"
-            : $"{_viewerState.Zoom * 100:0}%";
+        var zoom = _contentMode == ViewerContentMode.Model ? _modelRenderer?.ZoomFactor ?? 1 : _viewerState.Zoom;
+        _isUpdatingZoomText = true;
+        try { ZoomText.Text = CanAdjustZoom ? $"{zoom * 100:0.##}%" : "-"; }
+        finally { _isUpdatingZoomText = false; }
+        _isZoomTextDirty = false;
+        ZoomText.IsEnabled = CanAdjustZoom;
         UpdateZoomSlider();
         UpdateActualPixelsIcon();
         UpdateToolbarDensity();
@@ -4207,10 +4343,11 @@ public partial class MainWindow : Window
         {
             ZoomSlider.Minimum = ZoomSliderMinimumValue;
             ZoomSlider.Maximum = ZoomSliderMaximumValue;
-            ZoomSlider.IsEnabled = _image is not null && !_isApplyingRotation;
-            ZoomSlider.Value = _image is null
+            ZoomSlider.IsEnabled = CanAdjustZoom;
+            ZoomSlider.Opacity = CanAdjustZoom ? 1 : 0.42;
+            ZoomSlider.Value = !CanAdjustZoom
                 ? ZoomSliderMinimumValue
-                : GetSliderValueFromZoom(_viewerState.Zoom);
+                : GetSliderValueFromZoom(_contentMode == ViewerContentMode.Model ? _modelRenderer?.ZoomFactor ?? 1 : _viewerState.Zoom);
         }
         finally
         {
@@ -4221,7 +4358,7 @@ public partial class MainWindow : Window
     private double GetSliderValueFromZoom(double zoom)
     {
         var minimumZoom = GetSliderMinimumZoom();
-        var maximumZoom = ViewerState.MaximumZoom;
+        var maximumZoom = GetSliderMaximumZoom();
         if (maximumZoom <= minimumZoom)
         {
             return ZoomSliderMaximumValue;
@@ -4235,7 +4372,7 @@ public partial class MainWindow : Window
     private double GetZoomFromSliderValue(double sliderValue)
     {
         var minimumZoom = GetSliderMinimumZoom();
-        var maximumZoom = ViewerState.MaximumZoom;
+        var maximumZoom = GetSliderMaximumZoom();
         if (maximumZoom <= minimumZoom)
         {
             return minimumZoom;
@@ -4247,8 +4384,13 @@ public partial class MainWindow : Window
 
     private double GetSliderMinimumZoom()
     {
-        return Math.Clamp(_viewerState.FitZoom, MinimumSliderZoom, ViewerState.MaximumZoom);
+        return _contentMode == ViewerContentMode.Model
+            ? F3dModelRenderer.MinimumZoom
+            : Math.Clamp(_viewerState.FitZoom, MinimumSliderZoom, ViewerState.MaximumZoom);
     }
+
+    private double GetSliderMaximumZoom() => _contentMode == ViewerContentMode.Model
+        ? F3dModelRenderer.MaximumZoom : ViewerState.MaximumZoom;
 
     private bool CanToggleActualPixels()
     {

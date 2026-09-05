@@ -34,7 +34,10 @@ The 3D component embeds the F3D 3.5.0 engine in Mangosteen's native OpenGL
 surface. Initial browsing support covers STL, PLY, OBJ, glTF, and GLB files.
 
 - Left-drag orbits the camera.
-- The mouse wheel zooms.
+- The mouse wheel or the bottom toolbar's zoom control zooms. Its percentage is
+  relative to the initial fitted view, not a pixel scale.
+- Reset view (or `F`) restores the starting angle and fits the model again.
+- Image rotation controls remain disabled while viewing a model.
 - Models are framed automatically against a fading floor grid.
 - A lower-right XYZ orientation indicator remains visible.
 - Materials, textures, vertex colors, and animations are handled by F3D when
@@ -64,3 +67,15 @@ $env:MANGOSTEEN_ENABLE_3D_VIEWER = "1"
 
 The 3D runtime must still be staged under `components\model-viewer` for F3D to
 load. Release packaging downloads a pinned archive and verifies its SHA256 hash.
+
+## Native rendering regression test
+
+The 3D pixel test uses hidden rendering surfaces and needs the optional runtime
+and a working Windows OpenGL driver. It checks loading from the 1x1 parked host,
+resizing, actual visible geometry, orbit, zoom, reset, theme changes, and reopening.
+It is skipped when the runtime is not explicitly configured:
+
+```powershell
+$env:MANGOSTEEN_TEST_F3D_DIRECTORY = (Resolve-Path publish/complete-portable/components/model-viewer).Path
+dotnet test tests/Mangosteen.Tests/Mangosteen.Tests.csproj -c Release --filter FullyQualifiedName~F3dViewportTests
+```

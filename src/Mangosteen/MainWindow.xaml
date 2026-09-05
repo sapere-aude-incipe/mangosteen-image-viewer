@@ -245,6 +245,17 @@
             </Setter>
         </Style>
 
+        <Style x:Key="ToolbarFocusStyle" TargetType="Control">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="2" RadiusX="4" RadiusY="4"
+                                   Stroke="{DynamicResource AccentCheckBorder}" StrokeThickness="1" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="DockButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="38" />
             <Setter Property="Height" Value="32" />
@@ -253,7 +264,8 @@
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource ToolbarFocusStyle}" />
             <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Template">
@@ -273,6 +285,11 @@
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonContent" Property="Opacity" Value="0.42" />
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="Transparent" />
+                                <Setter Property="Cursor" Value="Arrow" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -366,8 +383,8 @@
         </Style>
 
         <Style x:Key="ZoomSliderThumbStyle" TargetType="{x:Type primitives:Thumb}">
-            <Setter Property="Width" Value="14" />
-            <Setter Property="Height" Value="14" />
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
             <Setter Property="Focusable" Value="False" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -382,13 +399,14 @@
         </Style>
 
         <Style x:Key="DockZoomSliderStyle" TargetType="Slider">
-            <Setter Property="Width" Value="132" />
+            <Setter Property="Width" Value="156" />
             <Setter Property="Height" Value="32" />
             <Setter Property="Minimum" Value="0" />
             <Setter Property="Maximum" Value="100" />
             <Setter Property="Orientation" Value="Horizontal" />
             <Setter Property="IsMoveToPointEnabled" Value="True" />
-            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource ToolbarFocusStyle}" />
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -419,14 +437,20 @@
             </Setter>
         </Style>
 
-        <Style x:Key="ZoomPopupTextStyle" TargetType="TextBlock">
-            <Setter Property="MinWidth" Value="48" />
+        <Style x:Key="ZoomPopupTextStyle" TargetType="TextBox">
+            <Setter Property="Width" Value="68" />
             <Setter Property="Margin" Value="0,0,8,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="Background" Value="{DynamicResource PanelBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelSeparator}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="2,5" />
+            <Setter Property="CaretBrush" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource AccentCheckBackground}" />
         </Style>
 
         <Style x:Key="UpdateProgressBarStyle" TargetType="ProgressBar">
@@ -562,7 +586,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="48" />
+            <RowDefinition Height="58" />
         </Grid.RowDefinitions>
 
         <Border x:Name="TopChrome"
@@ -616,55 +640,57 @@
                                           IsCheckable="True"
                                           Click="NearestSamplingMenuItem_Click" />
                             </MenuItem>
-                            <MenuItem x:Name="PreloadEnabledMenuItem"
-                                      IsCheckable="True"
-                                      IsChecked="True"
-                                      Click="PreloadEnabledMenuItem_Click" />
-                            <MenuItem x:Name="PreloadMemoryBudgetMenuItem">
-                                <MenuItem IsCheckable="True"
-                                          Header="1 GB"
-                                          Tag="1"
-                                          Click="PreloadBudgetMenuItem_Click" />
-                                <MenuItem IsCheckable="True"
-                                          Header="2 GB"
-                                          Tag="2"
+                            <MenuItem x:Name="PerformanceMenuItem">
+                                <MenuItem x:Name="PreloadEnabledMenuItem"
+                                          IsCheckable="True"
                                           IsChecked="True"
-                                          Click="PreloadBudgetMenuItem_Click" />
-                                <MenuItem IsCheckable="True"
-                                          Header="5 GB"
-                                          Tag="5"
-                                          Click="PreloadBudgetMenuItem_Click" />
-                                <MenuItem IsCheckable="True"
-                                          Header="10 GB"
-                                          Tag="10"
-                                          Click="PreloadBudgetMenuItem_Click" />
-                                <MenuItem IsCheckable="True"
-                                          Header="15 GB"
-                                          Tag="15"
-                                          Click="PreloadBudgetMenuItem_Click" />
-                            </MenuItem>
-                            <MenuItem x:Name="PreloadAggressivenessMenuItem">
-                                <MenuItem x:Name="ConservativePreloadMenuItem"
+                                          Click="PreloadEnabledMenuItem_Click" />
+                                <MenuItem x:Name="PreloadMemoryBudgetMenuItem">
+                                    <MenuItem IsCheckable="True"
+                                              Header="1 GB"
+                                              Tag="1"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="2 GB"
+                                              Tag="2"
+                                              IsChecked="True"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="5 GB"
+                                              Tag="5"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="10 GB"
+                                              Tag="10"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                    <MenuItem IsCheckable="True"
+                                              Header="15 GB"
+                                              Tag="15"
+                                              Click="PreloadBudgetMenuItem_Click" />
+                                </MenuItem>
+                                <MenuItem x:Name="PreloadAggressivenessMenuItem">
+                                    <MenuItem x:Name="ConservativePreloadMenuItem"
+                                              IsCheckable="True"
+                                              Tag="Conservative"
+                                              Click="PreloadAggressivenessMenuItem_Click" />
+                                    <MenuItem x:Name="BalancedPreloadMenuItem"
+                                              IsCheckable="True"
+                                              Tag="Balanced"
+                                              IsChecked="True"
+                                              Click="PreloadAggressivenessMenuItem_Click" />
+                                    <MenuItem x:Name="AggressivePreloadMenuItem"
+                                              IsCheckable="True"
+                                              Tag="Aggressive"
+                                              Click="PreloadAggressivenessMenuItem_Click" />
+                                </MenuItem>
+                                <MenuItem x:Name="KeepReadyInBackgroundMenuItem"
                                           IsCheckable="True"
-                                          Tag="Conservative"
-                                          Click="PreloadAggressivenessMenuItem_Click" />
-                                <MenuItem x:Name="BalancedPreloadMenuItem"
-                                          IsCheckable="True"
-                                          Tag="Balanced"
                                           IsChecked="True"
-                                          Click="PreloadAggressivenessMenuItem_Click" />
-                                <MenuItem x:Name="AggressivePreloadMenuItem"
-                                          IsCheckable="True"
-                                          Tag="Aggressive"
-                                          Click="PreloadAggressivenessMenuItem_Click" />
+                                          Click="KeepReadyInBackgroundMenuItem_Click" />
                             </MenuItem>
                             <MenuItem x:Name="AutoRefreshMenuItem"
                                       IsCheckable="True"
                                       Click="AutoRefreshMenuItem_Click" />
-                            <MenuItem x:Name="KeepReadyInBackgroundMenuItem"
-                                      IsCheckable="True"
-                                      IsChecked="True"
-                                      Click="KeepReadyInBackgroundMenuItem_Click" />
                             <Separator />
                             <MenuItem x:Name="DarkModeMenuItem"
                                       IsCheckable="True"
@@ -900,7 +926,7 @@
 
                 <Border x:Name="NavigationDock"
                         Grid.Column="1"
-                        Margin="0,0,0,2"
+                        Margin="0,8"
                         Padding="5,4"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
@@ -953,7 +979,7 @@
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="PreviousButton_Click" />
                             <TextBlock x:Name="ImagePositionText"
-                                       MinWidth="52"
+                                       Width="84"
                                        Margin="5,0"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
@@ -961,7 +987,8 @@
                                        FontSize="12"
                                        FontWeight="SemiBold"
                                        TextAlignment="Center"
-                                       Visibility="Collapsed" />
+                                       TextTrimming="CharacterEllipsis"
+                                       Visibility="Hidden" />
                             <Button x:Name="NextButton"
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="NextButton_Click" />
@@ -996,6 +1023,8 @@
                        Placement="Top"
                        PlacementTarget="{Binding ElementName=ZoomPopupButton}"
                        PopupAnimation="Fade"
+                       Opened="ZoomPopup_Opened"
+                       Closed="ZoomPopup_Closed"
                        StaysOpen="False">
                     <Border Padding="10,8"
                             Background="{DynamicResource PanelBackground}"
@@ -1010,9 +1039,13 @@
                                               BlurRadius="12"
                                               Opacity="0.20" />
                         </Border.Effect>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="ZoomText"
-                                       Style="{StaticResource ZoomPopupTextStyle}" />
+                        <StackPanel Orientation="Horizontal" KeyboardNavigation.TabNavigation="Cycle">
+                            <TextBox x:Name="ZoomText"
+                                     Style="{StaticResource ZoomPopupTextStyle}"
+                                     GotKeyboardFocus="ZoomText_GotKeyboardFocus"
+                                     TextChanged="ZoomText_TextChanged"
+                                     PreviewKeyDown="ZoomText_PreviewKeyDown"
+                                     LostKeyboardFocus="ZoomText_LostKeyboardFocus" />
                             <Slider x:Name="ZoomSlider"
                                     Style="{StaticResource DockZoomSliderStyle}"
                                     ValueChanged="ZoomSlider_ValueChanged" />

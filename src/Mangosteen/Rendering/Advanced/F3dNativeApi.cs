@@ -32,6 +32,8 @@ internal sealed partial class F3dNativeApi : IDisposable
     private readonly CameraUnaryDouble _cameraAzimuth;
     private readonly CameraUnaryDouble _cameraElevation;
     private readonly CameraUnaryDouble _cameraResetToBounds;
+    private readonly CameraAction _cameraSetDefault;
+    private readonly CameraAction _cameraResetDefault;
 
     public F3dNativeApi(string componentDirectory)
     {
@@ -69,6 +71,8 @@ internal sealed partial class F3dNativeApi : IDisposable
             _cameraAzimuth = GetExport<CameraUnaryDouble>("f3d_camera_azimuth");
             _cameraElevation = GetExport<CameraUnaryDouble>("f3d_camera_elevation");
             _cameraResetToBounds = GetExport<CameraUnaryDouble>("f3d_camera_reset_to_bounds");
+            _cameraSetDefault = GetExport<CameraAction>("f3d_camera_set_current_as_default");
+            _cameraResetDefault = GetExport<CameraAction>("f3d_camera_reset_to_default");
         }
         catch
         {
@@ -100,6 +104,8 @@ internal sealed partial class F3dNativeApi : IDisposable
     public void Azimuth(nint camera, double value) => _cameraAzimuth(camera, value);
     public void Elevation(nint camera, double value) => _cameraElevation(camera, value);
     public void ResetToBounds(nint camera, double value) => _cameraResetToBounds(camera, value);
+    public void StoreDefaultView(nint camera) => _cameraSetDefault(camera);
+    public void ResetDefaultView(nint camera) => _cameraResetDefault(camera);
 
     public bool AddSceneFile(nint scene, string path)
     {
@@ -198,6 +204,7 @@ internal sealed partial class F3dNativeApi : IDisposable
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int WindowRender(nint window);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void WindowSetSize(nint window, int width, int height);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void CameraUnaryDouble(nint camera, double value);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void CameraAction(nint camera);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void CameraPan(nint camera, double right, double up, double forward);
 
     [LibraryImport("kernel32.dll", EntryPoint = "LoadLibraryExW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
