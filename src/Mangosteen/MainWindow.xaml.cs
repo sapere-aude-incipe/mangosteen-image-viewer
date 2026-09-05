@@ -59,6 +59,19 @@ internal enum ViewerContentMode
     Model
 }
 
+internal enum ViewerKeyboardCommand
+{
+    None,
+    Suppress,
+    Open,
+    Print,
+    Previous,
+    Next,
+    ActualPixels,
+    Fit,
+    Delete
+}
+
 public partial class MainWindow : Window
 {
     private const int BalancedForwardPreloadCount = 50;
@@ -151,6 +164,7 @@ public partial class MainWindow : Window
     private NativeGlHost? _gpuGlHost;
     private NativeGlHost? _modelGlHost;
     private GpuLargeImageRenderer? _gpuLargeImageRenderer;
+    private string? _gpuFailurePath;
     private F3dModelRenderer? _modelRenderer;
     private ViewerContentMode _contentMode;
     private bool _isNativePointerDown;
@@ -869,7 +883,7 @@ public partial class MainWindow : Window
         {
             var host = EnsureNativeGlHost(ViewerContentMode.Model);
             await Dispatcher.InvokeAsync(UpdateLayout, DispatcherPriority.Loaded, token);
-            host.Render(() =>
+            host.TryRender(() =>
             {
                 OpenGl11.Viewport(0, 0, Math.Max(1, host.PixelWidth), Math.Max(1, host.PixelHeight));
                 OpenGl11.ClearColor(0.129f, 0.129f, 0.129f, 1f);
@@ -888,7 +902,6 @@ public partial class MainWindow : Window
             StartupDiagnostics.Mark("model.f3d.opened", Path.GetFileName(path));
             if (!IsCurrentLoad(generation, token))
             {
-                _modelRenderer.CloseCurrent();
                 return;
             }
 
@@ -924,7 +937,9 @@ public partial class MainWindow : Window
         string path,
         CancellationToken token)
     {
+        var generation = _loadGeneration;
         if (!_optionalComponents.IsInstalled(OptionalComponentKind.GpuLargeImages) ||
+            string.Equals(path, _gpuFailurePath, StringComparison.OrdinalIgnoreCase) ||
             image.FrameCount != 1 ||
             !LargeImageClassifier.Classify(image.Metadata, path).UseAdvancedRenderer)
         {
@@ -940,13 +955,18 @@ public partial class MainWindow : Window
                 return false;
             }
 
-            _gpuLargeImageRenderer ??= new GpuLargeImageRenderer(host);
+            if (_gpuLargeImageRenderer is null)
+            {
+                _gpuLargeImageRenderer = new GpuLargeImageRenderer(host);
+                _gpuLargeImageRenderer.RenderingFailed += GpuRenderer_RenderingFailed;
+            }
             var activated = await _gpuLargeImageRenderer.OpenAsync(
                 path,
                 image.Metadata,
                 image.Frames[0].Image,
                 _viewerState,
                 token);
+            if (!IsCurrentLoad(generation, token)) throw new OperationCanceledException(token);
             if (!activated)
             {
                 return false;
@@ -965,6 +985,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            if (!IsCurrentLoad(generation, token)) throw new OperationCanceledException(token);
             TraceBackgroundError("GPU large-image renderer activation failed", ex);
             _gpuLargeImageRenderer?.CloseCurrent();
             _contentMode = ViewerContentMode.Image;
@@ -984,6 +1005,7 @@ public partial class MainWindow : Window
         host.WheelChanged += NativeGlHost_WheelChanged;
         host.NavigationRequested += NativeGlHost_NavigationRequested;
         host.ContextMenuRequested += NativeGlHost_ContextMenuRequested;
+        host.KeyPressed += NativeGlHost_KeyPressed;
         NativeSurfaceMount.Children.Add(host);
         SetNativeHostVisibility(host, visible: false);
         return host;
@@ -995,6 +1017,14 @@ public partial class MainWindow : Window
         _modelRenderer?.CloseCurrent();
         _contentMode = ViewerContentMode.Image;
         _isNativePointerDown = false;
+    }
+
+    private async void GpuRenderer_RenderingFailed(object? sender, Exception error)
+    {
+        if (_isClosing || sender != _gpuLargeImageRenderer || _contentMode != ViewerContentMode.GpuLargeImage) return;
+        TraceBackgroundError("GPU rendering failed; returning to the standard decoder", error);
+        _gpuFailurePath = _navigator.CurrentPath;
+        await RunUiCommandAsync(() => LoadCurrentImageAsync(fitToWindow: false));
     }
 
     private void ShowImageSurface()
@@ -1714,59 +1744,148 @@ public partial class MainWindow : Window
         RequestApplicationExit();
     }
 
+    private async void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        // Only global modified shortcuts tunnel past controls. Menu arrows and
+        // Space must first be offered to the focused control's KeyDown handler.
+        if (Keyboard.Modifiers != ModifierKeys.Control || e.Key is not (Key.P or Key.O))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await RunUiCommandAsync(() => ExecuteKeyboardCommandAsync(
+            _isApplyingRotation ? ViewerKeyboardCommand.Suppress :
+            e.Key == Key.P ? ViewerKeyboardCommand.Print : ViewerKeyboardCommand.Open));
+    }
+
     private async void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        await RunUiCommandAsync(async () =>
+        var command = ResolveKeyboardCommand(
+            e.Key,
+            Keyboard.Modifiers,
+            _isApplyingRotation,
+            _navigator.CanMovePrevious,
+            _navigator.CanMoveNext,
+            CanDeleteCurrentImage());
+        if (command == ViewerKeyboardCommand.None)
         {
-            if (_isApplyingRotation)
-            {
-                e.Handled = true;
-                return;
-            }
+            return;
+        }
 
-            if (e.Key == Key.O && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-            {
-                e.Handled = true;
+        e.Handled = true;
+        await RunUiCommandAsync(() => ExecuteKeyboardCommandAsync(command));
+    }
+
+    private void NativeGlHost_KeyPressed(object? sender, NativeKeyEventArgs e)
+    {
+        var command = ResolveKeyboardCommand(
+            e.Key,
+            e.Modifiers,
+            _isApplyingRotation,
+            _navigator.CanMovePrevious,
+            _navigator.CanMoveNext,
+            CanDeleteCurrentImage());
+        if (command == ViewerKeyboardCommand.None)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        _ = Dispatcher.InvokeAsync(
+            () => RunUiCommandAsync(() => ExecuteKeyboardCommandAsync(command)),
+            DispatcherPriority.Input);
+    }
+
+    internal static ViewerKeyboardCommand ResolveKeyboardCommand(
+        Key key,
+        ModifierKeys modifiers,
+        bool isApplyingRotation,
+        bool canMovePrevious,
+        bool canMoveNext,
+        bool canDelete)
+    {
+        if (isApplyingRotation)
+        {
+            return ViewerKeyboardCommand.Suppress;
+        }
+
+        if (key == Key.O && modifiers == ModifierKeys.Control)
+        {
+            return ViewerKeyboardCommand.Open;
+        }
+
+        if (key == Key.P && modifiers == ModifierKeys.Control)
+        {
+            return ViewerKeyboardCommand.Print;
+        }
+
+        if (modifiers != ModifierKeys.None)
+        {
+            return ViewerKeyboardCommand.None;
+        }
+
+        if (key is Key.Left or Key.Back && canMovePrevious)
+        {
+            return ViewerKeyboardCommand.Previous;
+        }
+
+        if (key is Key.Right or Key.Space && canMoveNext)
+        {
+            return ViewerKeyboardCommand.Next;
+        }
+
+        if (key is Key.D1 or Key.NumPad1)
+        {
+            return ViewerKeyboardCommand.ActualPixels;
+        }
+
+        if (key == Key.F)
+        {
+            return ViewerKeyboardCommand.Fit;
+        }
+
+        if (key == Key.Delete && canDelete)
+        {
+            return ViewerKeyboardCommand.Delete;
+        }
+
+        return ViewerKeyboardCommand.None;
+    }
+
+    private async Task ExecuteKeyboardCommandAsync(ViewerKeyboardCommand command)
+    {
+        switch (command)
+        {
+            case ViewerKeyboardCommand.Open:
                 await ShowOpenDialogAsync();
-            }
-            else if (e.Key == Key.P && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Print:
                 PrintCurrentImage();
-            }
-            else if (e.Key is Key.Left or Key.Back && _navigator.CanMovePrevious)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Previous:
                 await NavigatePreviousAsync();
-            }
-            else if (e.Key is Key.Right or Key.Space && _navigator.CanMoveNext)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Next:
                 await NavigateNextAsync();
-            }
-            else if (e.Key is Key.D1 or Key.NumPad1)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.ActualPixels:
                 ToggleActualPixels();
-            }
-            else if (e.Key == Key.F)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Fit:
                 if (IsCurrentPreviewAwaitingFullResolution)
                 {
-                    return;
+                    break;
                 }
 
                 _viewerState.FitToWindow();
                 UpdateZoomText();
                 InvalidateViewer();
-            }
-            else if (e.Key == Key.Delete && CanDeleteCurrentImage())
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Delete:
                 await DeleteCurrentImageAsync();
-            }
-        });
+                break;
+        }
     }
 
     private void Window_DragOver(object sender, DragEventArgs e)
@@ -2189,25 +2308,27 @@ public partial class MainWindow : Window
             return;
         }
 
+        var snapshot = CapturePrintSnapshot(
+            _image, _frameIndex, _pendingRotationQuarterTurns,
+            Path.GetFileName(_navigator.CurrentPath) ?? LocalizedText.Get(LocalizedText.AppTitle));
         var printDialog = new PrintDialog();
         if (printDialog.ShowDialog() != true)
         {
             return;
         }
 
-        var frameIndex = Math.Clamp(_frameIndex, 0, _image.Frames.Count - 1);
         var printableWidth = Math.Max(1, printDialog.PrintableAreaWidth);
         var printableHeight = Math.Max(1, printDialog.PrintableAreaHeight);
         var printedImage = new System.Windows.Controls.Image
         {
-            Source = CreateBitmapSource(_image.Frames[frameIndex].Image),
+            Source = snapshot.Source,
             Stretch = Stretch.Uniform,
             Margin = new Thickness(24)
         };
-        if (_pendingRotationQuarterTurns != 0)
+        if (snapshot.QuarterTurns != 0)
         {
             printedImage.LayoutTransform = new RotateTransform(
-                ImageRotation.GetClockwiseDegrees(_pendingRotationQuarterTurns));
+                ImageRotation.GetClockwiseDegrees(snapshot.QuarterTurns));
         }
 
         var page = new Grid
@@ -2221,9 +2342,15 @@ public partial class MainWindow : Window
         page.Arrange(new System.Windows.Rect(0, 0, printableWidth, printableHeight));
         page.UpdateLayout();
 
-        var jobName = Path.GetFileName(_navigator.CurrentPath) ??
-            LocalizedText.Get(LocalizedText.AppTitle);
-        printDialog.PrintVisual(page, jobName);
+        printDialog.PrintVisual(page, snapshot.JobName);
+    }
+
+    internal sealed record PrintSnapshot(BitmapSource Source, int QuarterTurns, string JobName);
+
+    internal static PrintSnapshot CapturePrintSnapshot(DecodedImage image, int frameIndex, int quarterTurns, string jobName)
+    {
+        var index = Math.Clamp(frameIndex, 0, image.Frames.Count - 1);
+        return new PrintSnapshot(CreateBitmapSource(image.Frames[index].Image), quarterTurns, jobName);
     }
 
     private void ShowCurrentImageProperties()

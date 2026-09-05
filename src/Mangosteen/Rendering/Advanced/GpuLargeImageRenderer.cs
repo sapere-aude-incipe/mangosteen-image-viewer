@@ -9,12 +9,13 @@ namespace Mangosteen.Rendering.Advanced;
 internal sealed class GpuLargeImageRenderer : IDisposable
 {
     private const long TextureBudgetBytes = 384L * 1024 * 1024;
+    internal const int MaximumPendingTiles = 8;
     private readonly NativeGlHost _host;
-    private readonly VipsLargeImageSource _source = new();
-    private readonly PersistentTileCache _cache = new();
+    private readonly ILargeImageSource _source;
+    private readonly PersistentTileCache _cache;
     private readonly SemaphoreSlim _decodeGate = new(2, 2);
     private readonly Dictionary<ImageTileKey, TextureEntry> _textures = [];
-    private readonly HashSet<ImageTileKey> _pendingTiles = [];
+    private readonly Dictionary<ImageTileKey, CancellationTokenSource> _pendingTiles = [];
     private CancellationTokenSource _loadCts = new();
     private ImagePyramid? _pyramid;
     private ViewerState? _viewState;
@@ -28,15 +29,21 @@ internal sealed class GpuLargeImageRenderer : IDisposable
     private bool _smoothSampling = true;
     private SKColor _background = new(33, 33, 33);
     private bool _disposed;
+    private bool _renderFailed;
 
-    public GpuLargeImageRenderer(NativeGlHost host)
+    public event EventHandler<Exception>? RenderingFailed;
+
+    public GpuLargeImageRenderer(NativeGlHost host, ILargeImageSource? source = null, PersistentTileCache? cache = null)
     {
         _host = host ?? throw new ArgumentNullException(nameof(host));
+        _source = source ?? new VipsLargeImageSource();
+        _cache = cache ?? new PersistentTileCache();
         _host.SurfaceReady += Host_SurfaceReady;
         _host.SurfaceSizeChanged += Host_SurfaceSizeChanged;
     }
 
     public NativeGlHost Host => _host;
+    internal string? CurrentPath => _path;
 
     public async Task<bool> OpenAsync(
         string path,
@@ -50,18 +57,26 @@ internal sealed class GpuLargeImageRenderer : IDisposable
         ArgumentNullException.ThrowIfNull(preview);
         ArgumentNullException.ThrowIfNull(viewerState);
 
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        token.ThrowIfCancellationRequested();
+        CloseCurrent();
+        var generation = _generation;
+        // The UI may dispose its preview while metadata is loading.
+        var previewPixels = CopyPreviewPixels(preview);
+
         var largeMetadata = await _source.LoadMetadataAsync(path, token);
+        token.ThrowIfCancellationRequested();
+        if (_disposed || generation != _generation) throw new OperationCanceledException(token);
         if (largeMetadata.Width != metadata.Width || largeMetadata.Height != metadata.Height)
         {
             return false;
         }
 
-        CloseCurrent();
         _path = path;
         _sourceKey = _cache.CreateSourceKey(path, VipsLargeImageSource.DecoderVersion);
         _pyramid = new ImagePyramid(metadata.Width, metadata.Height);
         _viewState = viewerState;
-        (_previewPixels, _previewWidth, _previewHeight) = CopyPreviewPixels(preview);
+        (_previewPixels, _previewWidth, _previewHeight) = previewPixels;
         if (_host.IsSurfaceReady)
         {
             UploadPreviewTexture();
@@ -80,7 +95,7 @@ internal sealed class GpuLargeImageRenderer : IDisposable
 
     public void Render()
     {
-        if (_disposed || _path is null || _pyramid is null || _viewState is null || !_host.IsSurfaceReady)
+        if (_disposed || _renderFailed || _path is null || _pyramid is null || _viewState is null || !_host.IsSurfaceReady)
         {
             return;
         }
@@ -92,6 +107,7 @@ internal sealed class GpuLargeImageRenderer : IDisposable
     public void CloseCurrent()
     {
         _generation++;
+        _renderFailed = false;
         _loadCts.Cancel();
         _loadCts.Dispose();
         _loadCts = new CancellationTokenSource();
@@ -174,6 +190,7 @@ internal sealed class GpuLargeImageRenderer : IDisposable
             var top = destination.Top + (float)(sourceTop * _viewState.Zoom);
             var right = left + (float)(tile.SourceWidth * _viewState.Zoom);
             var bottom = top + (float)(tile.SourceHeight * _viewState.Zoom);
+            if (right <= 0 || bottom <= 0 || left >= width || top >= height) continue;
             DrawSolidRect(left, top, right, bottom, _background);
             DrawTexture(tile.Texture, left, top, right, bottom);
             tile.LastUse = Environment.TickCount64;
@@ -190,28 +207,33 @@ internal sealed class GpuLargeImageRenderer : IDisposable
         var sourceBottom = Math.Min(_pyramid.Levels[0].Height, (_host.PixelHeight - destination.Top) / zoom);
         var level = _pyramid.ChooseLevel(zoom);
         var generation = _generation;
-        var token = _loadCts.Token;
-        foreach (var key in _pyramid.GetTilesForSourceRect(level, sourceLeft, sourceTop, sourceRight, sourceBottom))
+        var wanted = _pyramid.GetTilesForSourceRect(level, sourceLeft, sourceTop, sourceRight, sourceBottom).ToArray();
+        foreach (var pair in _pendingTiles.ToArray())
         {
-            if (_textures.ContainsKey(key) || !_pendingTiles.Add(key)) continue;
-            _ = LoadTileAsync(key, generation, token);
+            if (wanted.Contains(pair.Key)) continue;
+            _pendingTiles.Remove(pair.Key);
+            pair.Value.Cancel();
+        }
+        foreach (var key in wanted)
+        {
+            if (_pendingTiles.Count >= MaximumPendingTiles) break;
+            if (_textures.ContainsKey(key) || _pendingTiles.ContainsKey(key)) continue;
+            var request = CancellationTokenSource.CreateLinkedTokenSource(_loadCts.Token);
+            _pendingTiles.Add(key, request);
+            _ = LoadTileAsync(_path!, _sourceKey!, _pyramid, key, generation, request);
         }
     }
 
-    private async Task LoadTileAsync(ImageTileKey key, int generation, CancellationToken token)
+    private async Task LoadTileAsync(string path, string sourceKey, ImagePyramid pyramid, ImageTileKey key, int generation, CancellationTokenSource request)
     {
+        var token = request.Token;
         try
         {
             await _decodeGate.WaitAsync(token);
             ImageTileData? tile;
             try
             {
-                tile = await _cache.TryReadAsync(_sourceKey!, key, token);
-                if (tile is null)
-                {
-                    tile = await _source.DecodeTileAsync(_path!, _pyramid!, key, token);
-                    await _cache.WriteAsync(_sourceKey!, tile, token);
-                }
+                tile = await LoadTilePixelsAsync(path, sourceKey, pyramid, key, token);
             }
             finally
             {
@@ -220,11 +242,13 @@ internal sealed class GpuLargeImageRenderer : IDisposable
 
             await _host.Dispatcher.InvokeAsync(() =>
             {
-                _pendingTiles.Remove(key);
                 if (_disposed || generation != _generation || token.IsCancellationRequested || !_host.IsSurfaceReady)
                 {
                     return;
                 }
+
+                if (!_pendingTiles.TryGetValue(key, out var current) || !ReferenceEquals(current, request)) return;
+                _pendingTiles.Remove(key);
 
                 _host.ExecuteWithContext(() =>
                 {
@@ -238,17 +262,41 @@ internal sealed class GpuLargeImageRenderer : IDisposable
         catch (OperationCanceledException)
         {
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             if (_disposed) return;
             try
             {
-                await _host.Dispatcher.InvokeAsync(() => _pendingTiles.Remove(key), DispatcherPriority.Background);
+                await _host.Dispatcher.InvokeAsync(() =>
+                {
+                    if (generation != _generation || token.IsCancellationRequested || _renderFailed) return;
+                    _renderFailed = true;
+                    System.Diagnostics.Trace.WriteLine($"GPU tile rendering failed: {ex}");
+                    RenderingFailed?.Invoke(this, ex);
+                }, DispatcherPriority.Background);
             }
             catch (TaskCanceledException)
             {
             }
         }
+        finally
+        {
+            if (_pendingTiles.TryGetValue(key, out var current) && ReferenceEquals(current, request)) _pendingTiles.Remove(key);
+            request.Dispose();
+        }
+    }
+
+    internal async Task<ImageTileData> LoadTilePixelsAsync(string path, string sourceKey, ImagePyramid pyramid, ImageTileKey key, CancellationToken token)
+    {
+        var tile = await _cache.TryReadAsync(sourceKey, key, token).ConfigureAwait(false);
+        if (tile is null)
+        {
+            tile = await _source.DecodeTileAsync(path, pyramid, key, token).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+            await _cache.TryWriteAsync(sourceKey, tile, token).ConfigureAwait(false);
+        }
+        token.ThrowIfCancellationRequested();
+        return tile;
     }
 
     private void UploadPreviewTexture()
@@ -291,6 +339,13 @@ internal sealed class GpuLargeImageRenderer : IDisposable
                 OpenGl11.Rgba,
                 tile.PixelFormat == ImageTilePixelFormat.Rgba16 ? OpenGl11.UnsignedShort : OpenGl11.UnsignedByte,
                 handle.AddrOfPinnedObject());
+            var error = OpenGl11.GetError();
+            if (error != 0) throw new InvalidOperationException($"OpenGL could not upload image pixels (0x{error:X}).");
+        }
+        catch
+        {
+            OpenGl11.DeleteTextures(1, ref texture);
+            throw;
         }
         finally
         {

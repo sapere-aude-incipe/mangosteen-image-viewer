@@ -12,7 +12,7 @@ internal readonly record struct LargeImageMetadata(
     int BitsPerChannel,
     bool HasEmbeddedColorProfile);
 
-internal sealed class VipsLargeImageSource
+internal sealed class VipsLargeImageSource : ILargeImageSource
 {
     private const int LanczosFilterMarginPixels = 3;
     public const string DecoderVersion = "libvips-8.18-mangosteen-tiles-v1";
@@ -24,6 +24,7 @@ internal sealed class VipsLargeImageSource
             token.ThrowIfCancellationRequested();
             using var source = Open(path);
             using var oriented = source.Autorot();
+            token.ThrowIfCancellationRequested();
             return new LargeImageMetadata(
                 oriented.Width,
                 oriented.Height,
@@ -108,6 +109,7 @@ internal sealed class VipsLargeImageSource
         var pixels = highBitDepth
             ? MemoryMarshal.AsBytes(pixelsImage.WriteToMemory<ushort>().AsSpan()).ToArray()
             : pixelsImage.WriteToMemory<byte>();
+        token.ThrowIfCancellationRequested();
         var bytesPerChannel = highBitDepth ? 2 : 1;
         var expectedLength = checked(pixelsImage.Width * pixelsImage.Height * 4 * bytesPerChannel);
         if (pixels.Length != expectedLength)

@@ -45,7 +45,7 @@ public partial class App : Application
         }
 
         var settings = AppSettings.Load();
-        _ = StartupRegistration.TrySetEnabled(settings.KeepReadyInBackground, out _);
+        _ = StartupRegistration.TrySetEnabled(settings.KeepReadyInBackground, out _, replaceExisting: false);
         if (launch.IsBackgroundLaunch && !settings.KeepReadyInBackground)
         {
             Shutdown();

@@ -15,6 +15,7 @@ internal sealed class PersistentTileCache
     private readonly long _maximumBytes;
     private readonly SemaphoreSlim _trimGate = new(1, 1);
     private long _nextTrimTick;
+    private int _writesDisabled;
 
     public PersistentTileCache(string? root = null, long maximumBytes = 4L * 1024 * 1024 * 1024)
     {
@@ -67,7 +68,8 @@ internal sealed class PersistentTileCache
             await using var deflate = new DeflateStream(file, CompressionMode.Decompress, leaveOpen: false);
             var pixels = new byte[payloadLength];
             await deflate.ReadExactlyAsync(pixels, token);
-            File.SetLastAccessTimeUtc(path, DateTime.UtcNow);
+            try { File.SetLastAccessTimeUtc(path, DateTime.UtcNow); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
             return new ImageTileData(key, width, height, sourceWidth, sourceHeight, pixelFormat, pixels);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or EndOfStreamException)
@@ -120,6 +122,22 @@ internal sealed class PersistentTileCache
             catch (IOException)
             {
             }
+        }
+    }
+
+    public async Task TryWriteAsync(string sourceKey, ImageTileData tile, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if (Volatile.Read(ref _writesDisabled) != 0) return;
+        try
+        {
+            await WriteAsync(sourceKey, tile, token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // A cache is optional; keep displaying decoded pixels when storage fails.
+            Interlocked.Exchange(ref _writesDisabled, 1);
+            System.Diagnostics.Trace.WriteLine($"Tile cache writes disabled: {ex.Message}");
         }
     }
 

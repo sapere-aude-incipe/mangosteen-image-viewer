@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Principal;
+using System.Text;
 using System.Text.Json;
 
 namespace Mangosteen;
@@ -21,7 +24,7 @@ internal sealed class AppInstanceCoordinator : IDisposable
     private bool _disposed;
 
     public AppInstanceCoordinator()
-        : this(DefaultInstanceName)
+        : this(GetCurrentInstanceName())
     {
     }
 
@@ -36,6 +39,19 @@ internal sealed class AppInstanceCoordinator : IDisposable
     }
 
     public bool IsPrimaryInstance { get; }
+
+    private static string GetCurrentInstanceName()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        return GetInstanceName(AppContext.BaseDirectory, identity.User?.Value ?? identity.Name);
+    }
+
+    internal static string GetInstanceName(string directory, string userIdentity)
+    {
+        var path = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory)).ToUpperInvariant();
+        var identity = Encoding.UTF8.GetBytes(userIdentity + "\n" + path);
+        return DefaultInstanceName + "." + Convert.ToHexStringLower(SHA256.HashData(identity));
+    }
 
     public void StartServer(Func<AppActivationRequest, Task> requestHandler)
     {
