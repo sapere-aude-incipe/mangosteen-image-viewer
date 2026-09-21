@@ -6,6 +6,8 @@ using Mangosteen.Editing;
 using Mangosteen.Icons;
 using Mangosteen.Localization;
 using Mangosteen.Navigation;
+using Mangosteen.Printing;
+using Mangosteen.Shell;
 using Mangosteen.Rendering;
 using Mangosteen.Rendering.Advanced;
 using Mangosteen.Updates;
@@ -126,6 +128,8 @@ public partial class MainWindow : Window
     private LoadSession? _loadSession;
     private CancellationTokenSource? _folderIndexCts;
     private CancellationTokenSource? _updateCheckCts;
+    private string? _imageStatusText;
+    private string? _updateStatusText;
     private CancellationTokenSource? _rotationSaveCts;
     private CancellationTokenSource _preloadCts = new();
     private CancellationTokenSource _backgroundFullWarmupCts = new();
@@ -150,6 +154,8 @@ public partial class MainWindow : Window
     private bool _isDarkMode = true;
     private bool _isAutoRefreshReloading;
     private bool _isApplyingRotation;
+    private bool _isNavigating;
+    private bool _isPrinting;
     private bool _exitRequested;
     private bool _isBackgroundWarmup;
     private bool _activationRequestedDuringWarmup;
@@ -390,7 +396,7 @@ public partial class MainWindow : Window
 
         try
         {
-            ShowStatus(LocalizedText.Get(LocalizedText.CheckingForUpdates));
+            ShowUpdateStatus(LocalizedText.Get(LocalizedText.CheckingForUpdates));
             var update = await Updates.CheckLatestReleaseAsync(currentVersion, updateCheckCts.Token);
             if (!update.IsUpdateAvailable)
             {
@@ -450,7 +456,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            ShowStatus(LocalizedText.Get(LocalizedText.DownloadingUpdate));
+            ShowUpdateStatus(LocalizedText.Get(LocalizedText.DownloadingUpdate));
             CancelUpdateButton.IsEnabled = true;
             ShowUpdateDownloadProgress(default);
             var isDownloadActive = true;
@@ -477,7 +483,7 @@ public partial class MainWindow : Window
             }
 
             updateCheckCts.Token.ThrowIfCancellationRequested();
-            ShowStatus(LocalizedText.Get(LocalizedText.StartingInstaller));
+            ShowUpdateStatus(LocalizedText.Get(LocalizedText.StartingInstaller));
             Process.Start(new ProcessStartInfo(installerPath)
             {
                 UseShellExecute = true
@@ -1619,40 +1625,35 @@ public partial class MainWindow : Window
         await RunUiCommandAsync(NavigateNextAsync);
     }
 
-    private Task NavigateRelativeAsync(int delta)
+    private async Task NavigateRelativeAsync(int delta)
     {
-        return delta < 0
-            ? NavigatePreviousAsync()
-            : NavigateNextAsync();
-    }
-
-    private async Task NavigatePreviousAsync()
-    {
-        if (_isApplyingRotation)
+        // Do not cancel an in-flight display load on every keyboard repeat or queue stale steps.
+        if (_isApplyingRotation || _isNavigating || _isClosing)
         {
             return;
         }
 
-        if (_navigator.CanMovePrevious && _navigator.MovePrevious() is not null)
+        _isNavigating = true;
+        try
         {
-            DiscardPendingRotation(refitImage: false);
-            await LoadCurrentImageAsync(fitToWindow: true);
+            var path = delta < 0
+                ? (_navigator.CanMovePrevious ? _navigator.MovePrevious() : null)
+                : (_navigator.CanMoveNext ? _navigator.MoveNext() : null);
+            if (path is not null)
+            {
+                DiscardPendingRotation(refitImage: false);
+                await LoadCurrentImageAsync(fitToWindow: true);
+            }
+        }
+        finally
+        {
+            _isNavigating = false;
         }
     }
 
-    private async Task NavigateNextAsync()
-    {
-        if (_isApplyingRotation)
-        {
-            return;
-        }
+    private Task NavigatePreviousAsync() => NavigateRelativeAsync(-1);
 
-        if (_navigator.CanMoveNext && _navigator.MoveNext() is not null)
-        {
-            DiscardPendingRotation(refitImage: false);
-            await LoadCurrentImageAsync(fitToWindow: true);
-        }
-    }
+    private Task NavigateNextAsync() => NavigateRelativeAsync(1);
 
     private void ActualPixelsButton_Click(object sender, RoutedEventArgs e)
     {
@@ -2365,13 +2366,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        var startInfo = new ProcessStartInfo("rundll32.exe")
-        {
-            UseShellExecute = false
-        };
-        startInfo.ArgumentList.Add("shell32.dll,OpenAs_RunDLL");
-        startInfo.ArgumentList.Add(path);
-        Process.Start(startInfo);
+        var ownerHandle = _hwndSource?.Handle ?? new WindowInteropHelper(this).Handle;
+        OpenWithService.Show(path, ownerHandle);
     }
 
     private void SetCurrentImageAsDesktopBackground()
@@ -2407,47 +2403,29 @@ public partial class MainWindow : Window
 
     private void PrintCurrentImage()
     {
-        if (!CanPrintCurrentImage() || _image is null)
+        if (_isPrinting || !CanPrintCurrentImage() || _image is null)
         {
             UpdateNavigationButtons();
             return;
         }
 
-        var snapshot = CapturePrintSnapshot(
-            _image, _frameIndex, _pendingRotationQuarterTurns,
-            Path.GetFileName(_navigator.CurrentPath) ?? LocalizedText.Get(LocalizedText.AppTitle));
-        var printDialog = new PrintDialog();
-        if (printDialog.ShowDialog() != true)
+        _isPrinting = true;
+        try
         {
-            return;
+            var path = _navigator.CurrentPath!;
+            if (!PhotoPrintService.CanPrintOriginal(path, _pendingRotationQuarterTurns, _image.Frames.Count))
+            {
+                var snapshot = CapturePrintSnapshot(
+                    _image, _frameIndex, _pendingRotationQuarterTurns, Path.GetFileName(path));
+                path = PhotoPrintService.CreatePrintCopy(snapshot.Source, snapshot.QuarterTurns);
+            }
+
+            PhotoPrintService.Show(path);
         }
-
-        var printableWidth = Math.Max(1, printDialog.PrintableAreaWidth);
-        var printableHeight = Math.Max(1, printDialog.PrintableAreaHeight);
-        var printedImage = new System.Windows.Controls.Image
+        finally
         {
-            Source = snapshot.Source,
-            Stretch = Stretch.Uniform,
-            Margin = new Thickness(24)
-        };
-        if (snapshot.QuarterTurns != 0)
-        {
-            printedImage.LayoutTransform = new RotateTransform(
-                ImageRotation.GetClockwiseDegrees(snapshot.QuarterTurns));
+            _isPrinting = false;
         }
-
-        var page = new Grid
-        {
-            Width = printableWidth,
-            Height = printableHeight,
-            Background = Brushes.White
-        };
-        page.Children.Add(printedImage);
-        page.Measure(new System.Windows.Size(printableWidth, printableHeight));
-        page.Arrange(new System.Windows.Rect(0, 0, printableWidth, printableHeight));
-        page.UpdateLayout();
-
-        printDialog.PrintVisual(page, snapshot.JobName);
     }
 
     internal sealed record PrintSnapshot(BitmapSource Source, int QuarterTurns, string JobName);
@@ -4322,7 +4300,7 @@ public partial class MainWindow : Window
     {
         var zoom = _contentMode == ViewerContentMode.Model ? _modelRenderer?.ZoomFactor ?? 1 : _viewerState.Zoom;
         _isUpdatingZoomText = true;
-        try { ZoomText.Text = CanAdjustZoom ? $"{zoom * 100:0.##}%" : "-"; }
+        try { ZoomText.Text = CanAdjustZoom ? $"{zoom * 100:0}%" : "-"; }
         finally { _isUpdatingZoomText = false; }
         _isZoomTextDirty = false;
         ZoomText.IsEnabled = CanAdjustZoom;
@@ -4547,10 +4525,45 @@ public partial class MainWindow : Window
 
     private void ShowStatus(string text)
     {
-        HideUpdateDownloadProgress();
+        _imageStatusText = text;
         HidePreviewOnlyBadge();
+        RefreshStatusOverlay();
+    }
+
+    private void HideStatus()
+    {
+        _imageStatusText = null;
+        RefreshStatusOverlay();
+    }
+
+    private void ShowUpdateStatus(string text)
+    {
+        _updateStatusText = text;
+        HideUpdateDownloadProgress();
+        RefreshStatusOverlay();
+    }
+
+    private void RestoreStatusAfterUpdateCheck()
+    {
+        _updateStatusText = null;
+        HideUpdateDownloadProgress();
+        RefreshStatusOverlay();
+    }
+
+    private void RefreshStatusOverlay()
+    {
+        // Updates own the overlay until they finish; navigation still records the latest image status.
+        var text = _updateStatusText ?? _imageStatusText;
+        if (text is null)
+        {
+            StatusOverlay.Visibility = Visibility.Collapsed;
+            UpdateStatusOverlayOpenState();
+            return;
+        }
+
         UpdateStatusOverlayMaxWidth();
-        var isEmptyState = string.Equals(text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
+        var isEmptyState = _updateStatusText is null &&
+            string.Equals(text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
         StatusText.ToolTip = text;
         StatusText.Text = text;
         StatusMessageText.ToolTip = text;
@@ -4561,27 +4574,13 @@ public partial class MainWindow : Window
         UpdateStatusOverlayOpenState();
     }
 
-    private void RestoreStatusAfterUpdateCheck()
-    {
-        if (_image is null && _navigator.CurrentPath is null)
-        {
-            ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
-        }
-        else if (_image is not null && !_isCurrentPreviewAwaitingFullResolution)
-        {
-            HideStatus();
-        }
-    }
-
-    private void HideStatus()
-    {
-        HideUpdateDownloadProgress();
-        StatusOverlay.Visibility = Visibility.Collapsed;
-        UpdateStatusOverlayOpenState();
-    }
-
     private void ShowUpdateDownloadProgress(UpdateDownloadProgress progress)
     {
+        if (_updateStatusText is null)
+        {
+            return;
+        }
+
         var hasKnownTotal = progress.TotalBytes is > 0;
         UpdateProgressBar.IsIndeterminate = !hasKnownTotal;
         if (progress.TotalBytes is long totalBytes && totalBytes > 0)
