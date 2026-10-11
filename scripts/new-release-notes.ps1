@@ -108,3 +108,4 @@ $lines.Add("Full changelog: $compareUrl")
 New-Item -ItemType Directory -Path (Split-Path -Parent $OutputPath) -Force | Out-Null
 Set-Content -LiteralPath $OutputPath -Value $lines -Encoding UTF8
 Write-Host "Release notes: $OutputPath"
+

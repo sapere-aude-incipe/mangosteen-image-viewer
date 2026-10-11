@@ -175,3 +175,4 @@ The intended signing path is SignPath Foundation once the project has enough pub
 ## License
 
 Mangosteen Image Viewer is released under the MIT License. See [LICENSE](LICENSE).
+

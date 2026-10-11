@@ -383,3 +383,4 @@ begin
       'Software\Microsoft\Windows\CurrentVersion\Run',
       '{#AppDisplayName}');
 end;
+

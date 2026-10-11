@@ -138,3 +138,4 @@ finally {
         Remove-Item -LiteralPath $resolvedInstallDirectory -Recurse -Force
     }
 }
+

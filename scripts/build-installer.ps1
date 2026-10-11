@@ -238,3 +238,4 @@ $installerPath = Join-Path $distDir "Mangosteen-Setup-$Version-x64.exe"
 Write-Host "Installer: $installerPath"
 Write-Host "Portable zip: $portableZip"
 Write-Sha256Checksums -Directory $distDir
+
