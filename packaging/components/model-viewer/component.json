@@ -1,0 +1,7 @@
+{
+  "id": "model-viewer",
+  "name": "3D model viewing",
+  "engine": "F3D",
+  "engineVersion": "3.5.0",
+  "optional": true
+}

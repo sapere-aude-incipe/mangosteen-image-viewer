@@ -55,7 +55,7 @@
     <value>Minnebudsjett for full dekoding og forhÃ¥ndslasting</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>ForhÃ¥ndslast bilder i nÃ¦rheten</value>
+    <value>Forhåndslast filer i nærheten</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Kun forhÃ¥ndsvisning</value>
@@ -70,7 +70,7 @@
     <value>Bytt faktisk pikselstÃ¸rrelse</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>SlÃ¥ mÃ¸rk modus av/pÃ¥</value>
+    <value>Mørk modus</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Bytt mellom jevn og nÃ¦rmeste-nabo-oppskalering</value>
@@ -108,11 +108,14 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>Åpne...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>Skriv ut...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>Alternativer</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Forhåndslastingsgrad</value>
+    <value>Forhåndslastingsmengde</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Forhåndslastingsminne</value>
@@ -163,7 +166,7 @@ Hvor aggressiv forhåndslasting er styrer hvor langt fram Mangosteen skanner og 
     <value>Velg minnebudsjett for den dekodede bildebufferen.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Dekoder sannsynlige neste og forrige bilder i bakgrunnen.</value>
+    <value>Dekoder bilder og leser 3D-filer i nærheten på forhånd i bakgrunnen.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Bruker jevnere interpolering når du zoomer inn.</value>
@@ -260,4 +263,14 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Starter Mangosteen med Windows og holder bildeviseren klar. Når vinduet lukkes, går det tilbake til bakgrunnen; Fil &gt; Avslutt avslutter programmet helt.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen kjører allerede, men den eksisterende forekomsten kunne ikke nås.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Oppstart med Windows kunne ikke oppdateres: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Ytelse</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Tilbakestill visning</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Rotering er ikke tilgjengelig i denne visningsmodusen.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Åpne en fil for å bruke denne kommandoen.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Vises allerede i faktisk pikselstørrelse.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Ingen forrige fil i denne mappen.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Ingen neste fil i denne mappen.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D-visning</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Rutenett ved verdens origo</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Plasser rutenettet ved det opprinnelige koordinatsystemets origo i stedet for under modellen.</value></data>
 </root>

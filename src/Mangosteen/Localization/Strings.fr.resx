@@ -55,7 +55,7 @@
     <value>Budget mÃ©moire pour le dÃ©codage complet et le prÃ©chargement</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>PrÃ©charger les images proches</value>
+    <value>Précharger les fichiers proches</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>AperÃ§u seul</value>
@@ -70,7 +70,7 @@
     <value>Basculer les pixels rÃ©els</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Basculer le mode sombre</value>
+    <value>Mode sombre</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Basculer lâ€™agrandissement lisse ou au plus proche</value>
@@ -108,11 +108,14 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>Ouvrir...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>Imprimer...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>Options</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Intensite du prechargement</value>
+    <value>Quantité de préchargement</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Memoire de prechargement</value>
@@ -163,7 +166,7 @@ L'agressivité du préchargement contrôle jusqu'où Mangosteen analyse et avec 
     <value>Choisit le budget mémoire du cache d'images décodées.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Décode en arrière-plan les images probablement suivantes et précédentes.</value>
+    <value>Décode les images et lit les fichiers 3D proches à l'avance en arrière-plan.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Utilise une interpolation plus douce lors du zoom avant.</value>
@@ -260,4 +263,14 @@ Les versions portables ne peuvent pas se mettre à jour sur place. Ouvrir la pag
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Démarre Mangosteen avec Windows et garde la visionneuse prête. Fermer la fenêtre la renvoie en arrière-plan ; Fichier &gt; Quitter ferme complètement le programme.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen est déjà en cours d'exécution, mais l'instance existante est inaccessible.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Le démarrage avec Windows n'a pas pu être mis à jour : {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Performances</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Réinitialiser la vue</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>La rotation n'est pas disponible dans ce mode d'affichage.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Ouvrez un fichier pour utiliser cette commande.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Déjà affiché en taille réelle.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>Aucun fichier précédent dans ce dossier.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>Aucun fichier suivant dans ce dossier.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>Vue 3D</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Grille à l'origine du monde</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Placer la grille à l'origine des coordonnées plutôt que sous le modèle.</value></data>
 </root>

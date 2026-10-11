@@ -55,7 +55,7 @@
     <value>Memory budget for full decode and preloading</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>Preload nearby images</value>
+    <value>Preload nearby files</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Preview only</value>
@@ -70,7 +70,7 @@
     <value>Toggle actual pixels</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Toggle dark mode</value>
+    <value>Dark mode</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Toggle smooth or nearest-neighbor upscaling</value>
@@ -108,11 +108,14 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>Open...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>Print...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>Options</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Preload aggressiveness</value>
+    <value>Preload amount</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Preload memory</value>
@@ -163,7 +166,7 @@ Preload aggressiveness controls how far ahead Mangosteen scans and how eagerly i
     <value>Choose the decoded-image cache memory budget.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decode likely next and previous images in the background.</value>
+    <value>Decode nearby images and read nearby 3D files ahead in the background.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Use smoother interpolation when zooming in.</value>
@@ -260,4 +263,14 @@ Portable builds cannot update in place. Open the GitHub Releases page?</value>
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Starts Mangosteen with Windows and keeps the viewer ready. Closing the window returns it to the background; File &gt; Exit quits it completely.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen is already running, but the existing instance could not be reached.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Windows startup could not be updated: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Performance</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Reset view</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Rotation is unavailable in this viewing mode.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Open a file to use this command.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Already displayed at actual pixels.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>No previous file in this folder.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>No next file in this folder.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D view</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Grid at world origin</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Place the grid at the original coordinate origin instead of beneath the model.</value></data>
 </root>

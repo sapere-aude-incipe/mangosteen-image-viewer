@@ -116,6 +116,34 @@ public sealed class MainWindowSchedulingTests
     }
 
     [TestMethod]
+    public void Control_P_Maps_To_Print_Command()
+    {
+        var command = MainWindow.ResolveKeyboardCommand(
+            System.Windows.Input.Key.P,
+            System.Windows.Input.ModifierKeys.Control,
+            isApplyingRotation: false,
+            canMovePrevious: false,
+            canMoveNext: false,
+            canDelete: false);
+
+        Assert.AreEqual(ViewerKeyboardCommand.Print, command);
+    }
+
+    [TestMethod]
+    public void P_Without_Control_Does_Not_Map_To_Print_Command()
+    {
+        var command = MainWindow.ResolveKeyboardCommand(
+            System.Windows.Input.Key.P,
+            System.Windows.Input.ModifierKeys.None,
+            isApplyingRotation: false,
+            canMovePrevious: false,
+            canMoveNext: false,
+            canDelete: false);
+
+        Assert.AreEqual(ViewerKeyboardCommand.None, command);
+    }
+
+    [TestMethod]
     public void Initial_Window_Placement_Fills_Most_Of_Work_Area_With_Even_Margins()
     {
         var placement = MainWindow.CalculateInitialWindowPlacement(

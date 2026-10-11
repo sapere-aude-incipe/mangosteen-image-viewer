@@ -96,8 +96,9 @@ else {
 
 $lines.Add("")
 $lines.Add("## Downloads")
-$lines.Add("- Installer: ``Mangosteen-Setup-$Version-x64.exe``")
-$lines.Add("- Portable build: ``Mangosteen-Portable-$Version-x64.zip``")
+$lines.Add("- Standard installer: ``Mangosteen-Setup-$Version-x64.exe``")
+$lines.Add("- Standard portable build: ``Mangosteen-Portable-$Version-x64.zip``")
+$lines.Add("- Complete portable build with GPU large-image and 3D support: ``Mangosteen-Complete-Portable-$Version-x64.zip``")
 $lines.Add("- Checksums: ``SHA256SUMS.txt``")
 $lines.Add("")
 $lines.Add("Verify the SHA256 checksum before running downloaded files. These early builds are unsigned, so Windows SmartScreen or Smart App Control may warn until the project has code signing and reputation in place.")

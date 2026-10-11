@@ -6,6 +6,16 @@ namespace Mangosteen.Localization;
 
 internal static class LocalizedText
 {
+    public const string Performance = nameof(Performance);
+    public const string ResetView = nameof(ResetView);
+    public const string ModelView = nameof(ModelView);
+    public const string ModelGridAtWorldOrigin = nameof(ModelGridAtWorldOrigin);
+    public const string ModelGridAtWorldOriginTooltip = nameof(ModelGridAtWorldOriginTooltip);
+    public const string RotationUnavailable = nameof(RotationUnavailable);
+    public const string NoFileOpen = nameof(NoFileOpen);
+    public const string AlreadyActualPixels = nameof(AlreadyActualPixels);
+    public const string NoPreviousFile = nameof(NoPreviousFile);
+    public const string NoNextFile = nameof(NoNextFile);
     public const string AllFiles = nameof(AllFiles);
     public const string Aggressive = nameof(Aggressive);
     public const string AppTitle = nameof(AppTitle);
@@ -64,6 +74,7 @@ internal static class LocalizedText
     public const string PreloadNearbyImagesTooltip = nameof(PreloadNearbyImagesTooltip);
     public const string PreviewOnly = nameof(PreviewOnly);
     public const string PreviousImage = nameof(PreviousImage);
+    public const string PrintCommand = nameof(PrintCommand);
     public const string PngCopyOnlyWarning = nameof(PngCopyOnlyWarning);
     public const string ResetRotation = nameof(ResetRotation);
     public const string RunningInstanceUnavailable = nameof(RunningInstanceUnavailable);
@@ -120,6 +131,9 @@ internal static class LocalizedText
 
     public static readonly string[] Keys =
     [
+        ModelView,
+        ModelGridAtWorldOrigin,
+        ModelGridAtWorldOriginTooltip,
         AllFiles,
         Aggressive,
         AggressivePreloadTooltip,
@@ -178,6 +192,7 @@ internal static class LocalizedText
         PreloadNearbyImagesTooltip,
         PreviewOnly,
         PreviousImage,
+        PrintCommand,
         PngCopyOnlyWarning,
         ResetRotation,
         RunningInstanceUnavailable,

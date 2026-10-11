@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Principal;
+using System.Text;
 using System.Text.Json;
 
 namespace Mangosteen;
@@ -12,6 +15,7 @@ internal sealed class AppInstanceCoordinator : IDisposable
     private const string DefaultInstanceName = "Mangosteen.ImageViewer.5505BFA7-AFF8-4C6E-8B60-52EDF84880D3";
     private const int MaximumMessageBytes = 32 * 1024;
     private static readonly TimeSpan ClientConnectTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan ServerRequestTimeout = TimeSpan.FromSeconds(10);
 
     private readonly Mutex _instanceMutex;
     private readonly string _pipeName;
@@ -20,7 +24,7 @@ internal sealed class AppInstanceCoordinator : IDisposable
     private bool _disposed;
 
     public AppInstanceCoordinator()
-        : this(DefaultInstanceName)
+        : this(GetCurrentInstanceName())
     {
     }
 
@@ -35,6 +39,19 @@ internal sealed class AppInstanceCoordinator : IDisposable
     }
 
     public bool IsPrimaryInstance { get; }
+
+    private static string GetCurrentInstanceName()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        return GetInstanceName(AppContext.BaseDirectory, identity.User?.Value ?? identity.Name);
+    }
+
+    internal static string GetInstanceName(string directory, string userIdentity)
+    {
+        var path = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directory)).ToUpperInvariant();
+        var identity = Encoding.UTF8.GetBytes(userIdentity + "\n" + path);
+        return DefaultInstanceName + "." + Convert.ToHexStringLower(SHA256.HashData(identity));
+    }
 
     public void StartServer(Func<AppActivationRequest, Task> requestHandler)
     {
@@ -120,19 +137,25 @@ internal sealed class AppInstanceCoordinator : IDisposable
                     PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
                 await server.WaitForConnectionAsync(token).ConfigureAwait(false);
 
-                var request = await ReadRequestAsync(server, token).ConfigureAwait(false);
+                using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+                requestCts.CancelAfter(ServerRequestTimeout);
+                var request = await ReadRequestAsync(server, requestCts.Token).ConfigureAwait(false);
                 var processIdBuffer = new byte[sizeof(int)];
                 BinaryPrimitives.WriteInt32LittleEndian(processIdBuffer, Environment.ProcessId);
-                await server.WriteAsync(processIdBuffer, token).ConfigureAwait(false);
-                await server.FlushAsync(token).ConfigureAwait(false);
+                await server.WriteAsync(processIdBuffer, requestCts.Token).ConfigureAwait(false);
+                await server.FlushAsync(requestCts.Token).ConfigureAwait(false);
 
                 var acknowledgement = new byte[1];
-                await server.ReadExactlyAsync(acknowledgement, token).ConfigureAwait(false);
+                await server.ReadExactlyAsync(acknowledgement, requestCts.Token).ConfigureAwait(false);
                 await requestHandler(request).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
                 return;
+            }
+            catch (OperationCanceledException ex)
+            {
+                Trace.TraceWarning($"Mangosteen activation pipe request timed out: {ex}");
             }
             catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException or InvalidDataException)
             {

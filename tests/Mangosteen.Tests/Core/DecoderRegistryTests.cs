@@ -55,6 +55,17 @@ public sealed class DecoderRegistryTests
     }
 
     [TestMethod]
+    public void GetDecoderPlan_Prefers_Windows_Gif_Decoder_For_Animations()
+    {
+        using var registry = CreateDefaultPlanRegistry();
+
+        var plan = registry.GetDecoderPlan("sample.gif");
+
+        Assert.IsInstanceOfType<WicGifImageDecoder>(plan[0]);
+        Assert.IsLessThan(IndexOf<MagickImageDecoder>(plan), IndexOf<WicGifImageDecoder>(plan));
+    }
+
+    [TestMethod]
     public void GetDecoderPlan_Prefers_Embedded_Raw_Preview_For_Raw_Preview()
     {
         using var registry = CreateDefaultPlanRegistry();
@@ -346,6 +357,7 @@ public sealed class DecoderRegistryTests
     {
         return new DecoderRegistry(
         [
+            new WicGifImageDecoder(),
             new WicRawPreviewImageDecoder(),
             new VipsImageDecoder(),
             new WicImageDecoder(),

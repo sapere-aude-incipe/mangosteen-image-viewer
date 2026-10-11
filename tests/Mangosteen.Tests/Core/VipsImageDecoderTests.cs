@@ -2,12 +2,41 @@
 using Mangosteen.Decoding;
 using ImageMagick;
 using SkiaSharp;
+using Mangosteen.Rendering.Advanced;
 
 namespace Mangosteen.Tests.Core;
 
 [TestClass]
 public sealed class VipsImageDecoderTests
 {
+    [TestMethod]
+    public async Task Embedded_Profile_Has_Consistent_Colors_In_Preview_Full_Image_And_Tiles()
+    {
+        var path = CreateTempImagePath(".tiff");
+        try
+        {
+            using (var fixture = new MagickImage(new MagickColor("#809060"), 128, 128))
+            {
+                fixture.SetProfile(ColorProfiles.AdobeRGB1998);
+                fixture.Depth = 8;
+                fixture.Write(path);
+            }
+            var decoder = new VipsImageDecoder();
+            using var full = await decoder.DecodeAsync(new ImageDecodeRequest(path, FullResolution: true), CancellationToken.None);
+            using var preview = await decoder.DecodeAsync(new ImageDecodeRequest(path, new PixelSize(64, 64)), CancellationToken.None);
+            using var fullPixels = SKBitmap.FromImage(full.Frames[0].Image);
+            using var previewPixels = SKBitmap.FromImage(preview.Frames[0].Image);
+            var pixel = fullPixels.GetPixel(32, 32);
+            Assert.AreEqual(pixel, previewPixels.GetPixel(32, 32));
+            Assert.AreNotEqual(new SKColor(128, 144, 96), pixel);
+            var tile = await new VipsLargeImageSource().DecodeTileAsync(path, new ImagePyramid(128, 128), new ImageTileKey(0, 0, 0), CancellationToken.None);
+            Assert.AreEqual(pixel.Red, tile.Pixels[0]);
+            Assert.AreEqual(pixel.Green, tile.Pixels[1]);
+            Assert.AreEqual(pixel.Blue, tile.Pixels[2]);
+        }
+        finally { File.Delete(path); }
+    }
+
     [TestMethod]
     public async Task DecodeAsync_Decodes_Preview_To_Target_Size()
     {

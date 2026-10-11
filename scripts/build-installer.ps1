@@ -7,7 +7,8 @@ param(
     [switch] $FrameworkDependent,
     [switch] $NoRestore,
     [switch] $DisableNuGetAudit,
-    [switch] $SkipInstaller
+    [switch] $SkipInstaller,
+    [switch] $SkipOptionalComponents
 )
 
 $ErrorActionPreference = "Stop"
@@ -119,6 +120,8 @@ $projectPath = Join-Path $projectRoot "src\Mangosteen\Mangosteen.csproj"
 $issPath = Join-Path $projectRoot "packaging\inno\Mangosteen.iss"
 $distDir = Join-Path $projectRoot "dist"
 $installerInputDir = Join-Path $projectRoot "publish\installer-input"
+$completePortableDir = Join-Path $projectRoot "publish\complete-portable"
+$optionalInputDir = Join-Path $projectRoot "publish\optional-components"
 
 if ([string]::IsNullOrWhiteSpace($Version)) {
     $Version = Get-ProjectVersion $projectPath
@@ -129,6 +132,8 @@ $numericAssemblyVersion = Get-NumericAssemblyVersion $Version
 
 Clear-GeneratedDirectory -Path $distDir -AllowedRoot $projectRoot
 Clear-GeneratedDirectory -Path $installerInputDir -AllowedRoot $projectRoot
+Clear-GeneratedDirectory -Path $completePortableDir -AllowedRoot $projectRoot
+Clear-GeneratedDirectory -Path $optionalInputDir -AllowedRoot $projectRoot
 
 $publishArgs = @(
     "publish",
@@ -180,6 +185,36 @@ if (Test-Path -LiteralPath $portableZip) {
 Write-Host "Creating portable zip..."
 Compress-Archive -Path (Join-Path $installerInputDir "*") -DestinationPath $portableZip -Force
 
+if (-not $SkipOptionalComponents) {
+    $gpuSource = Join-Path $projectRoot "packaging\components\gpu-large-images"
+    $gpuDestination = Join-Path $optionalInputDir "gpu-large-images"
+    Copy-Item -LiteralPath $gpuSource -Destination $gpuDestination -Recurse -Force
+
+    $f3dRoot = & (Join-Path $PSScriptRoot "fetch-f3d-runtime.ps1")
+    if ($f3dRoot -is [array]) {
+        $f3dRoot = $f3dRoot[-1]
+    }
+    $f3dRoot = [string] $f3dRoot
+    $modelSource = Join-Path $projectRoot "packaging\components\model-viewer"
+    $modelDestination = Join-Path $optionalInputDir "model-viewer"
+    Copy-Item -LiteralPath $modelSource -Destination $modelDestination -Recurse -Force
+    Copy-Item -LiteralPath (Join-Path $f3dRoot "bin") -Destination (Join-Path $modelDestination "bin") -Recurse -Force
+    Copy-Item -LiteralPath (Join-Path $f3dRoot "share") -Destination (Join-Path $modelDestination "share") -Recurse -Force
+
+    Write-Host "Creating complete portable build..."
+    Copy-Item -Path (Join-Path $installerInputDir "*") -Destination $completePortableDir -Recurse -Force
+    $completeComponentsDir = Join-Path $completePortableDir "components"
+    New-Item -ItemType Directory -Path $completeComponentsDir -Force | Out-Null
+    Copy-Item -LiteralPath $gpuDestination -Destination (Join-Path $completeComponentsDir "gpu-large-images") -Recurse -Force
+    Copy-Item -LiteralPath $modelDestination -Destination (Join-Path $completeComponentsDir "model-viewer") -Recurse -Force
+
+    $completePortableZip = Join-Path $distDir "Mangosteen-Complete-Portable-$Version-x64.zip"
+    Compress-Archive -Path (Join-Path $completePortableDir "*") -DestinationPath $completePortableZip -Force
+
+    Write-Host "Complete portable build: $completePortableZip"
+    Write-Host "Complete portable executable: $(Join-Path $completePortableDir 'Mangosteen.exe')"
+}
+
 if ($SkipInstaller) {
     Write-Host "Skipping installer compile."
     Write-Host "Portable zip: $portableZip"
@@ -191,9 +226,9 @@ $iscc = Find-InnoCompiler $InnoCompilerPath
 $installerArgs = @(
     "/DAppVersion=$Version",
     "/DSourceDir=$installerInputDir",
-    "/DOutputDir=$distDir",
-    $issPath
+    "/DOutputDir=$distDir"
 )
+$installerArgs += $issPath
 
 Write-Host "Compiling installer with $iscc..."
 & $iscc @installerArgs

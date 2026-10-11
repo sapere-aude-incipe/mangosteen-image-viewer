@@ -38,6 +38,8 @@ Mangosteen keeps the interface quiet, starts quickly, supports modern image form
 - Animated GIF support.
 - Manual update checks through GitHub Releases.
 - Installer and portable zip builds for Windows x64.
+- Optional tiled GPU rendering for exceptionally large images.
+- Optional in-window 3D viewing for STL, PLY, OBJ, glTF, and GLB files.
 
 ## Repository Layout
 
@@ -61,12 +63,24 @@ Mangosteen uses a decoder chain instead of relying on one hard-coded codec path:
 
 The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, GIF, TIFF, WebP, AVIF, HEIC/HEIF, and several RAW-family formats. Exact support depends on file contents and, for some Windows-native paths, installed codecs.
 
+## Optional Components
+
+Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. The complete portable edition includes two advanced components:
+
+- **GPU acceleration for large images** uses libvips, a tiled image pyramid, a bounded GPU texture cache, and a losslessly compressed disk cache. It is intended for exceptionally large TIFF, PSB, PSD, RAW-derived, and other still images without requiring a full uncompressed image to remain in RAM.
+- **3D model viewing** embeds the F3D 3.5.0 engine for STL, PLY, OBJ, glTF, and GLB browsing, including camera orbit, zoom, automatic framing, a floor grid, an XYZ indicator, and supported materials or animation.
+
+Neither component is loaded during normal image viewing. See [Optional Rendering Components](docs/optional-components.md) for behavior, limits, caching, and development details.
+
 ## Download
 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
-- **Portable**: `Mangosteen-Portable-<version>-x64.zip` - extract anywhere and run `Mangosteen.exe`. No installation and no separate .NET runtime required.
-- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - classic setup with Start menu shortcut and an optional, checked-by-default file type registration step.
+- **Standard installer**: `Mangosteen-Setup-<version>-x64.exe` - the lightweight image viewer with a Start menu shortcut and an optional, checked-by-default file type registration step.
+- **Standard portable**: `Mangosteen-Portable-<version>-x64.zip` - the same lightweight viewer without installation or a separate .NET runtime.
+- **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - a ready-to-run portable build with GPU large-image rendering and 3D model viewing already included.
+
+The standard installer and standard portable ZIP contain only the core viewer. Use the complete portable build when you want the advanced rendering features. Separate component archives are not published, keeping the Releases page compact and making each edition unambiguous.
 
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 
@@ -92,6 +106,7 @@ Requirements:
 - Windows 10 or later.
 - [.NET 10 SDK](https://dotnet.microsoft.com/download).
 - Inno Setup 6, only if you want to build the installer.
+- Internet access during release packaging, to download the pinned F3D runtime when it is not already cached.
 
 Build and test:
 
@@ -118,21 +133,27 @@ This creates:
 
 - `dist\Mangosteen-Setup-<version>-x64.exe`
 - `dist\Mangosteen-Portable-<version>-x64.zip`
+- `dist\Mangosteen-Complete-Portable-<version>-x64.zip`
 - `dist\SHA256SUMS.txt`
+
+The unpacked all-features test executable is written to
+`publish\complete-portable\Mangosteen.exe`.
 
 ## Controls
 
 - `Left` / `Right`: previous / next image.
 - Mouse wheel: zoom around the cursor.
 - Left mouse drag: pan.
+- 3D left mouse drag: orbit the camera.
 - `F`: fit to window.
 - `Ctrl+O`: open an image.
+- `Ctrl+P`: open the Windows print dialog for the displayed image or animation frame.
 - `Del`: move the current image to the recycle bin after confirmation.
 
 ## Options
 
 - Upscaling: `Smooth` uses interpolation when zooming in; `Nearest` keeps hard pixel edges for pixel art and similar images.
-- Preload nearby images: decodes likely next and previous images in the background so folder navigation can feel instant.
+- Preload nearby files: decodes likely next and previous images in the background. For 3D files it reads up to two nearby models into Windows' file cache after an idle delay, reducing disk-read work without locking the active 3D view. Model parsing and GPU setup still happen when selected. Read-ahead is limited to 64 MiB per model and 128 MiB per pass (or less with a smaller preload budget); very large models are only partially prefetched. Network locations and external texture/buffer files are not prefetched.
 - Preload memory: limits how much RAM Mangosteen may use for decoded-image cache entries.
 - Preload aggressiveness: controls how far ahead Mangosteen scans and how eagerly it warms likely next images.
 - Keep Mangosteen ready in the background: enabled by default. Mangosteen starts with Windows and keeps its already-constructed viewer shell ready. Closing the window releases the current image and caches, then returns the viewer to the background; `File > Exit` quits it completely.

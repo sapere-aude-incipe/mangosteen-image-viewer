@@ -6,6 +6,15 @@ namespace Mangosteen.Tests.Core;
 public sealed class AppInstanceCoordinatorTests
 {
     [TestMethod]
+    public void InstanceIdentity_Separates_Installations_And_Users_But_Normalizes_Paths()
+    {
+        var installed = AppInstanceCoordinator.GetInstanceName(@"C:\Apps\Mangosteen", "user-a");
+        Assert.AreEqual(installed, AppInstanceCoordinator.GetInstanceName(@"c:\apps\Mangosteen\.\", "user-a"));
+        Assert.AreNotEqual(installed, AppInstanceCoordinator.GetInstanceName(@"C:\Portable\Mangosteen", "user-a"));
+        Assert.AreNotEqual(installed, AppInstanceCoordinator.GetInstanceName(@"C:\Apps\Mangosteen", "user-b"));
+    }
+
+    [TestMethod]
     public async Task SecondaryInstance_ForwardsActivationRequest_ToPrimaryInstance()
     {
         var instanceName = $"Mangosteen.Tests.{Guid.NewGuid():N}";

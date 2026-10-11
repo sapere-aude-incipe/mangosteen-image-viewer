@@ -179,6 +179,38 @@ public sealed class ImageRotationServiceTests
         }
     }
 
+    [TestMethod]
+    public async Task RotateAsync_Preserves_Independent_Tiff_Page_Sizes_And_Pixels()
+    {
+        var path = CreateTempPath(".tiff");
+        try
+        {
+            using (var pages = new MagickImageCollection())
+            {
+                pages.Add(new MagickImage(MagickColors.Red, 8, 4));
+                pages.Add(new MagickImage(MagickColors.Blue, 4, 8));
+                pages.Add(new MagickImage(MagickColors.Transparent, 2, 3));
+                pages.Write(path, MagickFormat.Tiff);
+            }
+
+            await new ImageRotationService().RotateAsync(path, 1, RotationSaveMode.ReplaceOriginal, CancellationToken.None);
+            using var result = new MagickImageCollection(path);
+            CollectionAssert.AreEqual(new[] { (4u, 8u), (8u, 4u), (3u, 2u) },
+                result.Select(page => (page.Width, page.Height)).ToArray());
+            for (var index = 0; index < result.Count; index++)
+            {
+                using var image = SKImage.FromEncodedData(result[index].ToByteArray(MagickFormat.Png));
+                using var bitmap = SKBitmap.FromImage(image);
+                if (index == 2) Assert.AreEqual((byte)0, bitmap.GetPixel(0, 0).Alpha);
+                else Assert.AreEqual(new[] { SKColors.Red, SKColors.Blue }[index], bitmap.GetPixel(0, 0));
+            }
+        }
+        finally
+        {
+            DeleteIfExists(path);
+        }
+    }
+
     private static void WriteAsymmetricPng(string path)
     {
         using var bitmap = new SKBitmap(2, 3);

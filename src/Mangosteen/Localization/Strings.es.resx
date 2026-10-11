@@ -55,7 +55,7 @@
     <value>Presupuesto de memoria para decodificaciÃ³n completa y precarga</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>Precargar imÃ¡genes cercanas</value>
+    <value>Precargar archivos cercanos</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Solo vista previa</value>
@@ -70,7 +70,7 @@
     <value>Alternar pÃ­xeles reales</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Alternar modo oscuro</value>
+    <value>Modo oscuro</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Alternar escalado suave o por vecino mÃ¡s cercano</value>
@@ -108,11 +108,14 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>Abrir...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>Imprimir...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>Opciones</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Agresividad de precarga</value>
+    <value>Cantidad de precarga</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Memoria de precarga</value>
@@ -163,7 +166,7 @@ La agresividad de precarga controla hasta dónde escanea Mangosteen y con qué i
     <value>Elige el presupuesto de memoria para la caché de imágenes decodificadas.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decodifica en segundo plano las imágenes que probablemente sean la siguiente y la anterior.</value>
+    <value>Decodifica imágenes y lee archivos 3D cercanos por adelantado en segundo plano.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Usa una interpolación más suave al acercar.</value>
@@ -260,4 +263,14 @@ Las versiones portables no pueden actualizarse en el mismo lugar. ¿Abrir la pá
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Inicia Mangosteen con Windows y mantiene el visor listo. Al cerrar la ventana, vuelve a segundo plano; Archivo &gt; Salir cierra el programa por completo.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen ya se está ejecutando, pero no se pudo contactar con la instancia existente.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>No se pudo actualizar el inicio con Windows: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Rendimiento</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Restablecer vista</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>La rotación no está disponible en este modo de visualización.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Abre un archivo para usar este comando.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Ya se muestra a tamaño real.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>No hay un archivo anterior en esta carpeta.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>No hay un archivo siguiente en esta carpeta.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>Vista 3D</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Cuadrícula en el origen global</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Colocar la cuadrícula en el origen de coordenadas original en lugar de debajo del modelo.</value></data>
 </root>

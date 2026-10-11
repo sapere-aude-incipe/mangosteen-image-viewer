@@ -55,7 +55,7 @@
     <value>Лимит памяти для полного декодирования и предзагрузки</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>Предзагружать соседние изображения</value>
+    <value>Предзагружать соседние файлы</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Только предпросмотр</value>
@@ -70,7 +70,7 @@
     <value>Переключить реальные пиксели</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
-    <value>Переключить тёмный режим</value>
+    <value>Тёмный режим</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
     <value>Переключить сглаженное или ближайшее масштабирование</value>
@@ -108,11 +108,14 @@
   <data name="OpenCommand" xml:space="preserve">
     <value>Открыть...</value>
   </data>
+  <data name="PrintCommand" xml:space="preserve">
+    <value>Печать...</value>
+  </data>
   <data name="OptionsMenu" xml:space="preserve">
     <value>Параметры</value>
   </data>
   <data name="PreloadAggressiveness" xml:space="preserve">
-    <value>Агрессивность предзагрузки</value>
+    <value>Объём предзагрузки</value>
   </data>
   <data name="PreloadMemoryBudget" xml:space="preserve">
     <value>Память предзагрузки</value>
@@ -163,7 +166,7 @@
     <value>Выберите лимит памяти для кэша декодированных изображений.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Декодирует в фоне вероятные следующее и предыдущее изображения.</value>
+    <value>Декодирует соседние изображения и заранее читает 3D-файлы в фоновом режиме.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Использует более плавную интерполяцию при увеличении.</value>
@@ -260,4 +263,14 @@
   <data name="KeepReadyInBackgroundTooltip" xml:space="preserve"><value>Запускает Mangosteen вместе с Windows и держит просмотрщик готовым. Закрытие окна возвращает его в фоновый режим; Файл &gt; Выход полностью завершает программу.</value></data>
   <data name="RunningInstanceUnavailable" xml:space="preserve"><value>Mangosteen уже запущен, но связаться с существующим экземпляром не удалось.</value></data>
   <data name="StartupRegistrationFailedFormat" xml:space="preserve"><value>Не удалось обновить запуск вместе с Windows: {0}</value></data>
+  <data name="Performance" xml:space="preserve"><value>Производительность</value></data>
+  <data name="ResetView" xml:space="preserve"><value>Сбросить вид</value></data>
+  <data name="RotationUnavailable" xml:space="preserve"><value>Поворот недоступен в этом режиме просмотра.</value></data>
+  <data name="NoFileOpen" xml:space="preserve"><value>Откройте файл, чтобы использовать эту команду.</value></data>
+  <data name="AlreadyActualPixels" xml:space="preserve"><value>Уже отображается в масштабе 1:1.</value></data>
+  <data name="NoPreviousFile" xml:space="preserve"><value>В этой папке нет предыдущего файла.</value></data>
+  <data name="NoNextFile" xml:space="preserve"><value>В этой папке нет следующего файла.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D-вид</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Сетка в начале мировых координат</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Размещать сетку в исходном начале координат, а не под моделью.</value></data>
 </root>

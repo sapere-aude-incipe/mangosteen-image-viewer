@@ -1,12 +1,14 @@
 ﻿using Mangosteen.Caching;
 using Mangosteen.Core;
 using Mangosteen.Decoding;
-using Mangosteen.Dialogs;
 using Mangosteen.Editing;
 using Mangosteen.Icons;
 using Mangosteen.Localization;
 using Mangosteen.Navigation;
+using Mangosteen.Printing;
+using Mangosteen.Shell;
 using Mangosteen.Rendering;
+using Mangosteen.Rendering.Advanced;
 using Mangosteen.Updates;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
@@ -51,6 +53,26 @@ internal readonly record struct WindowPlacement(
     double Width,
     double Height);
 
+internal enum ViewerContentMode
+{
+    Image,
+    GpuLargeImage,
+    Model
+}
+
+internal enum ViewerKeyboardCommand
+{
+    None,
+    Suppress,
+    Open,
+    Print,
+    Previous,
+    Next,
+    ActualPixels,
+    Fit,
+    Delete
+}
+
 public partial class MainWindow : Window
 {
     private const int BalancedForwardPreloadCount = 50;
@@ -83,7 +105,7 @@ public partial class MainWindow : Window
     private const string MaximizeWindowIconGlyph = "\uE922";
     private const string RestoreWindowIconGlyph = "\uE923";
     private static readonly SKColor LightViewerBackground = new(244, 246, 248);
-    private static readonly SKColor DarkViewerBackground = new(30, 33, 38);
+    private static readonly SKColor DarkViewerBackground = new(33, 33, 33);
 
     private readonly Lazy<DecoderRegistry> _decoders = new(DecoderRegistry.CreateDefault);
     private readonly ImageNavigator _navigator = new();
@@ -92,9 +114,11 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _autoRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly ImagePreloadCache _fullPreloadCache = new();
     private readonly ImagePreloadCache _previewPreloadCache = new();
+    private readonly ModelFilePreloader _modelFilePreloader = new();
     private readonly Lazy<GitHubUpdateService> _updates = new(static () => new GitHubUpdateService());
     private readonly ImageRotationService _rotationService = new();
     private readonly SKPaint _imagePaint = new() { IsAntialias = true };
+    private readonly OptionalComponentCatalog _optionalComponents = new();
     private readonly object _preloadWorkerGate = new();
     private readonly object _backgroundFullWarmupGate = new();
     private readonly HashSet<string> _backgroundFullWarmups = new(StringComparer.OrdinalIgnoreCase);
@@ -104,7 +128,10 @@ public partial class MainWindow : Window
     private LoadSession? _loadSession;
     private CancellationTokenSource? _folderIndexCts;
     private CancellationTokenSource? _updateCheckCts;
+    private string? _imageStatusText;
+    private string? _updateStatusText;
     private CancellationTokenSource? _rotationSaveCts;
+    private CancellationTokenSource? _printCts;
     private CancellationTokenSource _preloadCts = new();
     private CancellationTokenSource _backgroundFullWarmupCts = new();
     private Task _preloadWorkerTask = Task.CompletedTask;
@@ -122,10 +149,15 @@ public partial class MainWindow : Window
     private bool _isPreloadEnabled = true;
     private bool _isAutoRefreshEnabled;
     private bool _keepReadyInBackground = true;
+    private bool _isModelGridAtWorldOrigin;
     private bool _isUpdatingZoomSlider;
+    private bool _isUpdatingZoomText;
+    private bool _isZoomTextDirty;
     private bool _isDarkMode = true;
     private bool _isAutoRefreshReloading;
     private bool _isApplyingRotation;
+    private bool _isNavigating;
+    private bool _isPrinting;
     private bool _exitRequested;
     private bool _isBackgroundWarmup;
     private bool _activationRequestedDuringWarmup;
@@ -139,6 +171,14 @@ public partial class MainWindow : Window
     private ToolbarIconKind? _actualPixelsIconKind;
     private Brush? _actualPixelsIconBrush;
     private bool? _actualPixelsIconEnabled;
+    private NativeGlHost? _gpuGlHost;
+    private NativeGlHost? _modelGlHost;
+    private GpuLargeImageRenderer? _gpuLargeImageRenderer;
+    private string? _gpuFailurePath;
+    private F3dModelRenderer? _modelRenderer;
+    private ViewerContentMode _contentMode;
+    private bool _isNativePointerDown;
+    private NativePointerEvent _lastNativePointer;
 
     private DecoderRegistry Decoders => _decoders.Value;
 
@@ -201,6 +241,7 @@ public partial class MainWindow : Window
         _isPreloadEnabled = settings.IsPreloadEnabled;
         _isAutoRefreshEnabled = settings.IsAutoRefreshEnabled;
         _keepReadyInBackground = settings.KeepReadyInBackground;
+        _isModelGridAtWorldOrigin = settings.IsModelGridAtWorldOrigin;
         _preloadBudgetGigabytes = Math.Clamp(settings.PreloadBudgetGigabytes, 1, 15);
         _preloadAggressiveness = settings.PreloadAggressiveness;
         if (settings.IsDarkMode == _isDarkMode)
@@ -226,6 +267,7 @@ public partial class MainWindow : Window
             IsPreloadEnabled = _isPreloadEnabled,
             IsAutoRefreshEnabled = _isAutoRefreshEnabled,
             KeepReadyInBackground = _keepReadyInBackground,
+            IsModelGridAtWorldOrigin = _isModelGridAtWorldOrigin,
             PreloadBudgetGigabytes = _preloadBudgetGigabytes,
             PreloadAggressiveness = _preloadAggressiveness
         }.Save();
@@ -236,6 +278,7 @@ public partial class MainWindow : Window
         UpdateWindowTitle(_navigator.CurrentPath is null ? null : Path.GetFileName(_navigator.CurrentPath));
         FileMenuItem.Header = LocalizedText.Get(LocalizedText.FileMenu);
         OpenMenuItem.Header = LocalizedText.Get(LocalizedText.OpenCommand);
+        PrintMenuItem.Header = LocalizedText.Get(LocalizedText.PrintCommand);
         DeleteMenuItem.Header = LocalizedText.Get(LocalizedText.DeleteImage);
         ExitMenuItem.Header = LocalizedText.Get(LocalizedText.Exit);
         OptionsMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsMenu);
@@ -250,11 +293,15 @@ public partial class MainWindow : Window
         PreloadEnabledMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadNearbyImages);
         PreloadMemoryBudgetMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadMemoryBudget);
         PreloadAggressivenessMenuItem.Header = LocalizedText.Get(LocalizedText.PreloadAggressiveness);
+        PerformanceMenuItem.Header = LocalizedText.Get(LocalizedText.Performance);
         ConservativePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Conservative);
         BalancedPreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Balanced);
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
         AutoRefreshMenuItem.Header = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImage);
         KeepReadyInBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.KeepReadyInBackground);
+        ModelViewMenuItem.Header = LocalizedText.Get(LocalizedText.ModelView);
+        ModelGridAtWorldOriginMenuItem.Header = LocalizedText.Get(LocalizedText.ModelGridAtWorldOrigin);
+        ModelGridAtWorldOriginMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ModelGridAtWorldOriginTooltip);
         DarkModeMenuItem.Header = LocalizedText.Get(LocalizedText.ToggleDarkMode);
         OptionsHelpMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsHelp);
         SamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.UpscalingTooltip);
@@ -320,9 +367,11 @@ public partial class MainWindow : Window
         ContextDeleteMenuItem.Header = LocalizedText.Get(LocalizedText.DeleteImage);
         ContextPropertiesMenuItem.Header = LocalizedText.Get(LocalizedText.Properties);
         ZoomText.ToolTip = zoomText;
+        AutomationProperties.SetName(ZoomText, zoomText);
         ZoomSlider.ToolTip = zoomText;
         AutomationProperties.SetName(ZoomSlider, zoomText);
         OpenMenuItem.InputGestureText = "Ctrl+O";
+        PrintMenuItem.InputGestureText = "Ctrl+P";
         DeleteMenuItem.InputGestureText = "Del";
         ContextDeleteMenuItem.InputGestureText = "Del";
         UpdateSettingsMenuChecks();
@@ -354,7 +403,7 @@ public partial class MainWindow : Window
 
         try
         {
-            ShowStatus(LocalizedText.Get(LocalizedText.CheckingForUpdates));
+            ShowUpdateStatus(LocalizedText.Get(LocalizedText.CheckingForUpdates));
             var update = await Updates.CheckLatestReleaseAsync(currentVersion, updateCheckCts.Token);
             if (!update.IsUpdateAvailable)
             {
@@ -414,7 +463,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            ShowStatus(LocalizedText.Get(LocalizedText.DownloadingUpdate));
+            ShowUpdateStatus(LocalizedText.Get(LocalizedText.DownloadingUpdate));
             CancelUpdateButton.IsEnabled = true;
             ShowUpdateDownloadProgress(default);
             var isDownloadActive = true;
@@ -441,7 +490,7 @@ public partial class MainWindow : Window
             }
 
             updateCheckCts.Token.ThrowIfCancellationRequested();
-            ShowStatus(LocalizedText.Get(LocalizedText.StartingInstaller));
+            ShowUpdateStatus(LocalizedText.Get(LocalizedText.StartingInstaller));
             Process.Start(new ProcessStartInfo(installerPath)
             {
                 UseShellExecute = true
@@ -500,6 +549,8 @@ public partial class MainWindow : Window
 
     public async Task OpenPathAsync(string path)
     {
+        _rotationSaveCts?.Cancel();
+        _printCts?.Cancel();
         StartupDiagnostics.Mark("open_path.begin", Path.GetFileName(path));
         if (_isClosing)
         {
@@ -651,6 +702,7 @@ public partial class MainWindow : Window
         _loadSession?.CancelAndDisposeWhenInactive();
         _loadSession = null;
         CancelUpdateCheck();
+        _printCts?.Cancel();
         _rotationSaveCts?.Cancel();
         _rotationSaveCts = null;
         CancelFolderIndexing();
@@ -661,6 +713,20 @@ public partial class MainWindow : Window
         _image?.Dispose();
         _image = null;
         _imagePaint.Dispose();
+        _gpuLargeImageRenderer?.Dispose();
+        _gpuLargeImageRenderer = null;
+        var modelRendererDisposed = _modelRenderer?.TryDisposeWithoutBlocking() ?? true;
+        _modelRenderer = null;
+        DisposeNativeGlHost(ref _gpuGlHost);
+        if (modelRendererDisposed)
+        {
+            DisposeNativeGlHost(ref _modelGlHost);
+        }
+        else
+        {
+            _modelGlHost?.AbandonForProcessShutdown();
+            _modelGlHost = null;
+        }
         if (_decoders.IsValueCreated)
         {
             _decoders.Value.Dispose();
@@ -690,6 +756,8 @@ public partial class MainWindow : Window
 
         ZoomPopup.IsOpen = false;
         DiscardPendingRotation(refitImage: false);
+        _rotationSaveCts?.Cancel();
+        _printCts?.Cancel();
         ClearForMissingFile();
         ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
         Hide();
@@ -718,7 +786,16 @@ public partial class MainWindow : Window
         var path = _navigator.CurrentPath;
         if (path is null) return;
 
+        if (ShouldUseModelViewer(path))
+        {
+            StartupDiagnostics.Mark("model.route", Path.GetFileName(path));
+            await LoadCurrentModelAsync(path);
+            return;
+        }
+
         StopCurrentImageInteraction();
+        CloseAdvancedContent();
+        ShowImageSurface();
         CancelBackgroundFullWarmups();
         var generation = ++_loadGeneration;
         _isCurrentPreviewAwaitingFullResolution = false;
@@ -748,7 +825,14 @@ public partial class MainWindow : Window
 
                 SetImage(preloaded, fitToWindow);
                 StartupDiagnostics.Mark("load_current.preloaded_set_image", Path.GetFileName(path));
-                HandleDisplayedImageLoadState(preloaded, path, session);
+                if (await TryActivateGpuLargeImageAsync(preloaded, path, token))
+                {
+                    ScheduleSmartPreloads(allowFullPreloads: false);
+                }
+                else
+                {
+                    HandleDisplayedImageLoadState(preloaded, path, session);
+                }
 
                 return;
             }
@@ -763,7 +847,14 @@ public partial class MainWindow : Window
 
             SetImage(preview, fitToWindow);
             StartupDiagnostics.Mark("load_current.preview_set_image", $"{Path.GetFileName(path)} full={preview.IsFullResolution}");
-            HandleDisplayedImageLoadState(preview, path, session);
+            if (await TryActivateGpuLargeImageAsync(preview, path, token))
+            {
+                ScheduleSmartPreloads(allowFullPreloads: false);
+            }
+            else
+            {
+                HandleDisplayedImageLoadState(preview, path, session);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -788,6 +879,314 @@ public partial class MainWindow : Window
         }
     }
 
+    private bool ShouldUseModelViewer(string path)
+    {
+        return ModelFileExtensions.IsSupported(path) &&
+            _optionalComponents.IsInstalled(OptionalComponentKind.ModelViewer);
+    }
+
+    private async Task LoadCurrentModelAsync(string path)
+    {
+        StartupDiagnostics.Mark("model.load.begin", Path.GetFileName(path));
+        StopCurrentImageInteraction();
+        CancelBackgroundFullWarmups();
+        CancelPreloadWorker();
+        CloseAdvancedContent();
+        ShowImageSurface();
+        ClearImage();
+        var generation = ++_loadGeneration;
+        var session = StartLoadSession(generation);
+        var token = session.Token;
+        ShowStatus(LocalizedText.Get(LocalizedText.Loading));
+        UpdateWindowTitle(Path.GetFileName(path));
+        UpdateNavigationButtons();
+
+        try
+        {
+            var host = EnsureNativeGlHost(ViewerContentMode.Model);
+            await Dispatcher.InvokeAsync(UpdateLayout, DispatcherPriority.Loaded, token);
+            host.TryRender(() =>
+            {
+                OpenGl11.Viewport(0, 0, Math.Max(1, host.PixelWidth), Math.Max(1, host.PixelHeight));
+                OpenGl11.ClearColor(0.129f, 0.129f, 0.129f, 1f);
+                OpenGl11.Clear(OpenGl11.ColorBufferBit | OpenGl11.DepthBufferBit);
+            });
+            StartupDiagnostics.Mark("model.surface", $"ready={host.IsSurfaceReady} {host.PixelWidth}x{host.PixelHeight}");
+            if (!host.IsSurfaceReady)
+            {
+                throw new InvalidOperationException("The optional 3D rendering surface could not be initialized.");
+            }
+
+            if (_modelRenderer is null)
+            {
+                _modelRenderer = new F3dModelRenderer(
+                    host,
+                    _optionalComponents.GetComponentDirectory(OptionalComponentKind.ModelViewer));
+                _modelRenderer.RenderingFailed += ModelRenderer_RenderingFailed;
+            }
+            _modelRenderer.SetGridAtWorldOrigin(_isModelGridAtWorldOrigin);
+            await _modelRenderer.OpenAsync(path, _isDarkMode, token);
+            StartupDiagnostics.Mark("model.f3d.opened", Path.GetFileName(path));
+            if (!IsCurrentLoad(generation, token) || !_modelRenderer.IsOpen)
+            {
+                return;
+            }
+
+            _contentMode = ViewerContentMode.Model;
+            ShowNativeSurface(host);
+            UpdateLayout();
+            host.ResizeToDips(ViewerSurfaceContainer.ActualWidth, ViewerSurfaceContainer.ActualHeight);
+            _modelRenderer.ApplyTheme(_isDarkMode);
+            if (!_modelRenderer.IsOpen) return;
+            HideStatus();
+            HidePreviewOnlyBadge();
+            UpdateNavigationButtons();
+            StartupDiagnostics.Mark("model.load.end", Path.GetFileName(path));
+            ScheduleSmartPreloads(allowFullPreloads: false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            StartupDiagnostics.Mark("model.load.error", ex.ToString());
+            if (IsCurrentLoad(generation, token))
+            {
+                ShowImageSurface();
+                ShowStatus(ex.Message);
+            }
+        }
+        finally
+        {
+            session.Release();
+        }
+    }
+
+    private async Task<bool> TryActivateGpuLargeImageAsync(
+        DecodedImage image,
+        string path,
+        CancellationToken token)
+    {
+        var generation = _loadGeneration;
+        if (!_optionalComponents.IsInstalled(OptionalComponentKind.GpuLargeImages) ||
+            string.Equals(path, _gpuFailurePath, StringComparison.OrdinalIgnoreCase) ||
+            image.FrameCount != 1 ||
+            !LargeImageClassifier.Classify(image.Metadata, path).UseAdvancedRenderer)
+        {
+            return false;
+        }
+
+        try
+        {
+            var host = EnsureNativeGlHost(ViewerContentMode.GpuLargeImage);
+            await Dispatcher.InvokeAsync(UpdateLayout, DispatcherPriority.Loaded, token);
+            if (!host.IsSurfaceReady)
+            {
+                return false;
+            }
+
+            if (_gpuLargeImageRenderer is null)
+            {
+                _gpuLargeImageRenderer = new GpuLargeImageRenderer(host);
+                _gpuLargeImageRenderer.RenderingFailed += GpuRenderer_RenderingFailed;
+            }
+            var activated = await _gpuLargeImageRenderer.OpenAsync(
+                path,
+                image.Metadata,
+                image.Frames[0].Image,
+                _viewerState,
+                token);
+            if (!IsCurrentLoad(generation, token)) throw new OperationCanceledException(token);
+            if (!activated)
+            {
+                return false;
+            }
+
+            _contentMode = ViewerContentMode.GpuLargeImage;
+            ShowNativeSurface(host);
+            host.ResizeToDips(ViewerSurfaceContainer.ActualWidth, ViewerSurfaceContainer.ActualHeight);
+            _isCurrentPreviewAwaitingFullResolution = false;
+            _setActualPixelsAfterFullLoad = false;
+            HideStatus();
+            HidePreviewOnlyBadge();
+            _gpuLargeImageRenderer.UpdateView(_viewerBackgroundColor, _useSmoothSampling);
+            UpdateNavigationButtons();
+            return true;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            if (!IsCurrentLoad(generation, token)) throw new OperationCanceledException(token);
+            TraceBackgroundError("GPU large-image renderer activation failed", ex);
+            _gpuLargeImageRenderer?.CloseCurrent();
+            _contentMode = ViewerContentMode.Image;
+            ShowImageSurface();
+            return false;
+        }
+    }
+
+    private NativeGlHost EnsureNativeGlHost(ViewerContentMode mode)
+    {
+        ref var host = ref (mode == ViewerContentMode.Model ? ref _modelGlHost : ref _gpuGlHost);
+        if (host is not null) return host;
+        host = new NativeGlHost();
+        host.PointerPressed += NativeGlHost_PointerPressed;
+        host.PointerMoved += NativeGlHost_PointerMoved;
+        host.PointerReleased += NativeGlHost_PointerReleased;
+        host.WheelChanged += NativeGlHost_WheelChanged;
+        host.NavigationRequested += NativeGlHost_NavigationRequested;
+        host.ContextMenuRequested += NativeGlHost_ContextMenuRequested;
+        host.KeyPressed += NativeGlHost_KeyPressed;
+        NativeSurfaceMount.Children.Add(host);
+        SetNativeHostVisibility(host, visible: false);
+        return host;
+    }
+
+    private void CloseAdvancedContent()
+    {
+        _gpuLargeImageRenderer?.CloseCurrent();
+        _modelRenderer?.CloseCurrent();
+        _contentMode = ViewerContentMode.Image;
+        _isNativePointerDown = false;
+    }
+
+    private async void GpuRenderer_RenderingFailed(object? sender, Exception error)
+    {
+        if (_isClosing || sender != _gpuLargeImageRenderer || _contentMode != ViewerContentMode.GpuLargeImage) return;
+        TraceBackgroundError("GPU rendering failed; returning to the standard decoder", error);
+        _gpuFailurePath = _navigator.CurrentPath;
+        await RunUiCommandAsync(() => LoadCurrentImageAsync(fitToWindow: false));
+    }
+
+    private void ModelRenderer_RenderingFailed(object? sender, Exception error)
+    {
+        if (_isClosing || sender != _modelRenderer) return;
+        TraceBackgroundError("3D rendering failed", error);
+        CloseAdvancedContent();
+        ShowImageSurface();
+        ShowStatus(error.Message);
+        UpdateNavigationButtons();
+    }
+
+    private void ShowImageSurface()
+    {
+        SetStatusOverlayPlacement(nativeSurfaceVisible: false);
+        SetNativeHostVisibility(_gpuGlHost, visible: false);
+        SetNativeHostVisibility(_modelGlHost, visible: false);
+        NativeSurfaceMount.IsHitTestVisible = false;
+        ImageSurface.Visibility = Visibility.Visible;
+    }
+
+    private void ShowNativeSurface(NativeGlHost host)
+    {
+        SetStatusOverlayPlacement(nativeSurfaceVisible: true);
+        ImageSurface.Visibility = Visibility.Hidden;
+        NativeSurfaceMount.IsHitTestVisible = true;
+        SetNativeHostVisibility(_gpuGlHost, ReferenceEquals(host, _gpuGlHost));
+        SetNativeHostVisibility(_modelGlHost, ReferenceEquals(host, _modelGlHost));
+    }
+
+    private void SetStatusOverlayPlacement(bool nativeSurfaceVisible)
+    {
+        Grid.SetRow(StatusOverlay, nativeSurfaceVisible ? 2 : 1);
+        StatusOverlay.Margin = nativeSurfaceVisible ? new Thickness(16, 6, 16, 0) : new Thickness(0);
+        StatusOverlay.VerticalAlignment = nativeSurfaceVisible ? VerticalAlignment.Top : VerticalAlignment.Center;
+    }
+
+    private void SetNativeHostVisibility(NativeGlHost? host, bool visible)
+    {
+        if (host is null) return;
+        host.Width = visible ? Math.Max(1, ViewerSurfaceContainer.ActualWidth) : 1;
+        host.Height = visible ? Math.Max(1, ViewerSurfaceContainer.ActualHeight) : 1;
+        Canvas.SetLeft(host, visible ? 0 : -4);
+        Canvas.SetTop(host, visible ? 0 : -4);
+        host.IsHitTestVisible = visible;
+    }
+
+    private void DisposeNativeGlHost(ref NativeGlHost? host)
+    {
+        if (host is null) return;
+        NativeSurfaceMount.Children.Remove(host);
+        host.Dispose();
+        host = null;
+    }
+
+    private void InvalidateViewer()
+    {
+        if (_contentMode == ViewerContentMode.GpuLargeImage)
+        {
+            _gpuLargeImageRenderer?.UpdateView(_viewerBackgroundColor, _useSmoothSampling);
+            return;
+        }
+
+        ImageSurface.InvalidateVisual();
+    }
+
+    private void NativeGlHost_PointerPressed(object? sender, NativePointerEvent e)
+    {
+        _isNativePointerDown = true;
+        _lastNativePointer = e;
+    }
+
+    private void NativeGlHost_PointerMoved(object? sender, NativePointerEvent e)
+    {
+        if (!_isNativePointerDown) return;
+        var deltaX = e.X - _lastNativePointer.X;
+        var deltaY = e.Y - _lastNativePointer.Y;
+        _lastNativePointer = e;
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            _modelRenderer?.OrbitFromDrag(deltaX, deltaY);
+            return;
+        }
+
+        if (_contentMode == ViewerContentMode.GpuLargeImage)
+        {
+            _viewerState.PanBy(new SKPoint(deltaX, deltaY));
+            UpdateZoomText();
+            InvalidateViewer();
+        }
+    }
+
+    private void NativeGlHost_PointerReleased(object? sender, NativePointerEvent e)
+    {
+        _isNativePointerDown = false;
+    }
+
+    private void NativeGlHost_WheelChanged(object? sender, NativePointerEvent e)
+    {
+        var factor = e.Delta > 0 ? 1.15 : 1.0 / 1.15;
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            _modelRenderer?.Zoom(factor);
+            UpdateZoomText();
+            return;
+        }
+
+        if (_contentMode == ViewerContentMode.GpuLargeImage)
+        {
+            _viewerState.ZoomAt(factor, new SKPoint(e.X, e.Y));
+            UpdateZoomText();
+            InvalidateViewer();
+        }
+    }
+
+    private async void NativeGlHost_NavigationRequested(object? sender, int delta)
+    {
+        await RunUiCommandAsync(() => NavigateRelativeAsync(delta));
+    }
+
+    private void NativeGlHost_ContextMenuRequested(object? sender, EventArgs e)
+    {
+        if (_isClosing)
+        {
+            return;
+        }
+
+        UpdateImageContextMenuItems();
+        ImageContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+        ImageContextMenu.IsOpen = true;
+    }
+
     private void HandleDisplayedImageLoadState(DecodedImage image, string path, LoadSession session)
     {
         StartupDiagnostics.Mark("load_state.begin", $"{Path.GetFileName(path)} full={image.IsFullResolution}");
@@ -802,6 +1201,18 @@ public partial class MainWindow : Window
         {
             ScheduleSmartPreloads(allowFullPreloads: true);
             StartupDiagnostics.Mark("load_state.cached_full_applied", Path.GetFileName(path));
+            return;
+        }
+
+        if (image.FrameCount > 1 && ShouldDeferFullResolution(image.Metadata))
+        {
+            // A viewport-sized animation is already useful and responsive. Avoid
+            // immediately replacing it with a multi-gigabyte full-frame decode;
+            // actual-pixel viewing can still request that upgrade explicitly.
+            ScheduleSmartPreloads(allowFullPreloads: true);
+            StartupDiagnostics.Mark(
+                "load_state.animated_preview_retained",
+                $"{Path.GetFileName(path)} frames={image.FrameCount}");
             return;
         }
 
@@ -889,7 +1300,7 @@ public partial class MainWindow : Window
                 {
                     _setActualPixelsAfterFullLoad = false;
                     UpdateZoomText();
-                    ImageSurface.InvalidateVisual();
+                    InvalidateViewer();
                 }
 
                 appliedFullImage = true;
@@ -1012,7 +1423,7 @@ public partial class MainWindow : Window
         RequestMemoryCleanup(oldReleasedBytes == 0 ? 0 : oldBytes);
         UpdateZoomText();
         UpdateNavigationButtons();
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
     }
 
     private long CacheOrDisposeReplacedImage(DecodedImage? image, string replacementPath)
@@ -1044,6 +1455,11 @@ public partial class MainWindow : Window
 
     private void ClearImage()
     {
+        if (_contentMode != ViewerContentMode.Image)
+        {
+            CloseAdvancedContent();
+            ShowImageSurface();
+        }
         _animationTimer.Stop();
         var old = _image;
         var oldBytes = old?.EstimatedBytes ?? 0;
@@ -1058,7 +1474,7 @@ public partial class MainWindow : Window
         HidePreviewOnlyBadge();
         UpdateZoomText();
         UpdateRotationControls();
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
     }
 
     private void ConfigureAnimationTimer()
@@ -1068,6 +1484,7 @@ public partial class MainWindow : Window
 
         _animationTimer.Interval = _image.Frames[0].Delay;
         _animationTimer.Start();
+        StartupDiagnostics.Mark("animation.started", $"frames={_image.FrameCount}");
     }
 
     private void AnimationTimer_Tick(object? sender, EventArgs e)
@@ -1076,7 +1493,7 @@ public partial class MainWindow : Window
 
         _frameIndex = (_frameIndex + 1) % _image.FrameCount;
         _animationTimer.Interval = _image.Frames[_frameIndex].Delay;
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
     }
 
     private void ImageSurface_PaintSurface(object? sender, SKPaintSurfaceEventArgs e)
@@ -1114,18 +1531,34 @@ public partial class MainWindow : Window
         var factor = e.Delta > 0 ? 1.15 : 1.0 / 1.15;
         _viewerState.ZoomAt(factor, ToPixelPoint(e.GetPosition(ImageSurface)));
         UpdateZoomText();
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
         e.Handled = true;
     }
 
     private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_isUpdatingZoomSlider || _image is null)
+        if (_isUpdatingZoomSlider || !CanAdjustZoom)
         {
             return;
         }
 
         var targetZoom = GetZoomFromSliderValue(e.NewValue);
+        SetZoom(targetZoom);
+    }
+
+    private bool CanAdjustZoom => !_isApplyingRotation &&
+        (_contentMode == ViewerContentMode.Model ? _modelRenderer?.IsOpen == true : _image is not null && IsDisplayedImageCurrent());
+
+    private void SetZoom(double targetZoom)
+    {
+        if (!CanAdjustZoom || !double.IsFinite(targetZoom) || targetZoom <= 0) return;
+        targetZoom = Math.Clamp(targetZoom, GetSliderMinimumZoom(), GetSliderMaximumZoom());
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            _modelRenderer?.SetZoom(targetZoom);
+            UpdateZoomText();
+            return;
+        }
         if (Math.Abs(targetZoom - _viewerState.Zoom) < 0.0001 || _viewerState.Zoom <= 0)
         {
             return;
@@ -1136,7 +1569,7 @@ public partial class MainWindow : Window
             _viewerState.ViewportSize.Height / 2f);
         _viewerState.ZoomAt(targetZoom / _viewerState.Zoom, viewportCenter);
         UpdateZoomText();
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
     }
 
     private void ImageSurface_MouseDown(object sender, MouseButtonEventArgs e)
@@ -1169,7 +1602,7 @@ public partial class MainWindow : Window
         var point = ToPixelPoint(e.GetPosition(ImageSurface));
         _viewerState.PanBy(new SKPoint(point.X - _lastPanPoint.X, point.Y - _lastPanPoint.Y));
         _lastPanPoint = point;
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
         e.Handled = true;
     }
 
@@ -1189,6 +1622,9 @@ public partial class MainWindow : Window
 
     private void StopCurrentImageInteraction()
     {
+        // Do not apply unfinished zoom text to the next file.
+        UpdateZoomText();
+        ZoomPopup.IsOpen = false;
         _animationTimer.Stop();
         StopPanning();
     }
@@ -1212,40 +1648,36 @@ public partial class MainWindow : Window
         await RunUiCommandAsync(NavigateNextAsync);
     }
 
-    private Task NavigateRelativeAsync(int delta)
+    private async Task NavigateRelativeAsync(int delta)
     {
-        return delta < 0
-            ? NavigatePreviousAsync()
-            : NavigateNextAsync();
-    }
-
-    private async Task NavigatePreviousAsync()
-    {
-        if (_isApplyingRotation)
+        // Do not cancel an in-flight display load on every keyboard repeat or queue stale steps.
+        if (_isApplyingRotation || _isNavigating || _isClosing)
         {
             return;
         }
 
-        if (_navigator.CanMovePrevious && _navigator.MovePrevious() is not null)
+        _isNavigating = true;
+        try
         {
-            DiscardPendingRotation(refitImage: false);
-            await LoadCurrentImageAsync(fitToWindow: true);
+            var path = delta < 0
+                ? (_navigator.CanMovePrevious ? _navigator.MovePrevious() : null)
+                : (_navigator.CanMoveNext ? _navigator.MoveNext() : null);
+            if (path is not null)
+            {
+                _printCts?.Cancel();
+                DiscardPendingRotation(refitImage: false);
+                await LoadCurrentImageAsync(fitToWindow: true);
+            }
+        }
+        finally
+        {
+            _isNavigating = false;
         }
     }
 
-    private async Task NavigateNextAsync()
-    {
-        if (_isApplyingRotation)
-        {
-            return;
-        }
+    private Task NavigatePreviousAsync() => NavigateRelativeAsync(-1);
 
-        if (_navigator.CanMoveNext && _navigator.MoveNext() is not null)
-        {
-            DiscardPendingRotation(refitImage: false);
-            await LoadCurrentImageAsync(fitToWindow: true);
-        }
-    }
+    private Task NavigateNextAsync() => NavigateRelativeAsync(1);
 
     private void ActualPixelsButton_Click(object sender, RoutedEventArgs e)
     {
@@ -1255,6 +1687,64 @@ public partial class MainWindow : Window
     private void ZoomPopupButton_Click(object sender, RoutedEventArgs e)
     {
         ZoomPopup.IsOpen = !ZoomPopup.IsOpen;
+    }
+
+    private void ZoomPopup_Opened(object? sender, EventArgs e)
+    {
+        UpdateZoomText();
+        if (CanAdjustZoom) ZoomText.Focus();
+    }
+
+    private void ZoomPopup_Closed(object? sender, EventArgs e)
+    {
+        CommitZoomText();
+    }
+
+    private void ZoomText_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        ZoomText.SelectAll();
+    }
+
+    private void ZoomText_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        CommitZoomText();
+    }
+
+    private void ZoomText_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Enter or Key.Escape)) return;
+        e.Handled = true;
+        if (e.Key == Key.Enter) CommitZoomText();
+        else UpdateZoomText();
+        ZoomPopup.IsOpen = false;
+        ZoomPopupButton.Focus();
+    }
+
+    private void CommitZoomText()
+    {
+        var wasEdited = _isZoomTextDirty;
+        _isZoomTextDirty = false;
+        if (wasEdited && TryParseZoomPercentage(ZoomText.Text, CultureInfo.CurrentCulture, out var zoom)) SetZoom(zoom);
+        UpdateZoomText();
+    }
+
+    private void ZoomText_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_isUpdatingZoomText) _isZoomTextDirty = true;
+    }
+
+    internal static bool TryParseZoomPercentage(string? text, CultureInfo culture, out double zoom)
+    {
+        zoom = 0;
+        var value = text?.Trim() ?? string.Empty;
+        var symbol = culture.NumberFormat.PercentSymbol;
+        if (!string.IsNullOrEmpty(symbol) && value.EndsWith(symbol, StringComparison.Ordinal))
+            value = value[..^symbol.Length].TrimEnd();
+        else if (value.EndsWith('%')) value = value[..^1].TrimEnd();
+        if (!double.TryParse(value, NumberStyles.Float, culture, out var percent) ||
+            !double.IsFinite(percent) || percent <= 0) return false;
+        zoom = percent / 100;
+        return zoom > 0;
     }
 
     private void RotateLeftButton_Click(object sender, RoutedEventArgs e)
@@ -1301,6 +1791,11 @@ public partial class MainWindow : Window
     private async void OpenMenuItem_Click(object sender, RoutedEventArgs e)
     {
         await RunUiCommandAsync(ShowOpenDialogAsync);
+    }
+
+    private async void PrintMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        await RunUiCommandAsync(PrintCurrentImageAsync);
     }
 
     private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
@@ -1368,54 +1863,155 @@ public partial class MainWindow : Window
         RequestApplicationExit();
     }
 
+    private async void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        // Only global modified shortcuts tunnel past controls. Menu arrows and
+        // Space must first be offered to the focused control's KeyDown handler.
+        if (Keyboard.Modifiers != ModifierKeys.Control || e.Key is not (Key.P or Key.O))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await RunUiCommandAsync(() => ExecuteKeyboardCommandAsync(
+            _isApplyingRotation ? ViewerKeyboardCommand.Suppress :
+            e.Key == Key.P ? ViewerKeyboardCommand.Print : ViewerKeyboardCommand.Open));
+    }
+
     private async void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        await RunUiCommandAsync(async () =>
+        if (e.OriginalSource is TextBox) return;
+        var command = ResolveKeyboardCommand(
+            e.Key,
+            Keyboard.Modifiers,
+            _isApplyingRotation,
+            _navigator.CanMovePrevious,
+            _navigator.CanMoveNext,
+            CanDeleteCurrentImage());
+        if (command == ViewerKeyboardCommand.None)
         {
-            if (_isApplyingRotation)
-            {
-                e.Handled = true;
-                return;
-            }
+            return;
+        }
 
-            if (e.Key == Key.O && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-            {
-                e.Handled = true;
+        e.Handled = true;
+        await RunUiCommandAsync(() => ExecuteKeyboardCommandAsync(command));
+    }
+
+    private void NativeGlHost_KeyPressed(object? sender, NativeKeyEventArgs e)
+    {
+        var command = ResolveKeyboardCommand(
+            e.Key,
+            e.Modifiers,
+            _isApplyingRotation,
+            _navigator.CanMovePrevious,
+            _navigator.CanMoveNext,
+            CanDeleteCurrentImage());
+        if (command == ViewerKeyboardCommand.None)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        _ = Dispatcher.InvokeAsync(
+            () => RunUiCommandAsync(() => ExecuteKeyboardCommandAsync(command)),
+            DispatcherPriority.Input);
+    }
+
+    internal static ViewerKeyboardCommand ResolveKeyboardCommand(
+        Key key,
+        ModifierKeys modifiers,
+        bool isApplyingRotation,
+        bool canMovePrevious,
+        bool canMoveNext,
+        bool canDelete)
+    {
+        if (isApplyingRotation)
+        {
+            return ViewerKeyboardCommand.Suppress;
+        }
+
+        if (key == Key.O && modifiers == ModifierKeys.Control)
+        {
+            return ViewerKeyboardCommand.Open;
+        }
+
+        if (key == Key.P && modifiers == ModifierKeys.Control)
+        {
+            return ViewerKeyboardCommand.Print;
+        }
+
+        if (modifiers != ModifierKeys.None)
+        {
+            return ViewerKeyboardCommand.None;
+        }
+
+        if (key is Key.Left or Key.Back && canMovePrevious)
+        {
+            return ViewerKeyboardCommand.Previous;
+        }
+
+        if (key is Key.Right or Key.Space && canMoveNext)
+        {
+            return ViewerKeyboardCommand.Next;
+        }
+
+        if (key is Key.D1 or Key.NumPad1)
+        {
+            return ViewerKeyboardCommand.ActualPixels;
+        }
+
+        if (key == Key.F)
+        {
+            return ViewerKeyboardCommand.Fit;
+        }
+
+        if (key == Key.Delete && canDelete)
+        {
+            return ViewerKeyboardCommand.Delete;
+        }
+
+        return ViewerKeyboardCommand.None;
+    }
+
+    private async Task ExecuteKeyboardCommandAsync(ViewerKeyboardCommand command)
+    {
+        switch (command)
+        {
+            case ViewerKeyboardCommand.Open:
                 await ShowOpenDialogAsync();
-            }
-            else if (e.Key is Key.Left or Key.Back && _navigator.CanMovePrevious)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Print:
+                await PrintCurrentImageAsync();
+                break;
+            case ViewerKeyboardCommand.Previous:
                 await NavigatePreviousAsync();
-            }
-            else if (e.Key is Key.Right or Key.Space && _navigator.CanMoveNext)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Next:
                 await NavigateNextAsync();
-            }
-            else if (e.Key is Key.D1 or Key.NumPad1)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.ActualPixels:
                 ToggleActualPixels();
-            }
-            else if (e.Key == Key.F)
-            {
-                e.Handled = true;
+                break;
+            case ViewerKeyboardCommand.Fit:
+                if (_contentMode == ViewerContentMode.Model)
+                {
+                    _modelRenderer?.ResetView();
+                    UpdateZoomText();
+                    break;
+                }
                 if (IsCurrentPreviewAwaitingFullResolution)
                 {
-                    return;
+                    break;
                 }
 
                 _viewerState.FitToWindow();
                 UpdateZoomText();
-                ImageSurface.InvalidateVisual();
-            }
-            else if (e.Key == Key.Delete && CanDeleteCurrentImage())
-            {
-                e.Handled = true;
+                InvalidateViewer();
+                break;
+            case ViewerKeyboardCommand.Delete:
                 await DeleteCurrentImageAsync();
-            }
-        });
+                break;
+        }
     }
 
     private void Window_DragOver(object sender, DragEventArgs e)
@@ -1448,7 +2044,17 @@ public partial class MainWindow : Window
         UpdateZoomText();
         UpdateToolbarDensity();
         UpdateStatusOverlayMaxWidth();
-        ImageSurface.InvalidateVisual();
+        if (_contentMode == ViewerContentMode.GpuLargeImage)
+        {
+            SetNativeHostVisibility(_gpuGlHost, visible: true);
+            _gpuGlHost?.ResizeToDips(ViewerSurfaceContainer.ActualWidth, ViewerSurfaceContainer.ActualHeight);
+        }
+        else if (_contentMode == ViewerContentMode.Model)
+        {
+            SetNativeHostVisibility(_modelGlHost, visible: true);
+            _modelGlHost?.ResizeToDips(ViewerSurfaceContainer.ActualWidth, ViewerSurfaceContainer.ActualHeight);
+        }
+        InvalidateViewer();
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1479,6 +2085,11 @@ public partial class MainWindow : Window
     {
         UpdateMaximizeRestoreButton();
         UpdateToolbarDensity();
+        if (!_isClosing && WindowState != WindowState.Minimized)
+        {
+            _modelGlHost?.RequestRepaint();
+            _gpuGlHost?.RequestRepaint();
+        }
     }
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -1578,7 +2189,7 @@ public partial class MainWindow : Window
         _useSmoothSampling = useSmoothSampling;
         UpdateSettingsMenuChecks();
         SaveSettings();
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
     }
 
     private void SetPreloadEnabled(bool isEnabled)
@@ -1636,6 +2247,14 @@ public partial class MainWindow : Window
         SaveSettings();
     }
 
+    private void ModelGridAtWorldOriginMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        _isModelGridAtWorldOrigin = ModelGridAtWorldOriginMenuItem.IsChecked;
+        _modelRenderer?.SetGridAtWorldOrigin(_isModelGridAtWorldOrigin);
+        UpdateSettingsMenuChecks();
+        SaveSettings();
+    }
+
     private void UpdateSettingsMenuChecks()
     {
         SmoothSamplingMenuItem.IsChecked = _useSmoothSampling;
@@ -1643,6 +2262,7 @@ public partial class MainWindow : Window
         PreloadEnabledMenuItem.IsChecked = _isPreloadEnabled;
         AutoRefreshMenuItem.IsChecked = _isAutoRefreshEnabled;
         KeepReadyInBackgroundMenuItem.IsChecked = _keepReadyInBackground;
+        ModelGridAtWorldOriginMenuItem.IsChecked = _isModelGridAtWorldOrigin;
 
         foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
         {
@@ -1662,7 +2282,7 @@ public partial class MainWindow : Window
         {
             Title = LocalizedText.Get(LocalizedText.OpenImage),
             Filter = ImageDialogFilter.Build(
-                Decoders.SupportedExtensions,
+                GetSupportedContentExtensions(),
                 LocalizedText.Get(LocalizedText.ImageFiles),
                 LocalizedText.Get(LocalizedText.AllFiles))
         };
@@ -1671,6 +2291,19 @@ public partial class MainWindow : Window
         {
             await OpenPathAsync(dialog.FileName);
         }
+    }
+
+    private IReadOnlyCollection<string> GetSupportedContentExtensions()
+    {
+        if (!_optionalComponents.IsInstalled(OptionalComponentKind.ModelViewer))
+        {
+            return Decoders.SupportedExtensions;
+        }
+
+        return Decoders.SupportedExtensions
+            .Concat(ModelFileExtensions.Supported)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private void ShowCurrentImageInFolder()
@@ -1767,13 +2400,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        var startInfo = new ProcessStartInfo("rundll32.exe")
-        {
-            UseShellExecute = false
-        };
-        startInfo.ArgumentList.Add("shell32.dll,OpenAs_RunDLL");
-        startInfo.ArgumentList.Add(path);
-        Process.Start(startInfo);
+        var ownerHandle = _hwndSource?.Handle ?? new WindowInteropHelper(this).Handle;
+        OpenWithService.Show(path, ownerHandle);
     }
 
     private void SetCurrentImageAsDesktopBackground()
@@ -1804,7 +2432,7 @@ public partial class MainWindow : Window
         }
 
         var frameIndex = Math.Clamp(_frameIndex, 0, _image.Frames.Count - 1);
-        Clipboard.SetImage(CreateClipboardBitmap(_image.Frames[frameIndex].Image));
+        Clipboard.SetImage(CreateBitmapSource(_image.Frames[frameIndex].Image));
     }
 
     private void ShowCurrentImageProperties()
@@ -1830,6 +2458,7 @@ public partial class MainWindow : Window
 
     private async Task DeleteCurrentImageAsync()
     {
+        if (_isApplyingRotation) return;
         var path = _navigator.CurrentPath;
         if (path is null || !File.Exists(path))
         {
@@ -1848,6 +2477,7 @@ public partial class MainWindow : Window
         DiscardPendingRotation(refitImage: false);
 
         StopCurrentImageInteraction();
+        _printCts?.Cancel();
         _loadGeneration++;
         _openGeneration++;
         _setActualPixelsAfterFullLoad = false;
@@ -1877,10 +2507,10 @@ public partial class MainWindow : Window
 
     private PixelSize GetViewportPixelSize()
     {
-        var dpi = VisualTreeHelper.GetDpi(ImageSurface);
+        var dpi = VisualTreeHelper.GetDpi(ViewerSurfaceContainer);
         return PixelSize.FromDipsWithFallback(
-            ImageSurface.ActualWidth,
-            ImageSurface.ActualHeight,
+            ViewerSurfaceContainer.ActualWidth,
+            ViewerSurfaceContainer.ActualHeight,
             GetFallbackViewportWidthDips(),
             GetFallbackViewportHeightDips(),
             dpi.DpiScaleX,
@@ -1941,7 +2571,7 @@ public partial class MainWindow : Window
         _viewerState.SetImage(displaySize.Width, displaySize.Height, fitToWindow: true);
         UpdateRotationControls();
         UpdateZoomText();
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
     }
 
     private void DiscardPendingRotation(bool refitImage)
@@ -1957,186 +2587,39 @@ public partial class MainWindow : Window
         {
             _viewerState.SetImage(_image.Width, _image.Height, fitToWindow: true);
             UpdateZoomText();
-            ImageSurface.InvalidateVisual();
+            InvalidateViewer();
         }
 
         UpdateRotationControls();
     }
 
-    private async Task ApplyPendingRotationAsync()
-    {
-        if (!HasPendingRotation || !CanRotateCurrentImage())
-        {
-            UpdateRotationControls();
-            return;
-        }
-
-        var path = _navigator.CurrentPath!;
-        var turns = _pendingRotationQuarterTurns;
-        var confirmation = MessageBox.Show(
-            this,
-            LocalizedText.Format(LocalizedText.ApplyRotationConfirmationFormat, Path.GetFileName(path)),
-            LocalizedText.Get(LocalizedText.RotationDialogTitle),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question,
-            MessageBoxResult.No);
-        if (confirmation != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        var risk = await _rotationService.GetWriteRiskAsync(path, CancellationToken.None);
-        var saveMode = RotationSaveMode.ReplaceOriginal;
-        if (risk == RotationWriteRisk.PngCopyOnly)
-        {
-            var saveCopy = MessageBox.Show(
-                this,
-                LocalizedText.Get(LocalizedText.PngCopyOnlyWarning),
-                LocalizedText.Get(LocalizedText.RotationDialogTitle),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning,
-                MessageBoxResult.Yes);
-            if (saveCopy != MessageBoxResult.Yes)
-            {
-                return;
-            }
-
-            saveMode = RotationSaveMode.PngCopy;
-        }
-        else if (risk == RotationWriteRisk.Lossy)
-        {
-            var warning = new LossyRotationDialog(this);
-            if (warning.ShowDialog() != true || warning.Choice == LossyRotationChoice.No)
-            {
-                return;
-            }
-
-            saveMode = warning.Choice == LossyRotationChoice.SaveAsPng
-                ? RotationSaveMode.PngCopy
-                : RotationSaveMode.ReplaceOriginal;
-        }
-
-        if (saveMode == RotationSaveMode.PngCopy)
-        {
-            var copyPath = ImageRotationService.GetDefaultPngCopyPath(path);
-            if (File.Exists(copyPath))
-            {
-                var replaceCopy = MessageBox.Show(
-                    this,
-                    LocalizedText.Format(LocalizedText.RotatedCopyExistsFormat, Path.GetFileName(copyPath)),
-                    LocalizedText.Get(LocalizedText.RotationDialogTitle),
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning,
-                    MessageBoxResult.No);
-                if (replaceCopy != MessageBoxResult.Yes)
-                {
-                    return;
-                }
-            }
-        }
-
-        _isApplyingRotation = true;
-        var rotationSaveCts = new CancellationTokenSource();
-        var rotationSaveToken = rotationSaveCts.Token;
-        _rotationSaveCts = rotationSaveCts;
-        UpdateNavigationButtons();
-        PrepareForRotationWrite(path);
-        ShowStatus(LocalizedText.Get(LocalizedText.ApplyingRotation));
-
-        try
-        {
-            var outputPath = await _rotationService.RotateAsync(
-                path,
-                turns,
-                saveMode,
-                rotationSaveToken);
-            rotationSaveToken.ThrowIfCancellationRequested();
-
-            _autoRefreshTimer.Stop();
-            _pendingRotationQuarterTurns = 0;
-            RemovePreloadedImage(path);
-            ClearImage();
-            if (saveMode == RotationSaveMode.PngCopy)
-            {
-                await OpenPathAsync(outputPath);
-            }
-            else
-            {
-                await LoadCurrentImageAsync(fitToWindow: true);
-            }
-        }
-        catch (OperationCanceledException) when (rotationSaveToken.IsCancellationRequested)
-        {
-            if (!_isClosing && _image is not null)
-            {
-                HideStatus();
-            }
-        }
-        catch (Exception ex)
-        {
-            TraceBackgroundError("Image rotation failed", ex);
-            if (!_isClosing)
-            {
-                HideStatus();
-                MessageBox.Show(
-                    this,
-                    LocalizedText.Format(LocalizedText.RotationFailedFormat, ex.Message),
-                    LocalizedText.Get(LocalizedText.RotationDialogTitle),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-        finally
-        {
-            rotationSaveCts.Dispose();
-            if (ReferenceEquals(_rotationSaveCts, rotationSaveCts))
-            {
-                _rotationSaveCts = null;
-            }
-            _isApplyingRotation = false;
-            UpdateNavigationButtons();
-        }
-    }
-
-    private void PrepareForRotationWrite(string path)
-    {
-        StopCurrentImageInteraction();
-        _loadGeneration++;
-        _setActualPixelsAfterFullLoad = false;
-        _loadSession?.CancelAndDisposeWhenInactive();
-        _loadSession = null;
-        CancelPreloadWorker();
-        CancelBackgroundFullWarmups();
-        RemovePreloadedImage(path);
-    }
-
-    private void UpdateRotationControls()
-    {
-        var canRotate = CanRotateCurrentImage();
-        RotateLeftButton.IsEnabled = canRotate;
-        RotateRightButton.IsEnabled = canRotate;
-        RotationActionsDock.Visibility = HasPendingRotation && _image is not null
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        ResetRotationButton.IsEnabled = HasPendingRotation && !_isApplyingRotation;
-        ApplyRotationButton.IsEnabled = HasPendingRotation && !_isApplyingRotation;
-        OpenMenuItem.IsEnabled = !_isApplyingRotation;
-    }
-
-    private bool CanRotateCurrentImage()
-    {
-        return !_isApplyingRotation &&
-            _image is not null &&
-            IsDisplayedImageCurrent() &&
-            _navigator.CurrentPath is { } path &&
-            File.Exists(path);
-    }
-
     private void ToggleActualPixels()
     {
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            _modelRenderer?.ResetView();
+            UpdateZoomText();
+            return;
+        }
         if (_image is null) return;
         if (!IsDisplayedImageCurrent())
         {
+            return;
+        }
+
+        if (_contentMode == ViewerContentMode.GpuLargeImage)
+        {
+            if (Math.Abs(_viewerState.Zoom - _viewerState.FitZoom) < ActualPixelZoomTolerance)
+            {
+                _viewerState.SetActualPixels();
+            }
+            else
+            {
+                _viewerState.FitToWindow();
+            }
+
+            UpdateZoomText();
+            InvalidateViewer();
             return;
         }
 
@@ -2146,7 +2629,7 @@ public partial class MainWindow : Window
             {
                 _viewerState.SetActualPixels();
                 UpdateZoomText();
-                ImageSurface.InvalidateVisual();
+                InvalidateViewer();
             }
 
             return;
@@ -2163,7 +2646,7 @@ public partial class MainWindow : Window
             _setActualPixelsAfterFullLoad = true;
             _viewerState.SetActualPixels();
             UpdateZoomText();
-            ImageSurface.InvalidateVisual();
+            InvalidateViewer();
             if (path is not null)
             {
                 ShowCurrentPreviewFullResolutionLoading();
@@ -2183,7 +2666,7 @@ public partial class MainWindow : Window
         }
 
         UpdateZoomText();
-        ImageSurface.InvalidateVisual();
+        InvalidateViewer();
     }
 
     private DecodedImage? TryTakePreload(string path)
@@ -2228,7 +2711,7 @@ public partial class MainWindow : Window
 
             _setActualPixelsAfterFullLoad = false;
             UpdateZoomText();
-            ImageSurface.InvalidateVisual();
+            InvalidateViewer();
         }
 
         return true;
@@ -2332,7 +2815,7 @@ public partial class MainWindow : Window
                                 {
                                     _setActualPixelsAfterFullLoad = false;
                                     UpdateZoomText();
-                                    ImageSurface.InvalidateVisual();
+                                    InvalidateViewer();
                                 }
 
                                 handedOff = true;
@@ -2443,6 +2926,8 @@ public partial class MainWindow : Window
 
     private void ClearForMissingFile()
     {
+        _rotationSaveCts?.Cancel();
+        _printCts?.Cancel();
         StopCurrentImageInteraction();
         _loadGeneration++;
         _openGeneration++;
@@ -2728,7 +3213,7 @@ public partial class MainWindow : Window
     private async Task LoadFolderIndexAsync(string path, int openGeneration, CancellationTokenSource cts)
     {
         var token = cts.Token;
-        var supportedExtensions = ImageFileExtensions.BuildFolderScanExtensions(Decoders.SupportedExtensions, path);
+        var supportedExtensions = ImageFileExtensions.BuildFolderScanExtensions(GetSupportedContentExtensions(), path);
 
         try
         {
@@ -2744,7 +3229,7 @@ public partial class MainWindow : Window
             _navigator.Apply(snapshot);
             UpdateNavigationButtons();
             StartupDiagnostics.Mark("folder_index.applied", $"{Path.GetFileName(path)} count={snapshot.Files.Count}");
-            if (_image is not null)
+            if (_image is not null || _contentMode == ViewerContentMode.Model)
             {
                 ScheduleSmartPreloads(allowFullPreloads: !IsFullDecodeInProgress);
             }
@@ -2831,7 +3316,7 @@ public partial class MainWindow : Window
                 try
                 {
                     await PreloadLookaroundAsync(
-                        paths,
+                        paths.Where(path => !ModelFileExtensions.IsSupported(path)).ToArray(),
                         previewSize,
                         allowFullPreloads,
                         largeFullLimit,
@@ -2842,6 +3327,13 @@ public partial class MainWindow : Window
                         profile.FullPreloadIdleDelayMilliseconds,
                         scheduledLoadGeneration,
                         token);
+                    if (paths.Any(ModelFileExtensions.IsSupported))
+                    {
+                        await Task.Delay(profile.FullPreloadIdleDelayMilliseconds, token);
+                        if (scheduledLoadGeneration != Volatile.Read(ref _loadGeneration)) return;
+                        var bytes = await _modelFilePreloader.PrefetchAsync(paths, budgetBytes / 16, token);
+                        StartupDiagnostics.Mark("model.preload.files", $"bytes={bytes}");
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -3127,6 +3619,7 @@ public partial class MainWindow : Window
     {
         _fullPreloadCache.Clear();
         _previewPreloadCache.Clear();
+        _modelFilePreloader.Clear();
     }
 
     private long GetInteractiveDecodedByteLimit()
@@ -3308,12 +3801,18 @@ public partial class MainWindow : Window
 
     private void UpdateActualPixelsIcon()
     {
-        var icon = _viewerState.Mode != ViewerFitMode.Fit
-            ? ToolbarIconKind.FitToWindow
-            : ToolbarIconKind.ActualPixels;
-        var canToggle = !_isApplyingRotation && CanToggleActualPixels();
-        var brush = canToggle ? GetToolbarIconBrush() : GetToolbarDisabledBrush();
+        var isModel = _contentMode == ViewerContentMode.Model;
+        var icon = isModel ? ToolbarIconKind.ResetView
+            : _viewerState.Mode != ViewerFitMode.Fit ? ToolbarIconKind.FitToWindow : ToolbarIconKind.ActualPixels;
+        var canToggle = !_isApplyingRotation && (isModel ? _modelRenderer?.IsOpen == true : CanToggleActualPixels());
+        var brush = GetToolbarIconBrush();
         ActualPixelsButton.IsEnabled = canToggle;
+        var label = LocalizedText.Get(isModel ? LocalizedText.ResetView : LocalizedText.ToggleActualPixels);
+        ActualPixelsButton.ToolTip = _isApplyingRotation ? LocalizedText.Get(LocalizedText.ApplyingRotation)
+            : !canToggle && _image is not null && IsDisplayedImageCurrent()
+            ? LocalizedText.Get(LocalizedText.AlreadyActualPixels)
+            : $"{label} (1 / F)";
+        AutomationProperties.SetName(ActualPixelsButton, label);
         if (_actualPixelsIconKind == icon &&
             _actualPixelsIconEnabled == canToggle &&
             ReferenceEquals(_actualPixelsIconBrush, brush))
@@ -3351,17 +3850,19 @@ public partial class MainWindow : Window
         ApplyToolbarThemeResources(isDarkMode);
 
         Background = isDarkMode
-            ? CreateBrush(30, 33, 38)
+            ? CreateBrush(33, 33, 33)
             : CreateBrush(244, 246, 248);
 
-        ImageSurface.InvalidateVisual();
+        _modelRenderer?.ApplyTheme(isDarkMode);
+        NativeSurfaceMount.Background = Background;
+        InvalidateViewer();
         UpdateToolbarIcons();
     }
 
     private void ApplyToolbarThemeResources(bool isDarkMode)
     {
         Resources["ChromeBackground"] = isDarkMode
-            ? CreateBrush(30, 33, 38)
+            ? CreateBrush(33, 33, 33)
             : CreateBrush(244, 246, 248);
         Resources["ChromeSurfaceBackground"] = isDarkMode
             ? CreateBrush(39, 43, 50)
@@ -3398,6 +3899,15 @@ public partial class MainWindow : Window
         Resources["PanelSeparator"] = isDarkMode
             ? CreateBrush(62, 68, 78)
             : CreateBrush(226, 232, 238);
+        Resources["DockBackground"] = isDarkMode
+            ? CreateBrush(42, 44, 48)
+            : CreateBrush(252, 252, 253);
+        Resources["DockBorder"] = isDarkMode
+            ? CreateBrush(78, 81, 87)
+            : CreateBrush(203, 208, 215);
+        Resources["DockCounterForeground"] = isDarkMode
+            ? CreateBrush(196, 201, 208)
+            : CreateBrush(79, 88, 100);
         Resources["ControlHoverBackground"] = isDarkMode
             ? CreateBrush(60, 67, 77)
             : CreateBrush(235, 241, 247);
@@ -3482,11 +3992,6 @@ public partial class MainWindow : Window
     private Brush GetToolbarDangerBrush()
     {
         return Resources["TextDanger"] as Brush ?? Brushes.Firebrick;
-    }
-
-    private Brush GetToolbarDisabledBrush()
-    {
-        return Resources["TextDisabled"] as Brush ?? Brushes.Gray;
     }
 
     private enum DwmWindowCornerPreference
@@ -3597,33 +4102,57 @@ public partial class MainWindow : Window
         var canDelete = !_isApplyingRotation && CanDeleteCurrentImage();
         DeleteButton.IsEnabled = canDelete;
         DeleteMenuItem.IsEnabled = canDelete;
+        PrintMenuItem.IsEnabled = !_isApplyingRotation && CanPrintCurrentImage();
         UpdateRotationControls();
         UpdateImageContextMenuItems();
         UpdateImagePositionText();
         UpdateAutoRefreshWatcher();
+        UpdateZoomText();
+        UpdateDisabledToolbarTooltips();
+    }
+
+    private void UpdateDisabledToolbarTooltips()
+    {
+        PreviousButton.ToolTip = LocalizedText.Get(PreviousButton.IsEnabled ? LocalizedText.PreviousImage : LocalizedText.NoPreviousFile);
+        NextButton.ToolTip = LocalizedText.Get(NextButton.IsEnabled ? LocalizedText.NextImage : LocalizedText.NoNextFile);
+        ShowInFolderButton.ToolTip = LocalizedText.Get(ShowInFolderButton.IsEnabled ? LocalizedText.ShowImageInFolder : LocalizedText.NoFileOpen);
+        DeleteButton.ToolTip = LocalizedText.Get(DeleteButton.IsEnabled ? LocalizedText.DeleteImage : LocalizedText.NoFileOpen);
+        RotateLeftButton.ToolTip = LocalizedText.Get(RotateLeftButton.IsEnabled ? LocalizedText.RotateLeft : LocalizedText.RotationUnavailable);
+        RotateRightButton.ToolTip = LocalizedText.Get(RotateRightButton.IsEnabled ? LocalizedText.RotateRight : LocalizedText.RotationUnavailable);
+        if (!ActualPixelsButton.IsEnabled && _image is null) ActualPixelsButton.ToolTip = LocalizedText.Get(LocalizedText.NoFileOpen);
+        if (_isApplyingRotation)
+        {
+            foreach (var button in new[] { PreviousButton, NextButton, ShowInFolderButton, DeleteButton, RotateLeftButton, RotateRightButton, ActualPixelsButton })
+                button.ToolTip = LocalizedText.Get(LocalizedText.ApplyingRotation);
+        }
     }
 
     private void UpdateImagePositionText()
     {
-        if (_navigator.CurrentIndex >= 0 && _navigator.Files.Count > 1)
+        if (_navigator.CurrentIndex >= 0 && _navigator.Files.Count > 0)
         {
             ImagePositionText.Text = LocalizedText.Format(
                 LocalizedText.ImagePositionFormat,
                 _navigator.CurrentIndex + 1,
                 _navigator.Files.Count);
             ImagePositionText.Visibility = Visibility.Visible;
+            ImagePositionText.ToolTip = ImagePositionText.Text;
             return;
         }
 
         ImagePositionText.Text = string.Empty;
-        ImagePositionText.Visibility = Visibility.Collapsed;
+        ImagePositionText.Visibility = Visibility.Hidden;
+        ImagePositionText.ToolTip = null;
     }
 
     private void UpdateZoomText()
     {
-        ZoomText.Text = _image is null
-            ? "-"
-            : $"{_viewerState.Zoom * 100:0}%";
+        var zoom = _contentMode == ViewerContentMode.Model ? _modelRenderer?.ZoomFactor ?? 1 : _viewerState.Zoom;
+        _isUpdatingZoomText = true;
+        try { ZoomText.Text = CanAdjustZoom ? $"{zoom * 100:0}%" : "-"; }
+        finally { _isUpdatingZoomText = false; }
+        _isZoomTextDirty = false;
+        ZoomText.IsEnabled = CanAdjustZoom;
         UpdateZoomSlider();
         UpdateActualPixelsIcon();
         UpdateToolbarDensity();
@@ -3641,10 +4170,11 @@ public partial class MainWindow : Window
         {
             ZoomSlider.Minimum = ZoomSliderMinimumValue;
             ZoomSlider.Maximum = ZoomSliderMaximumValue;
-            ZoomSlider.IsEnabled = _image is not null && !_isApplyingRotation;
-            ZoomSlider.Value = _image is null
+            ZoomSlider.IsEnabled = CanAdjustZoom;
+            ZoomSlider.Opacity = CanAdjustZoom ? 1 : 0.42;
+            ZoomSlider.Value = !CanAdjustZoom
                 ? ZoomSliderMinimumValue
-                : GetSliderValueFromZoom(_viewerState.Zoom);
+                : GetSliderValueFromZoom(_contentMode == ViewerContentMode.Model ? _modelRenderer?.ZoomFactor ?? 1 : _viewerState.Zoom);
         }
         finally
         {
@@ -3655,7 +4185,7 @@ public partial class MainWindow : Window
     private double GetSliderValueFromZoom(double zoom)
     {
         var minimumZoom = GetSliderMinimumZoom();
-        var maximumZoom = ViewerState.MaximumZoom;
+        var maximumZoom = GetSliderMaximumZoom();
         if (maximumZoom <= minimumZoom)
         {
             return ZoomSliderMaximumValue;
@@ -3669,7 +4199,7 @@ public partial class MainWindow : Window
     private double GetZoomFromSliderValue(double sliderValue)
     {
         var minimumZoom = GetSliderMinimumZoom();
-        var maximumZoom = ViewerState.MaximumZoom;
+        var maximumZoom = GetSliderMaximumZoom();
         if (maximumZoom <= minimumZoom)
         {
             return minimumZoom;
@@ -3681,14 +4211,24 @@ public partial class MainWindow : Window
 
     private double GetSliderMinimumZoom()
     {
-        return Math.Clamp(_viewerState.FitZoom, MinimumSliderZoom, ViewerState.MaximumZoom);
+        return _contentMode == ViewerContentMode.Model
+            ? F3dModelRenderer.MinimumZoom
+            : Math.Clamp(_viewerState.FitZoom, MinimumSliderZoom, ViewerState.MaximumZoom);
     }
+
+    private double GetSliderMaximumZoom() => _contentMode == ViewerContentMode.Model
+        ? F3dModelRenderer.MaximumZoom : ViewerState.MaximumZoom;
 
     private bool CanToggleActualPixels()
     {
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            return false;
+        }
+
         return CanToggleActualPixelsForState(
             _image is not null,
-            _image?.IsFullResolution ?? false,
+            _contentMode == ViewerContentMode.GpuLargeImage || (_image?.IsFullResolution ?? false),
             _viewerState.FitsAtActualPixels,
             _viewerState.Zoom,
             _viewerState.Mode);
@@ -3724,7 +4264,7 @@ public partial class MainWindow : Window
     private bool CanDeleteCurrentImage()
     {
         var path = _navigator.CurrentPath;
-        return path is not null && File.Exists(path);
+        return !_isApplyingRotation && path is not null && File.Exists(path);
     }
 
     private bool CanUseCurrentImageFile()
@@ -3732,9 +4272,20 @@ public partial class MainWindow : Window
         return GetExistingCurrentImagePath() is not null;
     }
 
+    private bool CanSetCurrentImageAsDesktopBackground()
+    {
+        return _contentMode != ViewerContentMode.Model && CanUseCurrentImageFile();
+    }
+
     private bool CanCopyCurrentImage()
     {
-        return _image is not null && IsDisplayedImageCurrent();
+        return _contentMode == ViewerContentMode.Image && _image is not null && IsDisplayedImageCurrent();
+    }
+
+    private bool CanPrintCurrentImage()
+    {
+        return !_isPrinting && !_isApplyingRotation &&
+            _contentMode != ViewerContentMode.Model && _image is not null && IsDisplayedImageCurrent();
     }
 
     private bool CanShowCurrentImageInFolder()
@@ -3764,25 +4315,16 @@ public partial class MainWindow : Window
     {
         var canUseFile = CanUseCurrentImageFile();
         ContextOpenWithMenuItem.IsEnabled = canUseFile;
-        ContextSetDesktopBackgroundMenuItem.IsEnabled = canUseFile;
+        ContextSetDesktopBackgroundMenuItem.IsEnabled = CanSetCurrentImageAsDesktopBackground();
         ContextOpenFileLocationMenuItem.IsEnabled = CanShowCurrentImageInFolder();
         ContextCopyMenuItem.IsEnabled = CanCopyCurrentImage();
         ContextDeleteMenuItem.IsEnabled = CanDeleteCurrentImage();
         ContextPropertiesMenuItem.IsEnabled = canUseFile;
     }
 
-    private static BitmapSource CreateClipboardBitmap(SKImage image)
+    private static BitmapSource CreateBitmapSource(SKImage image)
     {
-        using var encoded = image.Encode(SKEncodedImageFormat.Png, quality: 100)
-            ?? throw new InvalidDataException("Could not encode image for the clipboard.");
-        using var stream = new MemoryStream(encoded.ToArray());
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit();
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.StreamSource = stream;
-        bitmap.EndInit();
-        bitmap.Freeze();
-        return bitmap;
+        return ImagePrintPreparation.CreateBitmapSource(image);
     }
 
     internal static int GetNavigationDeltaForMouseButton(MouseButton button)
@@ -3824,10 +4366,45 @@ public partial class MainWindow : Window
 
     private void ShowStatus(string text)
     {
-        HideUpdateDownloadProgress();
+        _imageStatusText = text;
         HidePreviewOnlyBadge();
+        RefreshStatusOverlay();
+    }
+
+    private void HideStatus()
+    {
+        _imageStatusText = null;
+        RefreshStatusOverlay();
+    }
+
+    private void ShowUpdateStatus(string text)
+    {
+        _updateStatusText = text;
+        HideUpdateDownloadProgress();
+        RefreshStatusOverlay();
+    }
+
+    private void RestoreStatusAfterUpdateCheck()
+    {
+        _updateStatusText = null;
+        HideUpdateDownloadProgress();
+        RefreshStatusOverlay();
+    }
+
+    private void RefreshStatusOverlay()
+    {
+        // Updates own the overlay until they finish; navigation still records the latest image status.
+        var text = _updateStatusText ?? _imageStatusText;
+        if (text is null)
+        {
+            StatusOverlay.Visibility = Visibility.Collapsed;
+            UpdateStatusOverlayOpenState();
+            return;
+        }
+
         UpdateStatusOverlayMaxWidth();
-        var isEmptyState = string.Equals(text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
+        var isEmptyState = _updateStatusText is null &&
+            string.Equals(text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
         StatusText.ToolTip = text;
         StatusText.Text = text;
         StatusMessageText.ToolTip = text;
@@ -3838,27 +4415,13 @@ public partial class MainWindow : Window
         UpdateStatusOverlayOpenState();
     }
 
-    private void RestoreStatusAfterUpdateCheck()
-    {
-        if (_image is null && _navigator.CurrentPath is null)
-        {
-            ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
-        }
-        else if (_image is not null && !_isCurrentPreviewAwaitingFullResolution)
-        {
-            HideStatus();
-        }
-    }
-
-    private void HideStatus()
-    {
-        HideUpdateDownloadProgress();
-        StatusOverlay.Visibility = Visibility.Collapsed;
-        UpdateStatusOverlayOpenState();
-    }
-
     private void ShowUpdateDownloadProgress(UpdateDownloadProgress progress)
     {
+        if (_updateStatusText is null)
+        {
+            return;
+        }
+
         var hasKnownTotal = progress.TotalBytes is > 0;
         UpdateProgressBar.IsIndeterminate = !hasKnownTotal;
         if (progress.TotalBytes is long totalBytes && totalBytes > 0)

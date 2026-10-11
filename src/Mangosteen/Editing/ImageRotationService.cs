@@ -147,7 +147,8 @@ internal sealed class ImageRotationService
         }
 
         var originalFormat = images[0].Format;
-        if (images.Count > 1)
+        // Independent document pages must retain their own canvas dimensions.
+        if (images.Count > 1 && originalFormat is MagickFormat.Gif or MagickFormat.WebP or MagickFormat.APng)
         {
             images.Coalesce();
         }

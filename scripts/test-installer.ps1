@@ -61,6 +61,8 @@ if (Test-Path -LiteralPath $resolvedInstallDirectory) {
 
 $installedExe = Join-Path $resolvedInstallDirectory "Mangosteen.exe"
 $uninstaller = Join-Path $resolvedInstallDirectory "unins000.exe"
+$gpuManifest = Join-Path $resolvedInstallDirectory "components\gpu-large-images\component.json"
+$modelManifest = Join-Path $resolvedInstallDirectory "components\model-viewer\component.json"
 $registeredApplicationsPath = "HKCU:\Software\RegisteredApplications"
 $capabilitiesPath = "HKCU:\Software\Classes\Applications\Mangosteen.exe\Capabilities\FileAssociations"
 $uninstallPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{5505BFA7-AFF8-4C6E-8B60-52EDF84880D3}_is1"
@@ -78,6 +80,9 @@ try {
 
     if (-not (Test-Path -LiteralPath $installedExe)) {
         throw "Installer did not create the application executable: $installedExe"
+    }
+    if ((Test-Path -LiteralPath $gpuManifest) -or (Test-Path -LiteralPath $modelManifest)) {
+        throw "The default core installation unexpectedly selected an optional component."
     }
 
     $displayName = Get-RegistryValueOrNull -Path $uninstallPath -Name "DisplayName"

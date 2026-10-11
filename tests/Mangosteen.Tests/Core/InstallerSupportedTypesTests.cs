@@ -57,6 +57,37 @@ public sealed partial class InstallerSupportedTypesTests
     }
 
     [TestMethod]
+    public void Inno_Setup_Registers_Initial_Model_Extensions_Only_With_Optional_Component()
+    {
+        var text = GetInstallerScriptText();
+        var modelExtensions = GetInstallerModelCapabilityTypes();
+
+        CollectionAssert.AreEquivalent(
+            new[] { ".stl", ".ply", ".obj", ".gltf", ".glb" },
+            modelExtensions);
+        foreach (var extension in modelExtensions)
+        {
+            var line = text
+                .Split(["\r\n", "\n"], StringSplitOptions.None)
+                .Single(candidate =>
+                    candidate.Contains(@"\Capabilities\FileAssociations""", StringComparison.Ordinal) &&
+                    candidate.Contains($"ValueName: \"{extension}\"", StringComparison.Ordinal));
+            StringAssert.Contains(line, "Tasks: associatefiles");
+            StringAssert.Contains(line, "Components: modelviewer");
+        }
+    }
+
+    [TestMethod]
+    public void Inno_Setup_Defaults_To_Core_Viewer_Without_Optional_Components()
+    {
+        var text = GetInstallerScriptText();
+
+        StringAssert.Contains(text, "Name: \"core\"; Description: \"Core image viewer\"");
+        StringAssert.Contains(text, "Name: \"gpulargeimages\"; Description: \"GPU acceleration for large images\"; Types: complete");
+        StringAssert.Contains(text, "Name: \"modelviewer\"; Description: \"3D model viewing");
+    }
+
+    [TestMethod]
     public void Inno_Setup_Registers_Jpeg_Family_For_Windows_File_Associations()
     {
         var text = GetInstallerScriptText();
@@ -122,6 +153,18 @@ public sealed partial class InstallerSupportedTypesTests
         Assert.IsEmpty(unsupportedLines, "Capability entries must be gated by the associatefiles task.");
     }
 
+    [TestMethod]
+    public void Inno_Setup_Only_Sends_Shutdown_To_Background_Capable_Installations()
+    {
+        var text = GetInstallerScriptText();
+
+        StringAssert.Contains(text, "RegQueryStringValue(");
+        StringAssert.Contains(text, @"Software\Microsoft\Windows\CurrentVersion\Run");
+        StringAssert.Contains(text, "(Pos('--background', Lowercase(StartupCommand)) > 0)");
+        StringAssert.Contains(text, "Exec(ExistingApp, '--shutdown'");
+        StringAssert.Contains(text, "CloseApplications=yes");
+    }
+
     private static string[] GetInstallerSupportedTypes()
     {
         var text = GetInstallerScriptText();
@@ -135,6 +178,15 @@ public sealed partial class InstallerSupportedTypesTests
     {
         var text = GetInstallerScriptText();
         return CapabilityTypeRegex()
+            .Matches(text)
+            .Select(match => match.Groups["extension"].Value)
+            .ToArray();
+    }
+
+    private static string[] GetInstallerModelCapabilityTypes()
+    {
+        var text = GetInstallerScriptText();
+        return ModelCapabilityTypeRegex()
             .Matches(text)
             .Select(match => match.Groups["extension"].Value)
             .ToArray();
@@ -165,6 +217,9 @@ public sealed partial class InstallerSupportedTypesTests
     [GeneratedRegex(@"SupportedTypes""; ValueType: string; ValueName: ""(?<extension>\.[^""]+)""", RegexOptions.CultureInvariant)]
     private static partial Regex SupportedTypeRegex();
 
-    [GeneratedRegex(@"Capabilities\\FileAssociations""; ValueType: string; ValueName: ""(?<extension>\.[^""]+)""", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"Capabilities\\FileAssociations""; ValueType: string; ValueName: ""(?<extension>\.[^""]+)""; ValueData: ""\{#AppImageProgId\}""", RegexOptions.CultureInvariant)]
     private static partial Regex CapabilityTypeRegex();
+
+    [GeneratedRegex(@"Capabilities\\FileAssociations""; ValueType: string; ValueName: ""(?<extension>\.[^""]+)""; ValueData: ""\{#AppModelProgId\}""", RegexOptions.CultureInvariant)]
+    private static partial Regex ModelCapabilityTypeRegex();
 }
