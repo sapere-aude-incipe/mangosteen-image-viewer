@@ -55,7 +55,7 @@
     <value>Лимит памяти для полного декодирования и предзагрузки</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>Предзагружать соседние изображения</value>
+    <value>Предзагружать соседние файлы</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Только предпросмотр</value>
@@ -166,7 +166,7 @@
     <value>Выберите лимит памяти для кэша декодированных изображений.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Декодирует в фоне вероятные следующее и предыдущее изображения.</value>
+    <value>Декодирует соседние изображения и заранее читает 3D-файлы в фоновом режиме.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Использует более плавную интерполяцию при увеличении.</value>
@@ -270,4 +270,7 @@
   <data name="AlreadyActualPixels" xml:space="preserve"><value>Уже отображается в масштабе 1:1.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>В этой папке нет предыдущего файла.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>В этой папке нет следующего файла.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D-вид</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Сетка в начале мировых координат</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Размещать сетку в исходном начале координат, а не под моделью.</value></data>
 </root>

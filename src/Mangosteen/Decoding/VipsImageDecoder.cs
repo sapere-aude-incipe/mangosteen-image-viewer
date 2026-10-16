@@ -142,19 +142,9 @@ public sealed class VipsImageDecoder : IImageDecoder
             current = autorot;
             disposeCurrent = true;
 
-            VipsImage colour;
-            if (current.Bands <= 1)
-            {
-                colour = current.Colourspace(Enums.Interpretation.Srgb);
-            }
-            else if (current.Interpretation != Enums.Interpretation.Srgb)
-            {
-                colour = current.Colourspace(Enums.Interpretation.Srgb);
-            }
-            else
-            {
-                colour = current.Copy();
-            }
+            var colour = decodeForPixels
+                ? VipsDisplayColor.ConvertToSrgb(current, preserveHighBitDepth: false)
+                : current.Copy();
 
             if (!ReferenceEquals(colour, current) && disposeCurrent)
             {

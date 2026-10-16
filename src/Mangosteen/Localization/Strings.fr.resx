@@ -55,7 +55,7 @@
     <value>Budget mÃ©moire pour le dÃ©codage complet et le prÃ©chargement</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>PrÃ©charger les images proches</value>
+    <value>Précharger les fichiers proches</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>AperÃ§u seul</value>
@@ -166,7 +166,7 @@ L'agressivité du préchargement contrôle jusqu'où Mangosteen analyse et avec 
     <value>Choisit le budget mémoire du cache d'images décodées.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Décode en arrière-plan les images probablement suivantes et précédentes.</value>
+    <value>Décode les images et lit les fichiers 3D proches à l'avance en arrière-plan.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Utilise une interpolation plus douce lors du zoom avant.</value>
@@ -270,4 +270,7 @@ Les versions portables ne peuvent pas se mettre à jour sur place. Ouvrir la pag
   <data name="AlreadyActualPixels" xml:space="preserve"><value>Déjà affiché en taille réelle.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>Aucun fichier précédent dans ce dossier.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>Aucun fichier suivant dans ce dossier.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>Vue 3D</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Grille à l'origine du monde</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Placer la grille à l'origine des coordonnées plutôt que sous le modèle.</value></data>
 </root>

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Mangosteen.Rendering.Advanced;
 
@@ -21,6 +22,10 @@ internal sealed class NativeKeyEventArgs(Key key, ModifierKeys modifiers) : Even
 internal sealed partial class NativeGlHost : HwndHost
 {
     private const int WmSize = 0x0005;
+    private const int WmPaint = 0x000F;
+    private const int WmShowWindow = 0x0018;
+    private const int WmCancelMode = 0x001F;
+    private const int WmCaptureChanged = 0x0215;
     private const int WmKeyDown = 0x0100;
     private const int WmMouseMove = 0x0200;
     private const int WmLButtonDown = 0x0201;
@@ -56,10 +61,12 @@ internal sealed partial class NativeGlHost : HwndHost
     private nint _renderingContext;
     private bool _capturingPointer;
     private bool _abandonForProcessShutdown;
+    private bool _repaintQueued;
     private readonly object _contextGate = new();
 
     public event EventHandler? SurfaceReady;
     public event EventHandler? SurfaceSizeChanged;
+    public event EventHandler? RepaintRequested;
     public event EventHandler<NativePointerEvent>? PointerPressed;
     public event EventHandler<NativePointerEvent>? PointerMoved;
     public event EventHandler<NativePointerEvent>? PointerReleased;
@@ -74,6 +81,8 @@ internal sealed partial class NativeGlHost : HwndHost
 
     public int PixelHeight { get; private set; }
 
+    public double SurfaceScale { get; private set; } = 1;
+
     public bool IsSurfaceReady => _renderingContext != nint.Zero;
 
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
@@ -81,6 +90,7 @@ internal sealed partial class NativeGlHost : HwndHost
         EnsureWindowClassRegistered();
         // Creation-time WM_SIZE can precede HwndHost's message hook.
         var dpi = VisualTreeHelper.GetDpi(this);
+        SurfaceScale = dpi.DpiScaleX;
         PixelWidth = Math.Max(1, (int)Math.Ceiling(ActualWidth * dpi.DpiScaleX));
         PixelHeight = Math.Max(1, (int)Math.Ceiling(ActualHeight * dpi.DpiScaleY));
         _windowHandle = NativeMethods.CreateWindowEx(
@@ -202,6 +212,15 @@ internal sealed partial class NativeGlHost : HwndHost
     {
         switch (message)
         {
+            case WmPaint:
+                NativeMethods.BeginPaint(hwnd, out var paint);
+                NativeMethods.EndPaint(hwnd, ref paint);
+                RequestRepaint();
+                handled = true;
+                break;
+            case WmShowWindow when wParam != nint.Zero:
+                RequestRepaint();
+                break;
             case WmSize:
                 PixelWidth = LowWord(lParam);
                 PixelHeight = HighWord(lParam);
@@ -229,11 +248,20 @@ internal sealed partial class NativeGlHost : HwndHost
             case WmLButtonUp:
                 if (_capturingPointer)
                 {
-                    NativeMethods.ReleaseCapture();
                     _capturingPointer = false;
+                    NativeMethods.ReleaseCapture();
+                    PointerReleased?.Invoke(this, GetClientPointer(lParam));
                 }
-                PointerReleased?.Invoke(this, GetClientPointer(lParam));
                 handled = true;
+                break;
+            case WmCancelMode:
+            case WmCaptureChanged:
+                if (_capturingPointer)
+                {
+                    _capturingPointer = false;
+                    if (message == WmCancelMode) NativeMethods.ReleaseCapture();
+                    PointerReleased?.Invoke(this, default);
+                }
                 break;
             case WmMouseWheel:
                 var screenPoint = new NativePoint { X = SignedLowWord(lParam), Y = SignedHighWord(lParam) };
@@ -257,6 +285,22 @@ internal sealed partial class NativeGlHost : HwndHost
         }
 
         return nint.Zero;
+    }
+
+    public void RequestRepaint()
+    {
+        Dispatcher.VerifyAccess();
+        if (_repaintQueued || !IsSurfaceReady || Dispatcher.HasShutdownStarted) return;
+        _repaintQueued = true;
+        var window = _windowHandle;
+        // Paint messages can arrive during layout or SwapBuffers. Render once after
+        // that stack unwinds instead of entering the renderer recursively.
+        Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
+        {
+            _repaintQueued = false;
+            if (IsSurfaceReady && _windowHandle == window && !_abandonForProcessShutdown)
+                RepaintRequested?.Invoke(this, EventArgs.Empty);
+        }));
     }
 
     public bool Render(Action action)
@@ -316,6 +360,7 @@ internal sealed partial class NativeGlHost : HwndHost
     {
         if (_windowHandle == nint.Zero) return;
         var dpi = VisualTreeHelper.GetDpi(this);
+        SurfaceScale = dpi.DpiScaleX;
         var pixelWidth = Math.Max(1, (int)Math.Ceiling(width * dpi.DpiScaleX));
         var pixelHeight = Math.Max(1, (int)Math.Ceiling(height * dpi.DpiScaleY));
         NativeMethods.SetWindowPos(
@@ -458,6 +503,20 @@ internal sealed partial class NativeGlHost : HwndHost
         public int Y;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private unsafe struct PaintStruct
+    {
+        public nint DeviceContext;
+        public int Erase;
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+        public int Restore;
+        public int IncrementalUpdate;
+        public fixed byte Reserved[32];
+    }
+
     private static partial class NativeMethods
     {
         internal delegate nint WindowProcedure(nint hwnd, uint message, nint wParam, nint lParam);
@@ -477,6 +536,13 @@ internal sealed partial class NativeGlHost : HwndHost
 
         [LibraryImport("user32.dll", EntryPoint = "DefWindowProcW")]
         internal static partial nint DefWindowProc(nint hwnd, uint message, nint wParam, nint lParam);
+
+        [LibraryImport("user32.dll")]
+        internal static partial nint BeginPaint(nint hwnd, out PaintStruct paint);
+
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool EndPaint(nint hwnd, ref PaintStruct paint);
 
         [LibraryImport("user32.dll")]
         internal static partial short GetKeyState(int virtualKey);

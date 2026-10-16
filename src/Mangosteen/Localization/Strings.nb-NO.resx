@@ -55,7 +55,7 @@
     <value>Minnebudsjett for full dekoding og forhÃ¥ndslasting</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>ForhÃ¥ndslast bilder i nÃ¦rheten</value>
+    <value>Forhåndslast filer i nærheten</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Kun forhÃ¥ndsvisning</value>
@@ -166,7 +166,7 @@ Hvor aggressiv forhåndslasting er styrer hvor langt fram Mangosteen skanner og 
     <value>Velg minnebudsjett for den dekodede bildebufferen.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Dekoder sannsynlige neste og forrige bilder i bakgrunnen.</value>
+    <value>Dekoder bilder og leser 3D-filer i nærheten på forhånd i bakgrunnen.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Bruker jevnere interpolering når du zoomer inn.</value>
@@ -270,4 +270,7 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="AlreadyActualPixels" xml:space="preserve"><value>Vises allerede i faktisk pikselstørrelse.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>Ingen forrige fil i denne mappen.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>Ingen neste fil i denne mappen.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D-visning</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Rutenett ved verdens origo</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Plasser rutenettet ved det opprinnelige koordinatsystemets origo i stedet for under modellen.</value></data>
 </root>

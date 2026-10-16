@@ -1,7 +1,6 @@
 ﻿using Mangosteen.Caching;
 using Mangosteen.Core;
 using Mangosteen.Decoding;
-using Mangosteen.Dialogs;
 using Mangosteen.Editing;
 using Mangosteen.Icons;
 using Mangosteen.Localization;
@@ -115,6 +114,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _autoRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly ImagePreloadCache _fullPreloadCache = new();
     private readonly ImagePreloadCache _previewPreloadCache = new();
+    private readonly ModelFilePreloader _modelFilePreloader = new();
     private readonly Lazy<GitHubUpdateService> _updates = new(static () => new GitHubUpdateService());
     private readonly ImageRotationService _rotationService = new();
     private readonly SKPaint _imagePaint = new() { IsAntialias = true };
@@ -131,6 +131,7 @@ public partial class MainWindow : Window
     private string? _imageStatusText;
     private string? _updateStatusText;
     private CancellationTokenSource? _rotationSaveCts;
+    private CancellationTokenSource? _printCts;
     private CancellationTokenSource _preloadCts = new();
     private CancellationTokenSource _backgroundFullWarmupCts = new();
     private Task _preloadWorkerTask = Task.CompletedTask;
@@ -148,6 +149,7 @@ public partial class MainWindow : Window
     private bool _isPreloadEnabled = true;
     private bool _isAutoRefreshEnabled;
     private bool _keepReadyInBackground = true;
+    private bool _isModelGridAtWorldOrigin;
     private bool _isUpdatingZoomSlider;
     private bool _isUpdatingZoomText;
     private bool _isZoomTextDirty;
@@ -239,6 +241,7 @@ public partial class MainWindow : Window
         _isPreloadEnabled = settings.IsPreloadEnabled;
         _isAutoRefreshEnabled = settings.IsAutoRefreshEnabled;
         _keepReadyInBackground = settings.KeepReadyInBackground;
+        _isModelGridAtWorldOrigin = settings.IsModelGridAtWorldOrigin;
         _preloadBudgetGigabytes = Math.Clamp(settings.PreloadBudgetGigabytes, 1, 15);
         _preloadAggressiveness = settings.PreloadAggressiveness;
         if (settings.IsDarkMode == _isDarkMode)
@@ -264,6 +267,7 @@ public partial class MainWindow : Window
             IsPreloadEnabled = _isPreloadEnabled,
             IsAutoRefreshEnabled = _isAutoRefreshEnabled,
             KeepReadyInBackground = _keepReadyInBackground,
+            IsModelGridAtWorldOrigin = _isModelGridAtWorldOrigin,
             PreloadBudgetGigabytes = _preloadBudgetGigabytes,
             PreloadAggressiveness = _preloadAggressiveness
         }.Save();
@@ -295,6 +299,9 @@ public partial class MainWindow : Window
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
         AutoRefreshMenuItem.Header = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImage);
         KeepReadyInBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.KeepReadyInBackground);
+        ModelViewMenuItem.Header = LocalizedText.Get(LocalizedText.ModelView);
+        ModelGridAtWorldOriginMenuItem.Header = LocalizedText.Get(LocalizedText.ModelGridAtWorldOrigin);
+        ModelGridAtWorldOriginMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ModelGridAtWorldOriginTooltip);
         DarkModeMenuItem.Header = LocalizedText.Get(LocalizedText.ToggleDarkMode);
         OptionsHelpMenuItem.Header = LocalizedText.Get(LocalizedText.OptionsHelp);
         SamplingMenuItem.ToolTip = LocalizedText.Get(LocalizedText.UpscalingTooltip);
@@ -542,6 +549,8 @@ public partial class MainWindow : Window
 
     public async Task OpenPathAsync(string path)
     {
+        _rotationSaveCts?.Cancel();
+        _printCts?.Cancel();
         StartupDiagnostics.Mark("open_path.begin", Path.GetFileName(path));
         if (_isClosing)
         {
@@ -693,6 +702,7 @@ public partial class MainWindow : Window
         _loadSession?.CancelAndDisposeWhenInactive();
         _loadSession = null;
         CancelUpdateCheck();
+        _printCts?.Cancel();
         _rotationSaveCts?.Cancel();
         _rotationSaveCts = null;
         CancelFolderIndexing();
@@ -746,6 +756,8 @@ public partial class MainWindow : Window
 
         ZoomPopup.IsOpen = false;
         DiscardPendingRotation(refitImage: false);
+        _rotationSaveCts?.Cancel();
+        _printCts?.Cancel();
         ClearForMissingFile();
         ShowStatus(LocalizedText.Get(LocalizedText.NoImage));
         Hide();
@@ -912,6 +924,7 @@ public partial class MainWindow : Window
                     _optionalComponents.GetComponentDirectory(OptionalComponentKind.ModelViewer));
                 _modelRenderer.RenderingFailed += ModelRenderer_RenderingFailed;
             }
+            _modelRenderer.SetGridAtWorldOrigin(_isModelGridAtWorldOrigin);
             await _modelRenderer.OpenAsync(path, _isDarkMode, token);
             StartupDiagnostics.Mark("model.f3d.opened", Path.GetFileName(path));
             if (!IsCurrentLoad(generation, token) || !_modelRenderer.IsOpen)
@@ -929,6 +942,7 @@ public partial class MainWindow : Window
             HidePreviewOnlyBadge();
             UpdateNavigationButtons();
             StartupDiagnostics.Mark("model.load.end", Path.GetFileName(path));
+            ScheduleSmartPreloads(allowFullPreloads: false);
         }
         catch (OperationCanceledException)
         {
@@ -1055,6 +1069,7 @@ public partial class MainWindow : Window
 
     private void ShowImageSurface()
     {
+        SetStatusOverlayPlacement(nativeSurfaceVisible: false);
         SetNativeHostVisibility(_gpuGlHost, visible: false);
         SetNativeHostVisibility(_modelGlHost, visible: false);
         NativeSurfaceMount.IsHitTestVisible = false;
@@ -1063,10 +1078,18 @@ public partial class MainWindow : Window
 
     private void ShowNativeSurface(NativeGlHost host)
     {
+        SetStatusOverlayPlacement(nativeSurfaceVisible: true);
         ImageSurface.Visibility = Visibility.Hidden;
         NativeSurfaceMount.IsHitTestVisible = true;
         SetNativeHostVisibility(_gpuGlHost, ReferenceEquals(host, _gpuGlHost));
         SetNativeHostVisibility(_modelGlHost, ReferenceEquals(host, _modelGlHost));
+    }
+
+    private void SetStatusOverlayPlacement(bool nativeSurfaceVisible)
+    {
+        Grid.SetRow(StatusOverlay, nativeSurfaceVisible ? 2 : 1);
+        StatusOverlay.Margin = nativeSurfaceVisible ? new Thickness(16, 6, 16, 0) : new Thickness(0);
+        StatusOverlay.VerticalAlignment = nativeSurfaceVisible ? VerticalAlignment.Top : VerticalAlignment.Center;
     }
 
     private void SetNativeHostVisibility(NativeGlHost? host, bool visible)
@@ -1112,7 +1135,7 @@ public partial class MainWindow : Window
         _lastNativePointer = e;
         if (_contentMode == ViewerContentMode.Model)
         {
-            _modelRenderer?.Orbit(deltaX * 0.35, -deltaY * 0.35);
+            _modelRenderer?.OrbitFromDrag(deltaX, deltaY);
             return;
         }
 
@@ -1641,6 +1664,7 @@ public partial class MainWindow : Window
                 : (_navigator.CanMoveNext ? _navigator.MoveNext() : null);
             if (path is not null)
             {
+                _printCts?.Cancel();
                 DiscardPendingRotation(refitImage: false);
                 await LoadCurrentImageAsync(fitToWindow: true);
             }
@@ -1771,11 +1795,7 @@ public partial class MainWindow : Window
 
     private async void PrintMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        await RunUiCommandAsync(() =>
-        {
-            PrintCurrentImage();
-            return Task.CompletedTask;
-        });
+        await RunUiCommandAsync(PrintCurrentImageAsync);
     }
 
     private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
@@ -1961,7 +1981,7 @@ public partial class MainWindow : Window
                 await ShowOpenDialogAsync();
                 break;
             case ViewerKeyboardCommand.Print:
-                PrintCurrentImage();
+                await PrintCurrentImageAsync();
                 break;
             case ViewerKeyboardCommand.Previous:
                 await NavigatePreviousAsync();
@@ -2065,6 +2085,11 @@ public partial class MainWindow : Window
     {
         UpdateMaximizeRestoreButton();
         UpdateToolbarDensity();
+        if (!_isClosing && WindowState != WindowState.Minimized)
+        {
+            _modelGlHost?.RequestRepaint();
+            _gpuGlHost?.RequestRepaint();
+        }
     }
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -2222,6 +2247,14 @@ public partial class MainWindow : Window
         SaveSettings();
     }
 
+    private void ModelGridAtWorldOriginMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        _isModelGridAtWorldOrigin = ModelGridAtWorldOriginMenuItem.IsChecked;
+        _modelRenderer?.SetGridAtWorldOrigin(_isModelGridAtWorldOrigin);
+        UpdateSettingsMenuChecks();
+        SaveSettings();
+    }
+
     private void UpdateSettingsMenuChecks()
     {
         SmoothSamplingMenuItem.IsChecked = _useSmoothSampling;
@@ -2229,6 +2262,7 @@ public partial class MainWindow : Window
         PreloadEnabledMenuItem.IsChecked = _isPreloadEnabled;
         AutoRefreshMenuItem.IsChecked = _isAutoRefreshEnabled;
         KeepReadyInBackgroundMenuItem.IsChecked = _keepReadyInBackground;
+        ModelGridAtWorldOriginMenuItem.IsChecked = _isModelGridAtWorldOrigin;
 
         foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
         {
@@ -2401,41 +2435,6 @@ public partial class MainWindow : Window
         Clipboard.SetImage(CreateBitmapSource(_image.Frames[frameIndex].Image));
     }
 
-    private void PrintCurrentImage()
-    {
-        if (_isPrinting || !CanPrintCurrentImage() || _image is null)
-        {
-            UpdateNavigationButtons();
-            return;
-        }
-
-        _isPrinting = true;
-        try
-        {
-            var path = _navigator.CurrentPath!;
-            if (!PhotoPrintService.CanPrintOriginal(path, _pendingRotationQuarterTurns, _image.Frames.Count))
-            {
-                var snapshot = CapturePrintSnapshot(
-                    _image, _frameIndex, _pendingRotationQuarterTurns, Path.GetFileName(path));
-                path = PhotoPrintService.CreatePrintCopy(snapshot.Source, snapshot.QuarterTurns);
-            }
-
-            PhotoPrintService.Show(path);
-        }
-        finally
-        {
-            _isPrinting = false;
-        }
-    }
-
-    internal sealed record PrintSnapshot(BitmapSource Source, int QuarterTurns, string JobName);
-
-    internal static PrintSnapshot CapturePrintSnapshot(DecodedImage image, int frameIndex, int quarterTurns, string jobName)
-    {
-        var index = Math.Clamp(frameIndex, 0, image.Frames.Count - 1);
-        return new PrintSnapshot(CreateBitmapSource(image.Frames[index].Image), quarterTurns, jobName);
-    }
-
     private void ShowCurrentImageProperties()
     {
         var path = GetExistingCurrentImagePath();
@@ -2459,6 +2458,7 @@ public partial class MainWindow : Window
 
     private async Task DeleteCurrentImageAsync()
     {
+        if (_isApplyingRotation) return;
         var path = _navigator.CurrentPath;
         if (path is null || !File.Exists(path))
         {
@@ -2477,6 +2477,7 @@ public partial class MainWindow : Window
         DiscardPendingRotation(refitImage: false);
 
         StopCurrentImageInteraction();
+        _printCts?.Cancel();
         _loadGeneration++;
         _openGeneration++;
         _setActualPixelsAfterFullLoad = false;
@@ -2590,176 +2591,6 @@ public partial class MainWindow : Window
         }
 
         UpdateRotationControls();
-    }
-
-    private async Task ApplyPendingRotationAsync()
-    {
-        if (!HasPendingRotation || !CanRotateCurrentImage())
-        {
-            UpdateRotationControls();
-            return;
-        }
-
-        var path = _navigator.CurrentPath!;
-        var turns = _pendingRotationQuarterTurns;
-        var confirmation = MessageBox.Show(
-            this,
-            LocalizedText.Format(LocalizedText.ApplyRotationConfirmationFormat, Path.GetFileName(path)),
-            LocalizedText.Get(LocalizedText.RotationDialogTitle),
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question,
-            MessageBoxResult.No);
-        if (confirmation != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        var risk = await _rotationService.GetWriteRiskAsync(path, CancellationToken.None);
-        var saveMode = RotationSaveMode.ReplaceOriginal;
-        if (risk == RotationWriteRisk.PngCopyOnly)
-        {
-            var saveCopy = MessageBox.Show(
-                this,
-                LocalizedText.Get(LocalizedText.PngCopyOnlyWarning),
-                LocalizedText.Get(LocalizedText.RotationDialogTitle),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning,
-                MessageBoxResult.Yes);
-            if (saveCopy != MessageBoxResult.Yes)
-            {
-                return;
-            }
-
-            saveMode = RotationSaveMode.PngCopy;
-        }
-        else if (risk == RotationWriteRisk.Lossy)
-        {
-            var warning = new LossyRotationDialog(this);
-            if (warning.ShowDialog() != true || warning.Choice == LossyRotationChoice.No)
-            {
-                return;
-            }
-
-            saveMode = warning.Choice == LossyRotationChoice.SaveAsPng
-                ? RotationSaveMode.PngCopy
-                : RotationSaveMode.ReplaceOriginal;
-        }
-
-        if (saveMode == RotationSaveMode.PngCopy)
-        {
-            var copyPath = ImageRotationService.GetDefaultPngCopyPath(path);
-            if (File.Exists(copyPath))
-            {
-                var replaceCopy = MessageBox.Show(
-                    this,
-                    LocalizedText.Format(LocalizedText.RotatedCopyExistsFormat, Path.GetFileName(copyPath)),
-                    LocalizedText.Get(LocalizedText.RotationDialogTitle),
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning,
-                    MessageBoxResult.No);
-                if (replaceCopy != MessageBoxResult.Yes)
-                {
-                    return;
-                }
-            }
-        }
-
-        _isApplyingRotation = true;
-        var rotationSaveCts = new CancellationTokenSource();
-        var rotationSaveToken = rotationSaveCts.Token;
-        _rotationSaveCts = rotationSaveCts;
-        UpdateNavigationButtons();
-        PrepareForRotationWrite(path);
-        ShowStatus(LocalizedText.Get(LocalizedText.ApplyingRotation));
-
-        try
-        {
-            var outputPath = await _rotationService.RotateAsync(
-                path,
-                turns,
-                saveMode,
-                rotationSaveToken);
-            rotationSaveToken.ThrowIfCancellationRequested();
-
-            _autoRefreshTimer.Stop();
-            _pendingRotationQuarterTurns = 0;
-            RemovePreloadedImage(path);
-            ClearImage();
-            if (saveMode == RotationSaveMode.PngCopy)
-            {
-                await OpenPathAsync(outputPath);
-            }
-            else
-            {
-                await LoadCurrentImageAsync(fitToWindow: true);
-            }
-        }
-        catch (OperationCanceledException) when (rotationSaveToken.IsCancellationRequested)
-        {
-            if (!_isClosing && _image is not null)
-            {
-                HideStatus();
-            }
-        }
-        catch (Exception ex)
-        {
-            TraceBackgroundError("Image rotation failed", ex);
-            if (!_isClosing)
-            {
-                HideStatus();
-                MessageBox.Show(
-                    this,
-                    LocalizedText.Format(LocalizedText.RotationFailedFormat, ex.Message),
-                    LocalizedText.Get(LocalizedText.RotationDialogTitle),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
-        finally
-        {
-            rotationSaveCts.Dispose();
-            if (ReferenceEquals(_rotationSaveCts, rotationSaveCts))
-            {
-                _rotationSaveCts = null;
-            }
-            _isApplyingRotation = false;
-            UpdateNavigationButtons();
-        }
-    }
-
-    private void PrepareForRotationWrite(string path)
-    {
-        StopCurrentImageInteraction();
-        _loadGeneration++;
-        _setActualPixelsAfterFullLoad = false;
-        _loadSession?.CancelAndDisposeWhenInactive();
-        _loadSession = null;
-        CancelPreloadWorker();
-        CancelBackgroundFullWarmups();
-        RemovePreloadedImage(path);
-    }
-
-    private void UpdateRotationControls()
-    {
-        var canRotate = CanRotateCurrentImage();
-        RotateLeftButton.IsEnabled = canRotate;
-        RotateRightButton.IsEnabled = canRotate;
-        RotationActionsDock.Visibility = HasPendingRotation && _image is not null
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        ResetRotationButton.IsEnabled = HasPendingRotation && !_isApplyingRotation;
-        ApplyRotationButton.IsEnabled = HasPendingRotation && !_isApplyingRotation;
-        OpenMenuItem.IsEnabled = !_isApplyingRotation;
-    }
-
-    private bool CanRotateCurrentImage()
-    {
-        return !_isApplyingRotation &&
-            _contentMode == ViewerContentMode.Image &&
-            _image is not null &&
-            IsDisplayedImageCurrent() &&
-            _navigator.CurrentPath is { } path &&
-            File.Exists(path);
     }
 
     private void ToggleActualPixels()
@@ -3095,6 +2926,8 @@ public partial class MainWindow : Window
 
     private void ClearForMissingFile()
     {
+        _rotationSaveCts?.Cancel();
+        _printCts?.Cancel();
         StopCurrentImageInteraction();
         _loadGeneration++;
         _openGeneration++;
@@ -3396,7 +3229,7 @@ public partial class MainWindow : Window
             _navigator.Apply(snapshot);
             UpdateNavigationButtons();
             StartupDiagnostics.Mark("folder_index.applied", $"{Path.GetFileName(path)} count={snapshot.Files.Count}");
-            if (_image is not null)
+            if (_image is not null || _contentMode == ViewerContentMode.Model)
             {
                 ScheduleSmartPreloads(allowFullPreloads: !IsFullDecodeInProgress);
             }
@@ -3483,7 +3316,7 @@ public partial class MainWindow : Window
                 try
                 {
                     await PreloadLookaroundAsync(
-                        paths,
+                        paths.Where(path => !ModelFileExtensions.IsSupported(path)).ToArray(),
                         previewSize,
                         allowFullPreloads,
                         largeFullLimit,
@@ -3494,6 +3327,13 @@ public partial class MainWindow : Window
                         profile.FullPreloadIdleDelayMilliseconds,
                         scheduledLoadGeneration,
                         token);
+                    if (paths.Any(ModelFileExtensions.IsSupported))
+                    {
+                        await Task.Delay(profile.FullPreloadIdleDelayMilliseconds, token);
+                        if (scheduledLoadGeneration != Volatile.Read(ref _loadGeneration)) return;
+                        var bytes = await _modelFilePreloader.PrefetchAsync(paths, budgetBytes / 16, token);
+                        StartupDiagnostics.Mark("model.preload.files", $"bytes={bytes}");
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -3779,6 +3619,7 @@ public partial class MainWindow : Window
     {
         _fullPreloadCache.Clear();
         _previewPreloadCache.Clear();
+        _modelFilePreloader.Clear();
     }
 
     private long GetInteractiveDecodedByteLimit()
@@ -3961,9 +3802,8 @@ public partial class MainWindow : Window
     private void UpdateActualPixelsIcon()
     {
         var isModel = _contentMode == ViewerContentMode.Model;
-        var icon = isModel || _viewerState.Mode != ViewerFitMode.Fit
-            ? ToolbarIconKind.FitToWindow
-            : ToolbarIconKind.ActualPixels;
+        var icon = isModel ? ToolbarIconKind.ResetView
+            : _viewerState.Mode != ViewerFitMode.Fit ? ToolbarIconKind.FitToWindow : ToolbarIconKind.ActualPixels;
         var canToggle = !_isApplyingRotation && (isModel ? _modelRenderer?.IsOpen == true : CanToggleActualPixels());
         var brush = GetToolbarIconBrush();
         ActualPixelsButton.IsEnabled = canToggle;
@@ -4059,6 +3899,15 @@ public partial class MainWindow : Window
         Resources["PanelSeparator"] = isDarkMode
             ? CreateBrush(62, 68, 78)
             : CreateBrush(226, 232, 238);
+        Resources["DockBackground"] = isDarkMode
+            ? CreateBrush(42, 44, 48)
+            : CreateBrush(252, 252, 253);
+        Resources["DockBorder"] = isDarkMode
+            ? CreateBrush(78, 81, 87)
+            : CreateBrush(203, 208, 215);
+        Resources["DockCounterForeground"] = isDarkMode
+            ? CreateBrush(196, 201, 208)
+            : CreateBrush(79, 88, 100);
         Resources["ControlHoverBackground"] = isDarkMode
             ? CreateBrush(60, 67, 77)
             : CreateBrush(235, 241, 247);
@@ -4415,7 +4264,7 @@ public partial class MainWindow : Window
     private bool CanDeleteCurrentImage()
     {
         var path = _navigator.CurrentPath;
-        return path is not null && File.Exists(path);
+        return !_isApplyingRotation && path is not null && File.Exists(path);
     }
 
     private bool CanUseCurrentImageFile()
@@ -4435,7 +4284,8 @@ public partial class MainWindow : Window
 
     private bool CanPrintCurrentImage()
     {
-        return _contentMode != ViewerContentMode.Model && _image is not null && IsDisplayedImageCurrent();
+        return !_isPrinting && !_isApplyingRotation &&
+            _contentMode != ViewerContentMode.Model && _image is not null && IsDisplayedImageCurrent();
     }
 
     private bool CanShowCurrentImageInFolder()
@@ -4474,16 +4324,7 @@ public partial class MainWindow : Window
 
     private static BitmapSource CreateBitmapSource(SKImage image)
     {
-        using var encoded = image.Encode(SKEncodedImageFormat.Png, quality: 100)
-            ?? throw new InvalidDataException("Could not prepare the image for Windows.");
-        using var stream = new MemoryStream(encoded.ToArray());
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit();
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.StreamSource = stream;
-        bitmap.EndInit();
-        bitmap.Freeze();
-        return bitmap;
+        return ImagePrintPreparation.CreateBitmapSource(image);
     }
 
     internal static int GetNavigationDeltaForMouseButton(MouseButton button)

@@ -153,7 +153,7 @@ The unpacked all-features test executable is written to
 ## Options
 
 - Upscaling: `Smooth` uses interpolation when zooming in; `Nearest` keeps hard pixel edges for pixel art and similar images.
-- Preload nearby images: decodes likely next and previous images in the background so folder navigation can feel instant.
+- Preload nearby files: decodes likely next and previous images in the background. For 3D files it reads up to two nearby models into Windows' file cache after an idle delay, reducing disk-read work without locking the active 3D view. Model parsing and GPU setup still happen when selected. Read-ahead is limited to 64 MiB per model and 128 MiB per pass (or less with a smaller preload budget); very large models are only partially prefetched. Network locations and external texture/buffer files are not prefetched.
 - Preload memory: limits how much RAM Mangosteen may use for decoded-image cache entries.
 - Preload aggressiveness: controls how far ahead Mangosteen scans and how eagerly it warms likely next images.
 - Keep Mangosteen ready in the background: enabled by default. Mangosteen starts with Windows and keeps its already-constructed viewer shell ready. Closing the window releases the current image and caches, then returns the viewer to the background; `File > Exit` quits it completely.

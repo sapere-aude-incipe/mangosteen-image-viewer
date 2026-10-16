@@ -55,7 +55,7 @@
     <value>フルデコードと先読みに使うメモリ上限</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>近くの画像を先読み</value>
+    <value>近くのファイルを先読み</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>プレビューのみ</value>
@@ -166,7 +166,7 @@
     <value>デコード済み画像キャッシュのメモリ上限を選びます。</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>次または前に表示されそうな画像をバックグラウンドでデコードします。</value>
+    <value>近くの画像をデコードし、3Dファイルをバックグラウンドで先読みします。</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>ズーム時により滑らかな補間を使います。</value>
@@ -270,4 +270,7 @@
   <data name="AlreadyActualPixels" xml:space="preserve"><value>すでに実際のピクセルで表示されています。</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>このフォルダーに前のファイルはありません。</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>このフォルダーに次のファイルはありません。</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D表示</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>グリッドをワールド原点に配置</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>モデルの下ではなく、元の座標原点にグリッドを配置します。</value></data>
 </root>

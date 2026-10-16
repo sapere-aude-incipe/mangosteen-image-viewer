@@ -68,7 +68,8 @@ internal sealed class OptionalComponentCatalog
         {
             using var manifest = JsonDocument.Parse(File.ReadAllBytes(manifestPath));
             var root = manifest.RootElement;
-            if (!root.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.String)
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.String)
             {
                 return false;
             }
@@ -78,13 +79,16 @@ internal sealed class OptionalComponentCatalog
                 OptionalComponentKind.GpuLargeImages =>
                     id.GetString() == "gpu-large-images" &&
                     root.TryGetProperty("version", out var version) &&
+                    version.ValueKind == JsonValueKind.Number &&
                     version.TryGetInt32(out var versionNumber) &&
                     versionNumber == 1,
                 OptionalComponentKind.ModelViewer =>
                     id.GetString() == "model-viewer" &&
                     root.TryGetProperty("engine", out var engine) &&
+                    engine.ValueKind == JsonValueKind.String &&
                     engine.GetString() == "F3D" &&
                     root.TryGetProperty("engineVersion", out var engineVersion) &&
+                    engineVersion.ValueKind == JsonValueKind.String &&
                     engineVersion.GetString() == "3.5.0" &&
                     File.Exists(Path.Combine(GetComponentDirectory(component), "bin", "f3d_c_api.dll")),
                 _ => false

@@ -39,6 +39,10 @@ surface. Initial browsing support covers STL, PLY, OBJ, glTF, and GLB files.
 - Reset view (or `F`) restores the starting angle and fits the model again.
 - Image rotation controls remain disabled while viewing a model.
 - Models are framed automatically against a fading floor grid.
+- The grid sits beneath the model by default, without moving its geometry.
+  **Options > 3D view > Grid at world origin** anchors the grid to the original
+  coordinate origin instead. This preference is saved and changes only the grid,
+  not the camera or model file.
 - A lower-right XYZ orientation indicator remains visible.
 - Materials, textures, vertex colors, and animations are handled by F3D when
   present in a supported file.
@@ -48,6 +52,24 @@ surface. Initial browsing support covers STL, PLY, OBJ, glTF, and GLB files.
 
 The official F3D Windows runtime is comparatively large, so it remains a separate
 component. Its complete license bundle is included with the component.
+
+### Model read-ahead
+
+The **Preload nearby files** setting also reads up to two nearby local model files
+ahead after the configured idle delay. It uses a small pooled buffer and Windows'
+file cache, not an additional retained copy of the model or a native graphics
+context. Navigation, disabling preloading, and shutdown cancel the worker.
+Changed files are eligible for read-ahead again.
+
+Read traffic is capped at the smaller of one sixteenth of the selected preload
+budget or 128 MiB per pass, and 64 MiB per model. Larger models receive partial
+read-ahead. Network locations and external material, texture, and buffer files
+are excluded. Windows may evict prefetched pages as needed.
+
+This is not a decoded-scene/GPU cache: F3D still parses and uploads a model when
+it is selected. It reduces potential disk latency without competing for the
+active viewport's graphics context. Actual improvement depends on the storage
+device, Windows' existing cache, and the model's import cost.
 
 ## Getting the advanced components
 

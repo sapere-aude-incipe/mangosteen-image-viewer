@@ -1,4 +1,5 @@
 using NetVips;
+using Mangosteen.Decoding;
 using System.IO;
 using System.Runtime.InteropServices;
 using VipsImage = NetVips.Image;
@@ -80,7 +81,7 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
             expandedTop,
             expandedRight - expandedLeft,
             expandedBottom - expandedTop);
-        using var colorManaged = ConvertToSrgb(expanded);
+        using var colorManaged = VipsDisplayColor.ConvertToSrgb(expanded, preserveHighBitDepth: true);
         using var sized = level.Downsample == 1
             ? colorManaged.Copy()
             : colorManaged.Resize(
@@ -130,37 +131,6 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
     private static VipsImage Open(string path)
     {
         return VipsImage.NewFromFile(path, access: Enums.Access.Random, failOn: Enums.FailOn.None);
-    }
-
-    private static VipsImage ConvertToSrgb(VipsImage image)
-    {
-        if (image.GetTypeOf("icc-profile-data") != 0)
-        {
-            try
-            {
-                return image.IccTransform(
-                    "srgb",
-                    intent: Enums.Intent.Relative,
-                    blackPointCompensation: true,
-                    embedded: true,
-                    depth: GetBitsPerChannel(image.Format) > 8 ? 16 : 8);
-            }
-            catch (VipsException)
-            {
-                // Some loaders expose an unusable profile. The regular color-space
-                // conversion is still preferable to failing the entire viewer.
-            }
-        }
-
-        var targetInterpretation = GetBitsPerChannel(image.Format) > 8
-            ? Enums.Interpretation.Rgb16
-            : Enums.Interpretation.Srgb;
-        return image.Interpretation == targetInterpretation ||
-            (targetInterpretation == Enums.Interpretation.Rgb16 &&
-                image.Interpretation == Enums.Interpretation.Srgb &&
-                image.Format == Enums.BandFormat.Ushort)
-            ? image.Copy()
-            : image.Colourspace(targetInterpretation);
     }
 
     private static VipsImage EnsureRgba(VipsImage image)

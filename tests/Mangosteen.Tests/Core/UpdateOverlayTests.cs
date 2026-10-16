@@ -16,6 +16,30 @@ public sealed class UpdateOverlayTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
+    public Task Native_Status_Band_Is_Outside_The_Viewport_And_Restores_Normal_Placement(bool darkMode) => StaTest.RunAsync(() =>
+    {
+        var window = new MainWindow(new AppSettings { IsDarkMode = darkMode, KeepReadyInBackground = false, IsPreloadEnabled = false });
+        BeginDownload(window, new UpdateDownloadProgress(1024, 4096));
+        Invoke(window, "SetStatusOverlayPlacement", true);
+        var root = (FrameworkElement)window.Content;
+        root.Measure(new Size(800, 600));
+        root.Arrange(new Rect(0, 0, 800, 600));
+        var status = Element<Border>(window, "StatusOverlay");
+        var surface = Element<Grid>(window, "ViewerSurfaceContainer");
+        var statusTop = status.TransformToAncestor(root).Transform(new Point(0, 0)).Y;
+        var surfaceBottom = surface.TransformToAncestor(root).Transform(new Point(0, surface.ActualHeight)).Y;
+        Assert.AreEqual(2, Grid.GetRow(status));
+        Assert.IsGreaterThanOrEqualTo(surfaceBottom, statusTop);
+        AssertDownloadVisible(window, new UpdateDownloadProgress(1024, 4096));
+        Invoke(window, "SetStatusOverlayPlacement", false);
+        Assert.AreEqual(1, Grid.GetRow(status));
+        Assert.AreEqual(new Thickness(0), status.Margin);
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
     public Task Image_Status_Changes_Do_Not_Hide_Or_Reset_Download_Progress(bool knownTotal) => StaTest.RunAsync(() =>
     {
         var window = CreateWindow();

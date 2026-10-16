@@ -55,7 +55,7 @@
     <value>Presupuesto de memoria para decodificaciÃ³n completa y precarga</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>Precargar imÃ¡genes cercanas</value>
+    <value>Precargar archivos cercanos</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Solo vista previa</value>
@@ -166,7 +166,7 @@ La agresividad de precarga controla hasta dónde escanea Mangosteen y con qué i
     <value>Elige el presupuesto de memoria para la caché de imágenes decodificadas.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decodifica en segundo plano las imágenes que probablemente sean la siguiente y la anterior.</value>
+    <value>Decodifica imágenes y lee archivos 3D cercanos por adelantado en segundo plano.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Usa una interpolación más suave al acercar.</value>
@@ -270,4 +270,7 @@ Las versiones portables no pueden actualizarse en el mismo lugar. ¿Abrir la pá
   <data name="AlreadyActualPixels" xml:space="preserve"><value>Ya se muestra a tamaño real.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>No hay un archivo anterior en esta carpeta.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>No hay un archivo siguiente en esta carpeta.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>Vista 3D</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Cuadrícula en el origen global</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Colocar la cuadrícula en el origen de coordenadas original en lugar de debajo del modelo.</value></data>
 </root>

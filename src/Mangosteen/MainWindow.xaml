@@ -52,6 +52,9 @@
         <SolidColorBrush x:Key="PanelBackground" Color="#2B2F36" />
         <SolidColorBrush x:Key="PanelBorder" Color="#464C56" />
         <SolidColorBrush x:Key="PanelSeparator" Color="#3E444E" />
+        <SolidColorBrush x:Key="DockBackground" Color="#2A2C30" />
+        <SolidColorBrush x:Key="DockBorder" Color="#4E5157" />
+        <SolidColorBrush x:Key="DockCounterForeground" Color="#C4C9D0" />
         <SolidColorBrush x:Key="ControlHoverBackground" Color="#3C434D" />
         <SolidColorBrush x:Key="ControlPressedBackground" Color="#48505C" />
         <SolidColorBrush x:Key="TextPrimary" Color="#ECF0F5" />
@@ -257,8 +260,8 @@
         </Style>
 
         <Style x:Key="DockButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="38" />
-            <Setter Property="Height" Value="32" />
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="34" />
             <Setter Property="Margin" Value="1,0" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
@@ -287,7 +290,7 @@
                                 <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource ControlPressedBackground}" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="ButtonContent" Property="Opacity" Value="0.42" />
+                                <Setter TargetName="ButtonContent" Property="Opacity" Value="0.50" />
                                 <Setter TargetName="ButtonBorder" Property="Background" Value="Transparent" />
                                 <Setter Property="Cursor" Value="Arrow" />
                             </Trigger>
@@ -586,7 +589,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="58" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="64" />
         </Grid.RowDefinitions>
 
         <Border x:Name="TopChrome"
@@ -690,6 +694,11 @@
                             <MenuItem x:Name="AutoRefreshMenuItem"
                                       IsCheckable="True"
                                       Click="AutoRefreshMenuItem_Click" />
+                            <MenuItem x:Name="ModelViewMenuItem">
+                                <MenuItem x:Name="ModelGridAtWorldOriginMenuItem"
+                                          IsCheckable="True"
+                                          Click="ModelGridAtWorldOriginMenuItem_Click" />
+                            </MenuItem>
                             <Separator />
                             <MenuItem x:Name="DarkModeMenuItem"
                                       IsCheckable="True"
@@ -913,7 +922,7 @@
         </Border>
 
         <Border x:Name="ToolbarHost"
-                Grid.Row="2"
+                Grid.Row="3"
                 Background="Transparent"
                 BorderThickness="0">
             <Grid Margin="10,0">
@@ -925,29 +934,29 @@
 
                 <Border x:Name="NavigationDock"
                         Grid.Column="1"
-                        Margin="0,8"
-                        Padding="5,4"
+                        Margin="0,9"
+                        Padding="7,5"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Background="{DynamicResource PanelBackground}"
-                        BorderBrush="{DynamicResource PanelBorder}"
+                        Background="{DynamicResource DockBackground}"
+                        BorderBrush="{DynamicResource DockBorder}"
                         BorderThickness="1"
-                        CornerRadius="10"
+                        CornerRadius="8"
                         SnapsToDevicePixels="True">
                     <Border.Effect>
                         <DropShadowEffect Color="#000000"
                                           Direction="270"
                                           ShadowDepth="1"
-                                          BlurRadius="8"
-                                          Opacity="0.10" />
+                                          BlurRadius="6"
+                                          Opacity="0.16" />
                     </Border.Effect>
                     <Grid VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="122" />
-                            <ColumnDefinition Width="13" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="13" />
-                            <ColumnDefinition Width="122" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0"
@@ -966,7 +975,7 @@
 
                         <Rectangle Grid.Column="1"
                                    Width="1"
-                                   Height="18"
+                                   Height="16"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    Fill="{DynamicResource PanelSeparator}" />
@@ -978,11 +987,11 @@
                                     Style="{StaticResource DockButtonStyle}"
                                     Click="PreviousButton_Click" />
                             <TextBlock x:Name="ImagePositionText"
-                                       Width="84"
-                                       Margin="5,0"
+                                       Width="48"
+                                       Margin="1,0"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       Foreground="{DynamicResource TextSecondary}"
+                                       Foreground="{DynamicResource DockCounterForeground}"
                                        FontSize="12"
                                        FontWeight="SemiBold"
                                        TextAlignment="Center"
@@ -995,7 +1004,7 @@
 
                         <Rectangle Grid.Column="3"
                                    Width="1"
-                                   Height="18"
+                                   Height="16"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    Fill="{DynamicResource PanelSeparator}" />

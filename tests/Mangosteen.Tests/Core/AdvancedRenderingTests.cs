@@ -97,6 +97,28 @@ public sealed class AdvancedRenderingTests
     }
 
     [TestMethod]
+    [DataRow("null")]
+    [DataRow("[]")]
+    [DataRow("42")]
+    [DataRow("{\"id\":null}")]
+    [DataRow("{\"id\":\"gpu-large-images\",\"version\":\"1\"}")]
+    [DataRow("{\"id\":\"gpu-large-images\",\"version\":null}")]
+    [DataRow("{\"id\":\"model-viewer\",\"engine\":42,\"engineVersion\":\"3.5.0\"}")]
+    [DataRow("{\"id\":\"model-viewer\",\"engine\":\"F3D\",\"engineVersion\":[]}")]
+    public void OptionalComponentCatalog_Rejects_Invalid_Json_Shapes(string json)
+    {
+        using var directory = TemporaryDirectory.Create();
+        var catalog = new OptionalComponentCatalog(directory.Path);
+        foreach (var kind in Enum.GetValues<OptionalComponentKind>())
+        {
+            var path = catalog.GetManifestPath(kind);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, json);
+            Assert.IsFalse(catalog.IsInstalled(kind));
+        }
+    }
+
+    [TestMethod]
     public void OptionalComponentCatalog_RequiresPinnedModelRuntime()
     {
         using var directory = TemporaryDirectory.Create();

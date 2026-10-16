@@ -55,7 +55,7 @@
     <value>전체 디코딩과 미리 로드에 사용할 메모리 한도</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>주변 이미지 미리 로드</value>
+    <value>주변 파일 미리 로드</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>미리 보기만</value>
@@ -166,7 +166,7 @@
     <value>디코딩된 이미지 캐시의 메모리 한도를 선택합니다.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>다음 및 이전 이미지로 예상되는 항목을 백그라운드에서 디코딩합니다.</value>
+    <value>백그라운드에서 주변 이미지를 디코딩하고 3D 파일을 미리 읽습니다.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>확대할 때 더 부드러운 보간을 사용합니다.</value>
@@ -270,4 +270,7 @@
   <data name="AlreadyActualPixels" xml:space="preserve"><value>이미 실제 픽셀 크기로 표시되고 있습니다.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>이 폴더에 이전 파일이 없습니다.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>이 폴더에 다음 파일이 없습니다.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D 보기</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>월드 원점에 격자 배치</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>모델 아래 대신 원래 좌표 원점에 격자를 배치합니다.</value></data>
 </root>

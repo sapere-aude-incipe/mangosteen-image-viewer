@@ -8,6 +8,9 @@ internal static class LocalizedText
 {
     public const string Performance = nameof(Performance);
     public const string ResetView = nameof(ResetView);
+    public const string ModelView = nameof(ModelView);
+    public const string ModelGridAtWorldOrigin = nameof(ModelGridAtWorldOrigin);
+    public const string ModelGridAtWorldOriginTooltip = nameof(ModelGridAtWorldOriginTooltip);
     public const string RotationUnavailable = nameof(RotationUnavailable);
     public const string NoFileOpen = nameof(NoFileOpen);
     public const string AlreadyActualPixels = nameof(AlreadyActualPixels);
@@ -128,6 +131,9 @@ internal static class LocalizedText
 
     public static readonly string[] Keys =
     [
+        ModelView,
+        ModelGridAtWorldOrigin,
+        ModelGridAtWorldOriginTooltip,
         AllFiles,
         Aggressive,
         AggressivePreloadTooltip,

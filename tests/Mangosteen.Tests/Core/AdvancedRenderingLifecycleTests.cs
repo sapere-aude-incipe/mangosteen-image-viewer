@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.ComponentModel;
 using System.Windows.Interop;
+using System.Runtime.InteropServices;
+using System.Windows.Threading;
 using Mangosteen.Decoding;
 using Mangosteen.Rendering;
 using Mangosteen.Rendering.Advanced;
@@ -11,6 +13,62 @@ namespace Mangosteen.Tests.Core;
 [TestClass]
 public sealed class AdvancedRenderingLifecycleTests
 {
+    [TestMethod]
+    [TestCategory("NativeOpenGL")]
+    public Task Gpu_Image_Repaints_After_Exposure_Without_Reloading() => StaTest.RunAsync(async () =>
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            using var source = new HwndSource(new HwndSourceParameters("Mangosteen GPU repaint test") { Width = 64, Height = 64, WindowStyle = 0 });
+            using var host = new NativeGlHost { Width = 64, Height = 64 };
+            try { source.RootVisual = host; }
+            catch (Win32Exception ex) when (ex.Message == "Could not create the OpenGL rendering context.")
+            {
+                Assert.Inconclusive("A WGL context is unavailable on this machine.");
+            }
+            host.Measure(new System.Windows.Size(64, 64));
+            host.Arrange(new System.Windows.Rect(0, 0, 64, 64));
+            host.UpdateLayout();
+            using var renderer = new GpuLargeImageRenderer(host, new StubSource
+            {
+                Metadata = (_, _) => Task.FromResult(new LargeImageMetadata(64, 64, 4, 8, false)),
+                Decode = async (_, _, _, token) => { await Task.Delay(Timeout.Infinite, token); return Tile; }
+            });
+            using var preview = CreatePreview();
+            var view = new ViewerState();
+            view.SetViewport(new Mangosteen.Core.PixelSize(host.PixelWidth, host.PixelHeight));
+            view.SetImage(64, 64, true);
+            Assert.IsTrue(await renderer.OpenAsync(path, new ImageMetadata(path, 64, 64, 1, "test"), preview, view, CancellationToken.None));
+            // Delete the source to ensure the repaint uses the loaded content, not a new decode.
+            File.Delete(path);
+            host.Render(() =>
+            {
+                OpenGl11.Disable(OpenGl11.ScissorTest);
+                OpenGl11.ClearColor(0, 0, 1, 1);
+                OpenGl11.Clear(OpenGl11.ColorBufferBit);
+            });
+            NativeRepaintTests.SendMessage(host.Handle, 0x000F, 0, 0);
+            await host.Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ApplicationIdle);
+            var pixel = new byte[4];
+            host.ExecuteWithContext(() =>
+            {
+                ReadBuffer(0x0404); // GL_FRONT
+                ReadPixels(host.PixelWidth / 2, host.PixelHeight / 2, 1, 1, OpenGl11.Rgba, OpenGl11.UnsignedByte, pixel);
+                Assert.AreEqual(0u, OpenGl11.GetError());
+            });
+            Assert.AreEqual(255, pixel[0], "Exposure must repaint the red image preview.");
+            Assert.AreEqual(0, pixel[1]);
+            Assert.AreEqual(0, pixel[2]);
+            renderer.CloseCurrent();
+            source.RootVisual = null;
+        }
+        finally { File.Delete(path); }
+    });
+
+    [DllImport("opengl32.dll", EntryPoint = "glReadBuffer")] private static extern void ReadBuffer(uint mode);
+    [DllImport("opengl32.dll", EntryPoint = "glReadPixels")] private static extern void ReadPixels(int x, int y, int width, int height, uint format, uint type, [Out] byte[] pixels);
+
     [TestMethod]
     public Task Tile_Queue_Is_Bounded_And_Cancels_Requests_After_Panning() => StaTest.RunAsync(async () =>
     {

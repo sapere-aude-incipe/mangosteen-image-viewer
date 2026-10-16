@@ -55,7 +55,7 @@
     <value>Limit pamięci dla pełnego dekodowania i wstępnego ładowania</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>Wstępnie ładuj pobliskie obrazy</value>
+    <value>Wstępnie ładuj pobliskie pliki</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Tylko podgląd</value>
@@ -166,7 +166,7 @@ Agresywność wstępnego ładowania określa, jak daleko Mangosteen skanuje do p
     <value>Wybierz limit pamięci podręcznej zdekodowanych obrazów.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Dekoduje w tle prawdopodobny następny i poprzedni obraz.</value>
+    <value>Dekoduje pobliskie obrazy i z wyprzedzeniem odczytuje pliki 3D w tle.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Używa gładszej interpolacji przy powiększaniu.</value>
@@ -270,4 +270,7 @@ Wersje przenośne nie mogą aktualizować się w miejscu. Otworzyć stronę GitH
   <data name="AlreadyActualPixels" xml:space="preserve"><value>Obraz jest już wyświetlany w rzeczywistym rozmiarze pikseli.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>Brak poprzedniego pliku w tym folderze.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>Brak następnego pliku w tym folderze.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>Widok 3D</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Siatka w początku układu świata</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Umieść siatkę w pierwotnym początku układu współrzędnych zamiast pod modelem.</value></data>
 </root>

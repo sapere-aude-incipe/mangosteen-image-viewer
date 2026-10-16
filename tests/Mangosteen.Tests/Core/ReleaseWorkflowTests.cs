@@ -70,4 +70,3 @@ public sealed class ReleaseWorkflowTests
         throw new DirectoryNotFoundException("Could not locate the Mangosteen repository root.");
     }
 }
-

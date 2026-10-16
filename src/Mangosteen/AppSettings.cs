@@ -22,6 +22,7 @@ internal sealed class AppSettings
     public bool IsPreloadEnabled { get; init; } = true;
     public bool IsAutoRefreshEnabled { get; init; }
     public bool KeepReadyInBackground { get; init; } = true;
+    public bool IsModelGridAtWorldOrigin { get; init; }
     public int PreloadBudgetGigabytes { get; init; } = DefaultPreloadBudgetGigabytes;
     public PreloadAggressiveness PreloadAggressiveness { get; init; } = PreloadAggressiveness.Balanced;
 
@@ -41,6 +42,10 @@ internal sealed class AppSettings
 
             var json = File.ReadAllText(path);
             using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return new AppSettings();
+            }
             var settings = JsonSerializer.Deserialize(document.RootElement, JsonContext.AppSettings);
             var keepReadyInBackground = document.RootElement.TryGetProperty(
                 nameof(KeepReadyInBackground),
@@ -63,6 +68,7 @@ internal sealed class AppSettings
 
     internal void Save(string path)
     {
+        string? temporaryPath = null;
         try
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -70,6 +76,7 @@ internal sealed class AppSettings
                 return;
             }
 
+            path = Path.GetFullPath(path);
             var directory = Path.GetDirectoryName(path);
             if (!string.IsNullOrWhiteSpace(directory))
             {
@@ -77,11 +84,29 @@ internal sealed class AppSettings
             }
 
             var json = JsonSerializer.Serialize(Normalize(this), JsonContext.AppSettings);
-            File.WriteAllText(path, json);
+            temporaryPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                stream.Write(bytes);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temporaryPath, path, overwrite: true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
         {
             Trace.TraceWarning($"Failed to save Mangosteen settings: {ex}");
+        }
+        finally
+        {
+            if (temporaryPath is not null)
+            {
+                try { File.Delete(temporaryPath); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    Trace.TraceWarning($"Failed to remove temporary settings file: {ex}");
+                }
+            }
         }
     }
 
@@ -111,6 +136,7 @@ internal sealed class AppSettings
             IsPreloadEnabled = settings.IsPreloadEnabled,
             IsAutoRefreshEnabled = settings.IsAutoRefreshEnabled,
             KeepReadyInBackground = keepReadyInBackground ?? settings.KeepReadyInBackground,
+            IsModelGridAtWorldOrigin = settings.IsModelGridAtWorldOrigin,
             PreloadBudgetGigabytes = Math.Clamp(
                 settings.PreloadBudgetGigabytes,
                 MinimumPreloadBudgetGigabytes,

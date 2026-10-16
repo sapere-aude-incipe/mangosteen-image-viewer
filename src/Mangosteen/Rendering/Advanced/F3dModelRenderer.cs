@@ -11,6 +11,7 @@ internal sealed class F3dModelRenderer : IDisposable
     private readonly SemaphoreSlim _operationGate = new(1, 1);
     private readonly DispatcherTimer _animationTimer = new() { Interval = TimeSpan.FromMilliseconds(33) };
     private readonly Stopwatch _animationClock = new();
+    private readonly NativeOrientationOverlay _orientationOverlay = new();
     private F3dNativeApi? _api;
     private nint _engine;
     private nint _window;
@@ -24,6 +25,7 @@ internal sealed class F3dModelRenderer : IDisposable
     private bool _disposed;
     private bool _resourcesDisposed;
     private volatile bool _darkMode;
+    private volatile bool _gridAtWorldOrigin;
     private bool _needsInitialView;
 
     public const double MinimumZoom = 0.1;
@@ -36,6 +38,7 @@ internal sealed class F3dModelRenderer : IDisposable
         _host = host ?? throw new ArgumentNullException(nameof(host));
         _componentDirectory = componentDirectory ?? throw new ArgumentNullException(nameof(componentDirectory));
         _host.SurfaceSizeChanged += Host_SurfaceSizeChanged;
+        _host.RepaintRequested += Host_RepaintRequested;
         _animationTimer.Tick += AnimationTimer_Tick;
     }
 
@@ -118,11 +121,29 @@ internal sealed class F3dModelRenderer : IDisposable
 
     public void Orbit(double horizontalDegrees, double verticalDegrees)
     {
+        if (!double.IsFinite(horizontalDegrees) || !double.IsFinite(verticalDegrees)) return;
         RenderWithCamera(() =>
         {
-            _api!.Azimuth(_camera, horizontalDegrees);
-            _api.Elevation(_camera, verticalDegrees);
+            var focalPoint = _api!.GetFocalPoint(_camera);
+            if (UprightOrbit.TryRotate(_api.GetPosition(_camera) - focalPoint, horizontalDegrees, verticalDegrees, out var offset))
+            {
+                _api.SetPosition(_camera, focalPoint + offset);
+                _api.SetViewUp(_camera, new(0, 1, 0));
+            }
         });
+    }
+
+    public void OrbitFromDrag(double deltaX, double deltaY)
+    {
+        var (azimuth, elevation) = GetDragRotation(deltaX, deltaY, _host.PixelWidth, _host.PixelHeight);
+        if (azimuth != 0 || elevation != 0) Orbit(azimuth, elevation);
+    }
+
+    internal static (double Azimuth, double Elevation) GetDragRotation(double deltaX, double deltaY, int width, int height)
+    {
+        if (width <= 1 || height <= 1 || !double.IsFinite(deltaX) || !double.IsFinite(deltaY)) return default;
+        // VTK trackball-camera sensitivity; Win32's downward-positive Y is inverted.
+        return (-200 * deltaX / width, 200 * deltaY / height);
     }
 
     public void Pan(double horizontal, double vertical)
@@ -159,6 +180,12 @@ internal sealed class F3dModelRenderer : IDisposable
     public void ApplyTheme(bool darkMode)
     {
         _darkMode = darkMode;
+        RenderWithCamera(static () => { });
+    }
+
+    public void SetGridAtWorldOrigin(bool enabled)
+    {
+        _gridAtWorldOrigin = enabled;
         RenderWithCamera(static () => { });
     }
 
@@ -200,6 +227,7 @@ internal sealed class F3dModelRenderer : IDisposable
         _animationTimer.Stop();
         _animationTimer.Tick -= AnimationTimer_Tick;
         _host.SurfaceSizeChanged -= Host_SurfaceSizeChanged;
+        _host.RepaintRequested -= Host_RepaintRequested;
     }
 
     private void DisposeNativeResourcesWithGateHeld()
@@ -216,6 +244,7 @@ internal sealed class F3dModelRenderer : IDisposable
             _engine = nint.Zero;
             _api?.Dispose();
             _api = null;
+            _orientationOverlay.Dispose();
             _resourcesDisposed = true;
             _operationGate.Release();
             // Queued cleanup requests still need to acquire/release this gate.
@@ -257,8 +286,9 @@ internal sealed class F3dModelRenderer : IDisposable
         var options = _api.GetOptions(_engine);
         if (options == nint.Zero) throw new InvalidOperationException("F3D did not expose its options.");
         _api.SetBool(options, "render.grid.enable", true);
-        _api.SetBool(options, "render.grid.absolute", true);
-        _api.SetBool(options, "ui.axis", true);
+        _api.SetBool(options, "render.grid.absolute", _gridAtWorldOrigin);
+        _api.SetBool(options, "ui.axis", false);
+        _api.SetBool(options, "render.effect.antialiasing.enable", true);
         _api.SetBool(options, "render.effect.ambient_occlusion", true);
         _window = _api.GetWindow(_engine);
         _scene = _api.GetScene(_engine);
@@ -280,6 +310,11 @@ internal sealed class F3dModelRenderer : IDisposable
         _api.SetDoubleVector(options, "render.background.color", darkMode
             ? [0.129, 0.129, 0.129]
             : [0.957, 0.965, 0.973]);
+        foreach (var axis in new[] { 0, 1, 2 })
+        {
+            var color = OrientationIndicator.AxisColor(axis, darkMode);
+            _api.SetDoubleVector(options, $"ui.{"xyz"[axis]}_color", [color.Red / 255.0, color.Green / 255.0, color.Blue / 255.0]);
+        }
     }
 
     private void ConfigureAnimation()
@@ -358,6 +393,11 @@ internal sealed class F3dModelRenderer : IDisposable
         RenderWithCamera(ResizeCore);
     }
 
+    private void Host_RepaintRequested(object? sender, EventArgs e)
+    {
+        RenderWithCamera(static () => { });
+    }
+
     private void ResizeCore()
     {
         _api!.SetWindowSize(_window, Math.Max(1, _host.PixelWidth), Math.Max(1, _host.PixelHeight));
@@ -367,6 +407,7 @@ internal sealed class F3dModelRenderer : IDisposable
     {
         // Fitting at WPF's hidden 1x1 size collapses the camera's viewing angle.
         if (_host.PixelWidth <= 1 || _host.PixelHeight <= 1) return;
+        _api!.SetBool(_api.GetOptions(_engine), "render.grid.absolute", _gridAtWorldOrigin);
         InitializeViewIfNeeded();
         // F3D imports the external framebuffer, including depth, before drawing.
         // A resized or previously rendered back buffer must not occlude the new scene.
@@ -380,6 +421,7 @@ internal sealed class F3dModelRenderer : IDisposable
         {
             throw new InvalidOperationException("F3D could not render the model.");
         }
+        _orientationOverlay.Draw(_api.GetOrientation(_camera), _darkMode, _host.PixelWidth, _host.PixelHeight, _host.SurfaceScale);
     }
 
     private void InitializeViewIfNeeded()

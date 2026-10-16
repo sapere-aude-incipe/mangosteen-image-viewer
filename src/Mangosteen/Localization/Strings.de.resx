@@ -55,7 +55,7 @@
     <value>Speicherbudget fÃ¼r vollstÃ¤ndige Dekodierung und Vorladen</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>Bilder in der NÃ¤he vorladen</value>
+    <value>Dateien in der Nähe vorladen</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Nur Vorschau</value>
@@ -166,7 +166,7 @@ Die Vorablade-Aggressivität steuert, wie weit Mangosteen voraus scannt und wie 
     <value>Wählt das Speicherbudget für den dekodierten Bildcache.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Dekodiert wahrscheinliche nächste und vorherige Bilder im Hintergrund.</value>
+    <value>Dekodiert Bilder und liest benachbarte 3D-Dateien im Hintergrund voraus.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Verwendet weichere Interpolation beim Hineinzoomen.</value>
@@ -270,4 +270,7 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="AlreadyActualPixels" xml:space="preserve"><value>Wird bereits in Originalgröße angezeigt.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>Keine vorherige Datei in diesem Ordner.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>Keine nächste Datei in diesem Ordner.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D-Ansicht</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Raster am Weltursprung</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Das Raster am ursprünglichen Koordinatenursprung statt unter dem Modell platzieren.</value></data>
 </root>

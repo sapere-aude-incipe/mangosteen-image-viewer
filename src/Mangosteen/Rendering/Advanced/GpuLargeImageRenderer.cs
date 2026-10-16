@@ -40,6 +40,7 @@ internal sealed class GpuLargeImageRenderer : IDisposable
         _cache = cache ?? new PersistentTileCache();
         _host.SurfaceReady += Host_SurfaceReady;
         _host.SurfaceSizeChanged += Host_SurfaceSizeChanged;
+        _host.RepaintRequested += Host_SurfaceSizeChanged;
     }
 
     public NativeGlHost Host => _host;
@@ -139,6 +140,7 @@ internal sealed class GpuLargeImageRenderer : IDisposable
         _loadCts.Dispose();
         _host.SurfaceReady -= Host_SurfaceReady;
         _host.SurfaceSizeChanged -= Host_SurfaceSizeChanged;
+        _host.RepaintRequested -= Host_SurfaceSizeChanged;
     }
 
     private void Host_SurfaceReady(object? sender, EventArgs e)

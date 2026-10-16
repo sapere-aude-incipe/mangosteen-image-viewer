@@ -55,7 +55,7 @@
     <value>OrÃ§amento de memÃ³ria para decodificaÃ§Ã£o completa e prÃ©-carregamento</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>PrÃ©-carregar imagens prÃ³ximas</value>
+    <value>Pré-carregar arquivos próximos</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>Somente prÃ©via</value>
@@ -166,7 +166,7 @@ A agressividade do pré-carregamento controla até onde o Mangosteen verifica e 
     <value>Escolha o limite de memória do cache de imagens decodificadas.</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>Decodifica em segundo plano as imagens prováveis próxima e anterior.</value>
+    <value>Decodifica imagens e lê arquivos 3D próximos antecipadamente em segundo plano.</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>Usa interpolação mais suave ao aproximar.</value>
@@ -270,4 +270,7 @@ Versões portáteis não podem ser atualizadas no local. Abrir a página GitHub 
   <data name="AlreadyActualPixels" xml:space="preserve"><value>Já está sendo exibido em pixels reais.</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>Não há arquivo anterior nesta pasta.</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>Não há próximo arquivo nesta pasta.</value></data>
+  <data name="ModelView" xml:space="preserve"><value>Visualização 3D</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Grade na origem global</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Posicionar a grade na origem das coordenadas originais em vez de sob o modelo.</value></data>
 </root>

@@ -55,7 +55,7 @@
     <value>完整解碼和預先載入使用的記憶體預算</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
-    <value>預先載入附近影像</value>
+    <value>預先載入附近檔案</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
     <value>僅預覽</value>
@@ -166,7 +166,7 @@
     <value>選擇已解碼影像快取的記憶體預算。</value>
   </data>
   <data name="PreloadNearbyImagesTooltip" xml:space="preserve">
-    <value>在背景解碼可能的下一張和上一張影像。</value>
+    <value>在背景解碼附近影像並預讀附近的3D檔案。</value>
   </data>
   <data name="SmoothUpscalingTooltip" xml:space="preserve">
     <value>放大時使用更平滑的插值。</value>
@@ -270,4 +270,7 @@
   <data name="AlreadyActualPixels" xml:space="preserve"><value>已按實際像素顯示。</value></data>
   <data name="NoPreviousFile" xml:space="preserve"><value>此資料夾中沒有上一個檔案。</value></data>
   <data name="NoNextFile" xml:space="preserve"><value>此資料夾中沒有下一個檔案。</value></data>
+  <data name="ModelView" xml:space="preserve"><value>3D 檢視</value></data>
+  <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>網格位於世界原點</value></data>
+  <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>將網格放在原始座標原點，而不是模型下方。</value></data>
 </root>

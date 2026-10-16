@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows.Media.Media3D;
 
 namespace Mangosteen.Rendering.Advanced;
 
@@ -34,6 +35,11 @@ internal sealed partial class F3dNativeApi : IDisposable
     private readonly CameraUnaryDouble _cameraResetToBounds;
     private readonly CameraAction _cameraSetDefault;
     private readonly CameraAction _cameraResetDefault;
+    private readonly CameraGetVector _cameraGetPosition;
+    private readonly CameraGetVector _cameraGetFocalPoint;
+    private readonly CameraGetVector _cameraGetViewUp;
+    private readonly CameraSetVector _cameraSetPosition;
+    private readonly CameraSetVector _cameraSetViewUp;
 
     public F3dNativeApi(string componentDirectory)
     {
@@ -73,6 +79,11 @@ internal sealed partial class F3dNativeApi : IDisposable
             _cameraResetToBounds = GetExport<CameraUnaryDouble>("f3d_camera_reset_to_bounds");
             _cameraSetDefault = GetExport<CameraAction>("f3d_camera_set_current_as_default");
             _cameraResetDefault = GetExport<CameraAction>("f3d_camera_reset_to_default");
+            _cameraGetPosition = GetExport<CameraGetVector>("f3d_camera_get_position");
+            _cameraGetFocalPoint = GetExport<CameraGetVector>("f3d_camera_get_focal_point");
+            _cameraGetViewUp = GetExport<CameraGetVector>("f3d_camera_get_view_up");
+            _cameraSetPosition = GetExport<CameraSetVector>("f3d_camera_set_position");
+            _cameraSetViewUp = GetExport<CameraSetVector>("f3d_camera_set_view_up");
         }
         catch
         {
@@ -106,6 +117,26 @@ internal sealed partial class F3dNativeApi : IDisposable
     public void ResetToBounds(nint camera, double value) => _cameraResetToBounds(camera, value);
     public void StoreDefaultView(nint camera) => _cameraSetDefault(camera);
     public void ResetDefaultView(nint camera) => _cameraResetDefault(camera);
+    public Vector3D GetPosition(nint camera) => ReadVector(_cameraGetPosition, camera);
+    public Vector3D GetFocalPoint(nint camera) => ReadVector(_cameraGetFocalPoint, camera);
+    public void SetPosition(nint camera, Vector3D value) => WriteVector(_cameraSetPosition, camera, value);
+    public void SetViewUp(nint camera, Vector3D value) => WriteVector(_cameraSetViewUp, camera, value);
+
+    public ModelViewOrientation GetOrientation(nint camera) => ModelViewOrientation.FromCamera(
+        ReadVector(_cameraGetPosition, camera), ReadVector(_cameraGetFocalPoint, camera), ReadVector(_cameraGetViewUp, camera));
+
+    private static unsafe Vector3D ReadVector(CameraGetVector getVector, nint camera)
+    {
+        double* values = stackalloc double[3];
+        getVector(camera, values);
+        return new(values[0], values[1], values[2]);
+    }
+
+    private static unsafe void WriteVector(CameraSetVector setVector, nint camera, Vector3D value)
+    {
+        double* values = stackalloc double[3] { value.X, value.Y, value.Z };
+        setVector(camera, values);
+    }
 
     public bool AddSceneFile(nint scene, string path)
     {
@@ -205,6 +236,8 @@ internal sealed partial class F3dNativeApi : IDisposable
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void WindowSetSize(nint window, int width, int height);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void CameraUnaryDouble(nint camera, double value);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void CameraAction(nint camera);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private unsafe delegate void CameraGetVector(nint camera, double* values);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private unsafe delegate void CameraSetVector(nint camera, double* values);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void CameraPan(nint camera, double right, double up, double forward);
 
     [LibraryImport("kernel32.dll", EntryPoint = "LoadLibraryExW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]

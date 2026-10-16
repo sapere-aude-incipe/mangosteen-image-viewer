@@ -2,13 +2,17 @@ using System.Globalization;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Mangosteen.Core;
 using Mangosteen.Decoding;
 using Mangosteen.Navigation;
 using Mangosteen.Localization;
 using Mangosteen.Rendering;
 using Mangosteen.Rendering.Advanced;
+using Mangosteen.Icons;
 using SkiaSharp;
+using ImageMetadata = Mangosteen.Decoding.ImageMetadata;
 
 namespace Mangosteen.Tests.Core;
 
@@ -16,6 +20,26 @@ namespace Mangosteen.Tests.Core;
 [DoNotParallelize] // WPF WindowChrome uses process-wide property-descriptor caches.
 public sealed class ViewerToolbarTests
 {
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public Task Grid_Menu_Reflects_The_Saved_Preference(bool atWorldOrigin) => StaTest.RunAsync(() =>
+    {
+        var window = new MainWindow(new AppSettings
+        {
+            KeepReadyInBackground = false,
+            IsPreloadEnabled = false,
+            IsModelGridAtWorldOrigin = atWorldOrigin
+        });
+        var item = (MenuItem)window.FindName("ModelGridAtWorldOriginMenuItem");
+        Assert.IsTrue(item.IsCheckable);
+        Assert.AreEqual(atWorldOrigin, item.IsChecked);
+        Assert.AreEqual(LocalizedText.Get(LocalizedText.ModelGridAtWorldOrigin), item.Header);
+        Assert.IsNotNull(item.ToolTip);
+        Assert.AreEqual(atWorldOrigin, typeof(MainWindow).GetField("_isModelGridAtWorldOrigin", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(window));
+        return Task.CompletedTask;
+    });
+
     [TestMethod]
     [DataRow("1456%", "en-US", 14.56)]
     [DataRow(" 125.5 % ", "en-US", 1.255)]
@@ -80,7 +104,7 @@ public sealed class ViewerToolbarTests
             Assert.IsNotNull(button.FocusVisualStyle, name);
             Assert.IsNotNull(button.ToolTip, name);
             var content = (ContentPresenter)button.Template.FindName("ButtonContent", button);
-            Assert.AreEqual(0.42, content.Opacity, 0.001, name);
+            Assert.AreEqual(0.50, content.Opacity, 0.001, name);
         }
         Assert.IsTrue(((Button)window.FindName("ZoomPopupButton")).IsEnabled);
         Assert.IsFalse(((Slider)window.FindName("ZoomSlider")).IsEnabled);
@@ -98,6 +122,7 @@ public sealed class ViewerToolbarTests
         root.Arrange(new Rect(0, 0, 520, 360));
         var dock = (Border)window.FindName("NavigationDock");
         var emptyWidth = dock.ActualWidth;
+        Assert.AreEqual(394, emptyWidth, 0.01, "The counter must remain close to its navigation arrows.");
         Assert.AreEqual(Visibility.Hidden, counter.Visibility);
         Assert.IsTrue(emptyWidth > 0 && emptyWidth <= 520);
         var navigator = (ImageNavigator)typeof(MainWindow).GetField("_navigator", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(window)!;
@@ -111,6 +136,77 @@ public sealed class ViewerToolbarTests
         var bottom = toolbar.ActualHeight - top - dock.ActualHeight;
         Assert.AreEqual(top, bottom, 0.01);
         Assert.IsGreaterThanOrEqualTo(7, top);
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
+    [DataRow(true, 520.0)]
+    [DataRow(false, 520.0)]
+    [DataRow(true, 1280.0)]
+    [DataRow(false, 1920.0)]
+    public Task Polished_Dock_Fits_Without_Clipping_And_Has_Theme_Resources(bool darkMode, double width) => StaTest.RunAsync(() =>
+    {
+        var window = new MainWindow(new AppSettings { IsDarkMode = darkMode, KeepReadyInBackground = false, IsPreloadEnabled = false });
+        var root = (Grid)window.Content;
+        root.Measure(new Size(width, 600));
+        root.Arrange(new Rect(0, 0, width, 600));
+        root.UpdateLayout();
+        var dock = (Border)window.FindName("NavigationDock");
+        Assert.AreEqual(new CornerRadius(8), dock.CornerRadius);
+        Assert.IsNotNull(dock.Background);
+        Assert.IsNotNull(dock.BorderBrush);
+        var counter = (TextBlock)window.FindName("ImagePositionText");
+        Assert.IsNotNull(counter.Foreground);
+        var left = dock.TranslatePoint(new Point(), root).X;
+        Assert.IsGreaterThanOrEqualTo(10, left);
+        Assert.IsLessThanOrEqualTo(width - 10, left + dock.ActualWidth);
+        foreach (var name in new[] { "ShowInFolderButton", "ZoomPopupButton", "ActualPixelsButton", "PreviousButton", "NextButton", "RotateLeftButton", "RotateRightButton", "DeleteButton" })
+        {
+            var button = (Button)window.FindName(name);
+            var point = button.TranslatePoint(new Point(), dock);
+            Assert.IsGreaterThanOrEqualTo(0, point.X, name);
+            Assert.IsLessThanOrEqualTo(dock.ActualWidth, point.X + button.ActualWidth, name);
+            Assert.AreEqual(34, button.ActualHeight, name);
+            Assert.AreEqual(36, button.ActualWidth, name);
+            Assert.AreEqual(new Thickness(1, 0, 1, 0), button.Margin, name);
+        }
+        var directory = Environment.GetEnvironmentVariable("MANGOSTEEN_TEST_CAPTURE_DIRECTORY");
+        if (!string.IsNullOrEmpty(directory) && width == 520)
+        {
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var navigator = (ImageNavigator)typeof(MainWindow).GetField("_navigator", flags)!.GetValue(window)!;
+            navigator.LoadSingle(@"C:\Cube.ply");
+            typeof(MainWindow).GetMethod("UpdateImagePositionText", flags)!.Invoke(window, null);
+            var toolbar = (FrameworkElement)window.FindName("ToolbarHost");
+            foreach (var modelMode in new[] { false, true })
+            {
+                foreach (var name in new[] { "ShowInFolderButton", "ZoomPopupButton", "ActualPixelsButton", "PreviousButton", "NextButton", "DeleteButton" })
+                    ((Button)window.FindName(name)).IsEnabled = true;
+                foreach (var name in new[] { "RotateLeftButton", "RotateRightButton" })
+                    ((Button)window.FindName(name)).IsEnabled = !modelMode;
+                var reset = (Button)window.FindName("ActualPixelsButton");
+                reset.Content = ToolbarIcon.Create(modelMode ? ToolbarIconKind.ResetView : ToolbarIconKind.ActualPixels, reset.Foreground);
+                root.UpdateLayout();
+                Assert.AreEqual(394, dock.ActualWidth, 0.01);
+                foreach (var scale in new[] { 1.0, 1.5, 2.0 })
+                {
+                    var drawing = new DrawingVisual();
+                    using (var context = drawing.RenderOpen())
+                    {
+                        context.DrawRectangle(window.Background, null, new Rect(0, 0, width, toolbar.ActualHeight));
+                        context.DrawRectangle(new VisualBrush(toolbar), null, new Rect(0, 0, width, toolbar.ActualHeight));
+                    }
+                    var bitmap = new RenderTargetBitmap((int)(width * scale), (int)(toolbar.ActualHeight * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
+                    bitmap.Render(drawing);
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                    System.IO.Directory.CreateDirectory(directory);
+                    var filename = $"toolbar-{(modelMode ? "model" : "image")}-{(darkMode ? "dark" : "light")}-{scale * 100:0}.png";
+                    using var stream = System.IO.File.Create(System.IO.Path.Combine(directory, filename));
+                    encoder.Save(stream);
+                }
+            }
+        }
         return Task.CompletedTask;
     });
 
@@ -139,6 +235,8 @@ public sealed class ViewerToolbarTests
         var reset = (Button)window.FindName("ActualPixelsButton");
         Assert.IsTrue(reset.IsEnabled);
         StringAssert.Contains(reset.ToolTip.ToString()!, LocalizedText.Get(LocalizedText.ResetView));
+        Assert.AreEqual(Mangosteen.Icons.ToolbarIconKind.ResetView, typeof(MainWindow).GetField("_actualPixelsIconKind", flags)!.GetValue(window));
+        Assert.AreEqual(LocalizedText.Get(LocalizedText.ResetView), System.Windows.Automation.AutomationProperties.GetName(reset));
         Assert.IsTrue(((Slider)window.FindName("ZoomSlider")).IsEnabled);
         Assert.AreEqual("100%", ((TextBox)window.FindName("ZoomText")).Text);
         Assert.IsFalse(((Button)window.FindName("RotateLeftButton")).IsEnabled);
