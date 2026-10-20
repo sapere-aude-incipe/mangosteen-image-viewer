@@ -27,6 +27,39 @@ public sealed class ReleaseWorkflowTests
     }
 
     [TestMethod]
+    public void Release_Workflow_Manual_Dispatch_Requires_A_New_Version()
+    {
+        var text = GetReleaseWorkflowText();
+        var dispatch = text[text.IndexOf("workflow_dispatch:", StringComparison.Ordinal)..text.IndexOf("permissions:", StringComparison.Ordinal)];
+
+        StringAssert.Contains(dispatch, "required: true");
+        Assert.IsFalse(dispatch.Contains("default:", StringComparison.Ordinal), "Manual releases must not default to an old version.");
+        StringAssert.Contains(text, "if ($env:EVENT_NAME -eq \"workflow_dispatch\")");
+        StringAssert.Contains(text, "git fetch --quiet --force --tags origin");
+        StringAssert.Contains(text, "git rev-parse -q --verify \"refs/tags/v$version\"");
+        StringAssert.Contains(text, "Tag 'v$version' already exists.");
+    }
+
+    [TestMethod]
+    public void Release_Workflow_Passes_Untrusted_Inputs_Through_Environment()
+    {
+        var text = GetReleaseWorkflowText();
+        var runBlocks = text.ReplaceLineEndings("\n")
+            .Split("run: ", StringSplitOptions.None)
+            .Skip(1)
+            .Select(block => block.Split("\n      - ", StringSplitOptions.None)[0]);
+
+        StringAssert.Contains(text, "INPUT_VERSION: ${{ github.event.inputs.version }}");
+        StringAssert.Contains(text, "REF_NAME: ${{ github.ref_name }}");
+        StringAssert.Contains(text, "$version = $env:INPUT_VERSION");
+        foreach (var block in runBlocks)
+        {
+            Assert.IsFalse(block.Contains("${{ github.event.inputs.", StringComparison.Ordinal), "Workflow inputs must not be interpolated into scripts.");
+            Assert.IsFalse(block.Contains("${{ github.ref_name }}", StringComparison.Ordinal), "Ref names must not be interpolated into scripts.");
+        }
+    }
+
+    [TestMethod]
     public void Release_Workflow_Publishes_Three_App_Packages()
     {
         var text = GetReleaseWorkflowText();
