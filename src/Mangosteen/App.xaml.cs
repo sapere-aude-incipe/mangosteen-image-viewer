@@ -7,8 +7,12 @@ namespace Mangosteen;
 
 public partial class App : Application
 {
+    private static readonly TimeSpan HandoffTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan HandoffRetryDelay = TimeSpan.FromMilliseconds(100);
+
     private AppInstanceCoordinator? _instanceCoordinator;
     private MainWindow? _mainWindow;
+    private bool _isExiting;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -21,20 +25,24 @@ public partial class App : Application
         StartupDiagnostics.Mark(coordinator.IsPrimaryInstance ? "app.instance.primary" : "app.instance.secondary");
         if (!coordinator.IsPrimaryInstance)
         {
-            var forwarded = await coordinator.TrySendAsync(launch.ToActivationRequest());
-            coordinator.Dispose();
-
-            if (!forwarded && !launch.IsBackgroundLaunch && !launch.RequestShutdown)
+            var (primary, forwarded) = await ForwardOrTakeOverAsync(coordinator, launch.ToActivationRequest());
+            if (primary is null)
             {
-                MessageBox.Show(
-                    LocalizedText.Get(LocalizedText.RunningInstanceUnavailable),
-                    LocalizedText.Get(LocalizedText.AppTitle),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                if (!forwarded && !launch.IsBackgroundLaunch && !launch.RequestShutdown)
+                {
+                    MessageBox.Show(
+                        LocalizedText.Get(LocalizedText.RunningInstanceUnavailable),
+                        LocalizedText.Get(LocalizedText.AppTitle),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+
+                Shutdown(forwarded ? 0 : 1);
+                return;
             }
 
-            Shutdown(forwarded ? 0 : 1);
-            return;
+            coordinator = primary;
+            StartupDiagnostics.Mark("app.instance.primary_after_handoff");
         }
 
         _instanceCoordinator = coordinator;
@@ -56,6 +64,7 @@ public partial class App : Application
         StartupDiagnostics.Mark("app.main_window.constructed");
         _mainWindow = window;
         MainWindow = window;
+        window.ApplicationExitStarting += MainWindow_ApplicationExitStarting;
         SessionEnding += App_SessionEnding;
         coordinator.StartServer(HandleActivationRequestAsync);
 
@@ -89,33 +98,88 @@ public partial class App : Application
         base.OnExit(e);
     }
 
-    private Task HandleActivationRequestAsync(AppActivationRequest request)
+    // The sender is told whether the request was taken, so one refused here (while
+    // exiting) is retried by that process as the new primary instead of being lost.
+    // A shutdown request is satisfied by an exit that is already under way.
+    private async Task<bool> HandleActivationRequestAsync(AppActivationRequest request)
     {
-        if (_mainWindow is null || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+        if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
         {
-            return Task.CompletedTask;
+            return request.RequestShutdown;
         }
 
-        return Dispatcher.InvokeAsync(
-                () => QueueActivationRequest(request),
-                DispatcherPriority.Send)
-            .Task;
+        try
+        {
+            return await Dispatcher.InvokeAsync(
+                    () => QueueActivationRequest(request),
+                    DispatcherPriority.Send)
+                .Task.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return request.RequestShutdown;
+        }
     }
 
-    private void QueueActivationRequest(AppActivationRequest request)
+    private bool QueueActivationRequest(AppActivationRequest request)
     {
-        if (_mainWindow is null)
+        if (_mainWindow is null || _isExiting)
         {
-            return;
+            return request.RequestShutdown;
         }
 
         if (request.RequestShutdown)
         {
             _mainWindow.RequestApplicationExit();
-            return;
+            return true;
         }
 
         _ = HandleActivationRequestOnUiAsync(request);
+        return true;
+    }
+
+    private void MainWindow_ApplicationExitStarting(object? sender, EventArgs e)
+    {
+        // Give up the instance lock as soon as exit begins so a file opened during
+        // shutdown starts a fresh instance rather than reaching this closing one.
+        _isExiting = true;
+        _instanceCoordinator?.ReleasePrimary();
+    }
+
+    private static async Task<(AppInstanceCoordinator? Primary, bool Forwarded)> ForwardOrTakeOverAsync(
+        AppInstanceCoordinator secondary,
+        AppActivationRequest request)
+    {
+        var elapsed = Stopwatch.StartNew();
+        var coordinator = secondary;
+        while (true)
+        {
+            var result = await coordinator.TrySendAsync(request);
+            coordinator.Dispose();
+            if (result == ActivationSendResult.Delivered)
+            {
+                return (null, true);
+            }
+
+            // A refusal means the running instance is exiting and has released (or is
+            // about to release) the instance lock; a failure may mean the same.
+            if (result == ActivationSendResult.Rejected)
+            {
+                await Task.Delay(HandoffRetryDelay);
+            }
+
+            coordinator = new AppInstanceCoordinator();
+            if (coordinator.IsPrimaryInstance)
+            {
+                return (coordinator, false);
+            }
+
+            if (result == ActivationSendResult.Failed || elapsed.Elapsed > HandoffTimeout)
+            {
+                coordinator.Dispose();
+                return (null, false);
+            }
+        }
     }
 
     private async Task HandleActivationRequestOnUiAsync(AppActivationRequest request)
