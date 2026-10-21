@@ -22,10 +22,10 @@
     <value>Archivo no encontrado: {0}</value>
   </data>
   <data name="FullResolutionDecodeFailed" xml:space="preserve">
-    <value>Error al decodificar a resoluciÃ³n completa.</value>
+    <value>Error al decodificar a resolución completa.</value>
   </data>
   <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
-    <value>Error al decodificar a resoluciÃ³n completa: {0}</value>
+    <value>Error al decodificar a resolución completa: {0}</value>
   </data>
   <data name="ImageFiles" xml:space="preserve">
     <value>Archivos de imagen</value>
@@ -37,7 +37,7 @@
     <value>Manual</value>
   </data>
   <data name="Nearest" xml:space="preserve">
-    <value>PÃ­xel</value>
+    <value>Píxel</value>
   </data>
   <data name="NextImage" xml:space="preserve">
     <value>Imagen siguiente</value>
@@ -52,7 +52,7 @@
     <value>Precarga</value>
   </data>
   <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
-    <value>Presupuesto de memoria para decodificaciÃ³n completa y precarga</value>
+    <value>Presupuesto de memoria para decodificación completa y precarga</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
     <value>Precargar archivos cercanos</value>
@@ -67,13 +67,13 @@
     <value>Suave</value>
   </data>
   <data name="ToggleActualPixels" xml:space="preserve">
-    <value>Alternar pÃ­xeles reales</value>
+    <value>Alternar píxeles reales</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
     <value>Modo oscuro</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
-    <value>Alternar escalado suave o por vecino mÃ¡s cercano</value>
+    <value>Alternar escalado suave o por vecino más cercano</value>
   </data>
   <data name="UnexpectedError" xml:space="preserve">
     <value>Se produjo un error inesperado.</value>
@@ -273,4 +273,8 @@ Las versiones portables no pueden actualizarse en el mismo lugar. ¿Abrir la pá
   <data name="ModelView" xml:space="preserve"><value>Vista 3D</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Cuadrícula en el origen global</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Colocar la cuadrícula en el origen de coordenadas original en lugar de debajo del modelo.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>Los modelos 3D requieren el visor 3D, incluido en la edición portátil Complete de Mangosteen.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>Cargando modelo 3D grande... Esto puede tardar un minuto o más.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} vértices · {1} caras</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>{0} caras</value></data>
 </root>

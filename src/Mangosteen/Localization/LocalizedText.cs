@@ -11,6 +11,10 @@ internal static class LocalizedText
     public const string ModelView = nameof(ModelView);
     public const string ModelGridAtWorldOrigin = nameof(ModelGridAtWorldOrigin);
     public const string ModelGridAtWorldOriginTooltip = nameof(ModelGridAtWorldOriginTooltip);
+    public const string ModelViewerNotInstalled = nameof(ModelViewerNotInstalled);
+    public const string LoadingLargeModel = nameof(LoadingLargeModel);
+    public const string ModelStatisticsFormat = nameof(ModelStatisticsFormat);
+    public const string ModelFacesFormat = nameof(ModelFacesFormat);
     public const string RotationUnavailable = nameof(RotationUnavailable);
     public const string NoFileOpen = nameof(NoFileOpen);
     public const string AlreadyActualPixels = nameof(AlreadyActualPixels);
@@ -134,6 +138,10 @@ internal static class LocalizedText
         ModelView,
         ModelGridAtWorldOrigin,
         ModelGridAtWorldOriginTooltip,
+        ModelViewerNotInstalled,
+        LoadingLargeModel,
+        ModelStatisticsFormat,
+        ModelFacesFormat,
         AllFiles,
         Aggressive,
         AggressivePreloadTooltip,

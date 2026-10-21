@@ -273,4 +273,8 @@
   <data name="ModelView" xml:space="preserve"><value>3D-вид</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Сетка в начале мировых координат</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Размещать сетку в исходном начале координат, а не под моделью.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>Для 3D-моделей нужен 3D-просмотрщик, который входит в переносную редакцию Complete программы Mangosteen.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>Загрузка большой 3D-модели... Это может занять минуту или больше.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>Вершин: {0} · граней: {1}</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>Граней: {0}</value></data>
 </root>

@@ -19,13 +19,13 @@
     <value>Mangosteen Image Viewer</value>
   </data>
   <data name="FileNotFoundFormat" xml:space="preserve">
-    <value>Arquivo nÃ£o encontrado: {0}</value>
+    <value>Arquivo não encontrado: {0}</value>
   </data>
   <data name="FullResolutionDecodeFailed" xml:space="preserve">
-    <value>Falha na decodificaÃ§Ã£o em resoluÃ§Ã£o completa.</value>
+    <value>Falha na decodificação em resolução completa.</value>
   </data>
   <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
-    <value>Falha na decodificaÃ§Ã£o em resoluÃ§Ã£o completa: {0}</value>
+    <value>Falha na decodificação em resolução completa: {0}</value>
   </data>
   <data name="ImageFiles" xml:space="preserve">
     <value>Arquivos de imagem</value>
@@ -40,7 +40,7 @@
     <value>Pixel</value>
   </data>
   <data name="NextImage" xml:space="preserve">
-    <value>PrÃ³xima imagem</value>
+    <value>Próxima imagem</value>
   </data>
   <data name="NoImage" xml:space="preserve">
     <value>Arraste e solte ou clique para abrir</value>
@@ -49,16 +49,16 @@
     <value>Abrir imagem</value>
   </data>
   <data name="Preload" xml:space="preserve">
-    <value>PrÃ©-carga</value>
+    <value>Pré-carga</value>
   </data>
   <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
-    <value>OrÃ§amento de memÃ³ria para decodificaÃ§Ã£o completa e prÃ©-carregamento</value>
+    <value>Orçamento de memória para decodificação completa e pré-carregamento</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
     <value>Pré-carregar arquivos próximos</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
-    <value>Somente prÃ©via</value>
+    <value>Somente prévia</value>
   </data>
   <data name="PreviousImage" xml:space="preserve">
     <value>Imagem anterior</value>
@@ -73,7 +73,7 @@
     <value>Modo escuro</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
-    <value>Alternar ampliaÃ§Ã£o suave ou por vizinho mais prÃ³ximo</value>
+    <value>Alternar ampliação suave ou por vizinho mais próximo</value>
   </data>
   <data name="UnexpectedError" xml:space="preserve">
     <value>Ocorreu um erro inesperado.</value>
@@ -273,4 +273,8 @@ Versões portáteis não podem ser atualizadas no local. Abrir a página GitHub 
   <data name="ModelView" xml:space="preserve"><value>Visualização 3D</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Grade na origem global</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Posicionar a grade na origem das coordenadas originais em vez de sob o modelo.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>Modelos 3D exigem o visualizador 3D, incluído na edição portátil Complete do Mangosteen.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>Carregando modelo 3D grande... Isso pode levar um minuto ou mais.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} vértices · {1} faces</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>{0} faces</value></data>
 </root>

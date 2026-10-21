@@ -273,4 +273,8 @@
   <data name="ModelView" xml:space="preserve"><value>3D 보기</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>월드 원점에 격자 배치</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>모델 아래 대신 원래 좌표 원점에 격자를 배치합니다.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D 모델을 보려면 Mangosteen Complete 휴대용 버전에 포함된 3D 뷰어가 필요합니다.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>큰 3D 모델 로드 중... 1분 이상 걸릴 수 있습니다.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>정점 {0}개 · 면 {1}개</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>면 {0}개</value></data>
 </root>

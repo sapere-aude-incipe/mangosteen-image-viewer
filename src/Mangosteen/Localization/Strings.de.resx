@@ -22,10 +22,10 @@
     <value>Datei nicht gefunden: {0}</value>
   </data>
   <data name="FullResolutionDecodeFailed" xml:space="preserve">
-    <value>Dekodierung in voller AuflÃ¶sung fehlgeschlagen.</value>
+    <value>Dekodierung in voller Auflösung fehlgeschlagen.</value>
   </data>
   <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
-    <value>Dekodierung in voller AuflÃ¶sung fehlgeschlagen: {0}</value>
+    <value>Dekodierung in voller Auflösung fehlgeschlagen: {0}</value>
   </data>
   <data name="ImageFiles" xml:space="preserve">
     <value>Bilddateien</value>
@@ -40,19 +40,19 @@
     <value>Pixel</value>
   </data>
   <data name="NextImage" xml:space="preserve">
-    <value>NÃ¤chstes Bild</value>
+    <value>Nächstes Bild</value>
   </data>
   <data name="NoImage" xml:space="preserve">
     <value>Bild hier ablegen oder klicken zum Öffnen</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
-    <value>Bild Ã¶ffnen</value>
+    <value>Bild öffnen</value>
   </data>
   <data name="Preload" xml:space="preserve">
     <value>Vorab</value>
   </data>
   <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
-    <value>Speicherbudget fÃ¼r vollstÃ¤ndige Dekodierung und Vorladen</value>
+    <value>Speicherbudget für vollständige Dekodierung und Vorladen</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
     <value>Dateien in der Nähe vorladen</value>
@@ -67,7 +67,7 @@
     <value>Glatt</value>
   </data>
   <data name="ToggleActualPixels" xml:space="preserve">
-    <value>TatsÃ¤chliche Pixel umschalten</value>
+    <value>Tatsächliche Pixel umschalten</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
     <value>Dunkelmodus</value>
@@ -273,4 +273,8 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="ModelView" xml:space="preserve"><value>3D-Ansicht</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Raster am Weltursprung</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Das Raster am ursprünglichen Koordinatenursprung statt unter dem Modell platzieren.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D-Modelle benötigen den 3D-Viewer, der in der Complete-Portable-Edition von Mangosteen enthalten ist.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>Großes 3D-Modell wird geladen... Dies kann eine Minute oder länger dauern.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} Eckpunkte · {1} Flächen</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>{0} Flächen</value></data>
 </root>
