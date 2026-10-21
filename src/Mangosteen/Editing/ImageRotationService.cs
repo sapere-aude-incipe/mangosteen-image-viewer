@@ -46,6 +46,11 @@ internal sealed class ImageRotationService
             return RotationWriteRisk.Lossy;
         }
 
+        if (IsAnimatedPng(path))
+        {
+            return RotationWriteRisk.PngCopyOnly;
+        }
+
         await MagickRuntime.OperationGate.WaitAsync(token).ConfigureAwait(false);
         try
         {
@@ -85,7 +90,7 @@ internal sealed class ImageRotationService
         }
 
         if (saveMode == RotationSaveMode.ReplaceOriginal &&
-            PngCopyOnlyExtensions.Contains(ImageFileExtensions.NormalizeExtension(fullPath)))
+            (PngCopyOnlyExtensions.Contains(ImageFileExtensions.NormalizeExtension(fullPath)) || IsAnimatedPng(fullPath)))
         {
             throw new InvalidOperationException("This image format can only be saved as a PNG copy.");
         }
@@ -109,6 +114,41 @@ internal sealed class ImageRotationService
         var directory = Path.GetDirectoryName(fullPath)
             ?? throw new InvalidOperationException("The image does not have a containing folder.");
         return Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(fullPath)}_rotated.png");
+    }
+
+    // Magick reads only the default image of an APNG named .png, so writing it back drops the animation.
+    internal static bool IsAnimatedPng(string path)
+    {
+        if (!ImageFileExtensions.NormalizeExtension(path).Equals(".png", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            Span<byte> header = stackalloc byte[8];
+            if (stream.ReadAtLeast(header, 8, throwOnEndOfStream: false) != 8 ||
+                !header.SequenceEqual((ReadOnlySpan<byte>)[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]))
+            {
+                return false;
+            }
+
+            // acTL must precede the first IDAT, so only the leading chunks need reading.
+            while (stream.ReadAtLeast(header, 8, throwOnEndOfStream: false) == 8)
+            {
+                var length = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(header);
+                var type = header[4..8];
+                if (type.SequenceEqual("acTL"u8)) return true;
+                if (type.SequenceEqual("IDAT"u8) || type.SequenceEqual("IEND"u8)) return false;
+                stream.Seek(length + 4L, SeekOrigin.Current);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+        }
+
+        return false;
     }
 
     internal static bool IsPotentiallyLossyCompression(CompressionMethod compression)
@@ -140,7 +180,15 @@ internal sealed class ImageRotationService
         token.ThrowIfCancellationRequested();
 
         using var images = new MagickImageCollection();
-        images.Read(sourcePath);
+        if (saveMode == RotationSaveMode.PngCopy)
+        {
+            // Only the first image is written; layered PSB/PSD and multi-page files can be huge.
+            images.Read(sourcePath, new MagickReadSettings { FrameIndex = 0, FrameCount = 1 });
+        }
+        else
+        {
+            images.Read(sourcePath);
+        }
         if (images.Count == 0)
         {
             throw new InvalidDataException("Magick.NET did not return any image frames.");
@@ -193,13 +241,33 @@ internal sealed class ImageRotationService
             }
 
             token.ThrowIfCancellationRequested();
-            File.Move(temporaryPath, outputPath, overwrite: true);
+            ReplaceFile(temporaryPath, outputPath);
             return outputPath;
         }
         finally
         {
             TryDelete(temporaryPath);
         }
+    }
+
+    private static void ReplaceFile(string temporaryPath, string outputPath)
+    {
+        if (File.Exists(outputPath))
+        {
+            try
+            {
+                // Replace keeps the original's creation time, ACLs and attributes.
+                File.Replace(temporaryPath, outputPath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                return;
+            }
+            catch (Exception ex) when (ex is IOException or PlatformNotSupportedException or UnauthorizedAccessException)
+            {
+                // Some network and FAT volumes do not support ReplaceFile.
+                if (!File.Exists(temporaryPath)) throw;
+            }
+        }
+
+        File.Move(temporaryPath, outputPath, overwrite: true);
     }
 
     private static void TryDelete(string path)

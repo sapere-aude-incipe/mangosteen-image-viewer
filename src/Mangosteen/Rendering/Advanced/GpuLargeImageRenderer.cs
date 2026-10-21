@@ -115,7 +115,8 @@ internal sealed class GpuLargeImageRenderer : IDisposable
         _pendingTiles.Clear();
         if (_host.IsSurfaceReady)
         {
-            _host.Render(DeleteTextures);
+            // Render would swap an undrawn back buffer onto a still-visible surface.
+            _host.ExecuteWithContext(DeleteTextures);
         }
         else
         {

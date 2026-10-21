@@ -255,6 +255,7 @@ public sealed class MagickImageDecoder : IImageDecoder
 
     private static byte[] ExportPixels(IMagickImage frame)
     {
+        ConvertToDisplayColorSpace(frame);
         return frame switch
         {
             IMagickImage<byte> image => ExportPixels(image),
@@ -263,6 +264,21 @@ public sealed class MagickImageDecoder : IImageDecoder
             IMagickImage<double> image => ExportPixels(image),
             _ => throw new InvalidDataException("Magick.NET could not export image pixels for this quantum type.")
         };
+    }
+
+    // BGRA export reads channels as stored, so CMYK would land in B/G/R as Y/M/C.
+    internal static void ConvertToDisplayColorSpace(IMagickImage frame)
+    {
+        if (frame.ColorSpace is ColorSpace.sRGB or ColorSpace.RGB or ColorSpace.scRGB or
+            ColorSpace.Gray or ColorSpace.LinearGray or ColorSpace.Transparent or ColorSpace.Undefined)
+        {
+            return;
+        }
+
+        if (frame.GetColorProfile() is null || !frame.TransformColorSpace(ColorProfiles.SRGB))
+        {
+            frame.ColorSpace = ColorSpace.sRGB;
+        }
     }
 
     private static byte[] ExportPixels<TQuantum>(IMagickImage<TQuantum> frame)

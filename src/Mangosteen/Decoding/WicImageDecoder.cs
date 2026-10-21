@@ -1,6 +1,7 @@
 ﻿using Mangosteen.Core;
 using SkiaSharp;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -238,7 +239,7 @@ public sealed class WicImageDecoder : IImageDecoder
                     return ImageOrientation.FromExifOrientation(Convert.ToInt32(value));
                 }
             }
-            catch (Exception ex) when (ex is NotSupportedException or FormatException or InvalidCastException)
+            catch (Exception ex) when (ex is NotSupportedException or FormatException or InvalidCastException or ArgumentException or COMException)
             {
             }
         }
@@ -288,7 +289,7 @@ public sealed class WicImageDecoder : IImageDecoder
                 return TimeSpan.FromMilliseconds(Math.Max(20, gifDelay * 10));
             }
         }
-        catch (NotSupportedException)
+        catch (Exception ex) when (ex is NotSupportedException or ArgumentException or COMException)
         {
         }
 

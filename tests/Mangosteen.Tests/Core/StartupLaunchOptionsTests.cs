@@ -36,6 +36,14 @@ public sealed class StartupLaunchOptionsTests
     }
 
     [TestMethod]
+    public void Parse_RelativeImagePath_IsResolvedAgainstLaunchDirectory()
+    {
+        var options = StartupLaunchOptions.Parse(["photo.jpg"]);
+
+        Assert.AreEqual(Path.Combine(Environment.CurrentDirectory, "photo.jpg"), options.FilePath);
+    }
+
+    [TestMethod]
     public void Parse_ShutdownRequest_DoesNotActivate()
     {
         var options = StartupLaunchOptions.Parse(["--shutdown"]);
