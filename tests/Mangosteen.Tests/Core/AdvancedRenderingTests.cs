@@ -138,14 +138,43 @@ public sealed class AdvancedRenderingTests
     }
 
     [TestMethod]
-    public void ModelFileExtensions_RecognizesInitialSupportedSet()
+    public void ModelFileExtensions_RecognizesExtendedF3dFormats()
     {
-        foreach (var extension in new[] { ".stl", ".ply", ".obj", ".gltf", ".glb" })
+        foreach (var extension in new[] { ".stl", ".ply", ".obj", ".gltf", ".glb", ".fbx", ".abc", ".usdz", ".step", ".ifc", ".vdb", ".las", ".splat" })
         {
-            Assert.IsTrue(ModelFileExtensions.IsSupported("model" + extension));
+            Assert.IsTrue(ModelFileExtensions.IsSupported("model" + extension.ToUpperInvariant()), extension);
         }
 
-        Assert.IsFalse(ModelFileExtensions.IsSupported("model.fbx"));
+        foreach (var extension in new[] { ".bin", ".e", ".g", ".nc", ".gml" })
+        {
+            Assert.IsFalse(ModelFileExtensions.IsSupported("data" + extension), extension);
+        }
+    }
+
+    [TestMethod]
+    public void ModelFileExtensions_Never_Claim_Image_Formats()
+    {
+        // Model routing runs before image decoding, so an overlap would hide images (e.g. .ptx Pentax RAW).
+        var overlap = ModelFileExtensions.Supported
+            .Intersect(ImageFileExtensions.BroadImageExtensions, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        Assert.IsEmpty(overlap, string.Join(", ", overlap));
+    }
+
+    [TestMethod]
+    public void ModelFormatOptions_Only_Set_Options_That_Are_Reset_Between_Files()
+    {
+        foreach (var extension in ModelFileExtensions.Supported)
+        {
+            foreach (var (name, _) in ModelFileExtensions.GetFormatOptions("model" + extension))
+            {
+                CollectionAssert.Contains(ModelFileExtensions.FormatOptionNames.ToArray(), name, extension);
+            }
+        }
+
+        Assert.IsTrue(ModelFileExtensions.GetFormatOptions("scan.MHA").Contains(("model.volume.enable", "true")));
+        Assert.IsEmpty(ModelFileExtensions.GetFormatOptions("model.obj"));
     }
 
     [TestMethod]

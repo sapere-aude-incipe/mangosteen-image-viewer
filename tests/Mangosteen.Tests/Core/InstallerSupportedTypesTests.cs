@@ -1,4 +1,5 @@
 using Mangosteen.Decoding;
+using Mangosteen.Rendering.Advanced;
 using System.Text.RegularExpressions;
 
 namespace Mangosteen.Tests.Core;
@@ -57,14 +58,18 @@ public sealed partial class InstallerSupportedTypesTests
     }
 
     [TestMethod]
-    public void Inno_Setup_Registers_Initial_Model_Extensions_Only_With_Optional_Component()
+    public void Inno_Setup_Registers_All_Model_Extensions_Only_With_Optional_Component()
     {
         var text = GetInstallerScriptText();
         var modelExtensions = GetInstallerModelCapabilityTypes();
 
-        CollectionAssert.AreEquivalent(
-            new[] { ".stl", ".ply", ".obj", ".gltf", ".glb" },
-            modelExtensions);
+        CollectionAssert.AreEquivalent(ModelFileExtensions.Supported.ToArray(), modelExtensions);
+        foreach (var extension in modelExtensions)
+        {
+            StringAssert.Contains(text, $@"Subkey: ""Software\Classes\{extension}\OpenWithProgids""; ValueType: string; ValueName: ""{{#AppModelProgId}}""");
+            StringAssert.Contains(text, $"RemoveModelAssociation(RegistryRoot, '{extension}');");
+        }
+
         foreach (var extension in modelExtensions)
         {
             var line = text

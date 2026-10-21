@@ -19,6 +19,8 @@ internal sealed partial class F3dNativeApi : IDisposable
     private readonly EngineGetHandle _engineGetScene;
     private readonly OptionsSetBool _optionsSetBool;
     private readonly OptionsSetDoubleVector _optionsSetDoubleVector;
+    private readonly OptionsSetString _optionsSetStringRepresentation;
+    private readonly OptionsName _optionsReset;
     private readonly SceneAdd _sceneAdd;
     private readonly SceneClear _sceneClear;
     private readonly SceneSupports _sceneSupports;
@@ -63,6 +65,8 @@ internal sealed partial class F3dNativeApi : IDisposable
             _engineGetScene = GetExport<EngineGetHandle>("f3d_engine_get_scene");
             _optionsSetBool = GetExport<OptionsSetBool>("f3d_options_set_as_bool");
             _optionsSetDoubleVector = GetExport<OptionsSetDoubleVector>("f3d_options_set_as_double_vector");
+            _optionsSetStringRepresentation = GetExport<OptionsSetString>("f3d_options_set_as_string_representation");
+            _optionsReset = GetExport<OptionsName>("f3d_options_reset");
             _sceneAdd = GetExport<SceneAdd>("f3d_scene_add");
             _sceneClear = GetExport<SceneClear>("f3d_scene_clear");
             _sceneSupports = GetExport<SceneSupports>("f3d_scene_supports");
@@ -157,6 +161,25 @@ internal sealed partial class F3dNativeApi : IDisposable
         });
     }
 
+    /// <summary>Sets any option from F3D's string form, e.g. "true", "5" or "gaussian".</summary>
+    public void SetFromString(nint options, string name, string value)
+    {
+        WithUtf8(name, namePointer => WithUtf8(value, valuePointer =>
+        {
+            _optionsSetStringRepresentation(options, namePointer, valuePointer);
+            return 0;
+        }));
+    }
+
+    public void ResetOption(nint options, string name)
+    {
+        WithUtf8(name, pointer =>
+        {
+            _optionsReset(options, pointer);
+            return 0;
+        });
+    }
+
     public void SetDoubleVector(nint options, string name, ReadOnlySpan<double> values)
     {
         var namePointer = Marshal.StringToCoTaskMemUTF8(name);
@@ -176,8 +199,8 @@ internal sealed partial class F3dNativeApi : IDisposable
 
     public void Dispose()
     {
-        if (_module == nint.Zero) return;
-        FreeLibrary(_module);
+        // Deliberately never FreeLibrary: unloading F3D/VTK/TBB while their worker
+        // threads or static destructors may still run can crash the process.
         _module = nint.Zero;
     }
 
@@ -225,6 +248,8 @@ internal sealed partial class F3dNativeApi : IDisposable
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate nint EngineGetHandle(nint engine);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void OptionsSetBool(nint options, nint name, int value);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void OptionsSetDoubleVector(nint options, nint name, nint values, nuint count);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void OptionsSetString(nint options, nint name, nint value);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void OptionsName(nint options, nint name);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int SceneAdd(nint scene, nint path);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SceneClear(nint scene);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int SceneSupports(nint scene, nint path);
