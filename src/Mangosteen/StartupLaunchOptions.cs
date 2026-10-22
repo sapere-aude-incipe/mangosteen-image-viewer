@@ -32,11 +32,24 @@ internal sealed record StartupLaunchOptions(
             }
             else if (!argument.StartsWith("--", StringComparison.Ordinal) && filePath is null)
             {
-                filePath = argument;
+                // A ready instance elsewhere has its own working directory, so resolve here.
+                filePath = TryGetFullPath(argument);
             }
         }
 
         return new StartupLaunchOptions(isBackgroundLaunch, requestShutdown, filePath);
+    }
+
+    private static string TryGetFullPath(string path)
+    {
+        try
+        {
+            return System.IO.Path.GetFullPath(path);
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or System.IO.PathTooLongException)
+        {
+            return path;
+        }
     }
 }
 

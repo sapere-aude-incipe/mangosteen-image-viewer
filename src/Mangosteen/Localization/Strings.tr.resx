@@ -13,25 +13,25 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AllFiles" xml:space="preserve">
-    <value>TÃ¼m dosyalar</value>
+    <value>Tüm dosyalar</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
     <value>Mangosteen Image Viewer</value>
   </data>
   <data name="FileNotFoundFormat" xml:space="preserve">
-    <value>Dosya bulunamadÄ±: {0}</value>
+    <value>Dosya bulunamadı: {0}</value>
   </data>
   <data name="FullResolutionDecodeFailed" xml:space="preserve">
-    <value>Tam Ã§Ã¶zÃ¼nÃ¼rlÃ¼kte Ã§Ã¶zme baÅŸarÄ±sÄ±z oldu.</value>
+    <value>Tam çözünürlükte çözme başarısız oldu.</value>
   </data>
   <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
-    <value>Tam Ã§Ã¶zÃ¼nÃ¼rlÃ¼kte Ã§Ã¶zme baÅŸarÄ±sÄ±z oldu: {0}</value>
+    <value>Tam çözünürlükte çözme başarısız oldu: {0}</value>
   </data>
   <data name="ImageFiles" xml:space="preserve">
-    <value>GÃ¶rÃ¼ntÃ¼ dosyalarÄ±</value>
+    <value>Görüntü dosyaları</value>
   </data>
   <data name="Loading" xml:space="preserve">
-    <value>YÃ¼kleniyor...</value>
+    <value>Yükleniyor...</value>
   </data>
   <data name="Manual" xml:space="preserve">
     <value>Manuel</value>
@@ -40,49 +40,49 @@
     <value>Piksel</value>
   </data>
   <data name="NextImage" xml:space="preserve">
-    <value>Sonraki gÃ¶rÃ¼ntÃ¼</value>
+    <value>Sonraki görüntü</value>
   </data>
   <data name="NoImage" xml:space="preserve">
     <value>Sürükleyip bırakın veya açmak için tıklayın</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
-    <value>GÃ¶rÃ¼ntÃ¼ aÃ§</value>
+    <value>Görüntü aç</value>
   </data>
   <data name="Preload" xml:space="preserve">
-    <value>Ã–n yÃ¼kle</value>
+    <value>Ön yükle</value>
   </data>
   <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
-    <value>Tam Ã§Ã¶zme ve Ã¶n yÃ¼kleme iÃ§in bellek bÃ¼tÃ§esi</value>
+    <value>Tam çözme ve ön yükleme için bellek bütçesi</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
     <value>Yakındaki dosyaları önceden yükle</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
-    <value>YalnÄ±zca Ã¶nizleme</value>
+    <value>Yalnızca önizleme</value>
   </data>
   <data name="PreviousImage" xml:space="preserve">
-    <value>Ã–nceki gÃ¶rÃ¼ntÃ¼</value>
+    <value>Önceki görüntü</value>
   </data>
   <data name="Smooth" xml:space="preserve">
-    <value>YumuÅŸak</value>
+    <value>Yumuşak</value>
   </data>
   <data name="ToggleActualPixels" xml:space="preserve">
-    <value>GerÃ§ek pikselleri deÄŸiÅŸtir</value>
+    <value>Gerçek pikselleri değiştir</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
     <value>Koyu mod</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
-    <value>YumuÅŸak veya en yakÄ±n komÅŸu bÃ¼yÃ¼tmeyi deÄŸiÅŸtir</value>
+    <value>Yumuşak veya en yakın komşu büyütmeyi değiştir</value>
   </data>
   <data name="UnexpectedError" xml:space="preserve">
-    <value>Beklenmeyen bir hata oluÅŸtu.</value>
+    <value>Beklenmeyen bir hata oluştu.</value>
   </data>
   <data name="UseDarkMode" xml:space="preserve">
     <value>Koyu modu kullan</value>
   </data>
   <data name="UseLightMode" xml:space="preserve">
-    <value>AÃ§Ä±k modu kullan</value>
+    <value>Açık modu kullan</value>
   </data>
   <data name="Aggressive" xml:space="preserve">
     <value>Agresif</value>
@@ -273,4 +273,8 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="ModelView" xml:space="preserve"><value>3B görünüm</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Izgara dünya başlangıcında</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Izgarayı modelin altı yerine özgün koordinat başlangıcına yerleştir.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3B modeller için Mangosteen'in Complete taşınabilir sürümünde bulunan 3B görüntüleyici gerekir.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>Büyük 3B model yükleniyor... Bu işlem bir dakika veya daha uzun sürebilir.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} köşe · {1} yüz</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>{0} yüz</value></data>
 </root>

@@ -273,4 +273,8 @@
   <data name="ModelView" xml:space="preserve"><value>3D 视图</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>网格位于世界原点</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>将网格放在原始坐标原点，而不是模型下方。</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D 模型需要 3D 查看器，它包含在 Mangosteen Complete 便携版中。</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>正在加载大型 3D 模型... 这可能需要一分钟或更长时间。</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} 个顶点 · {1} 个面</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>{0} 个面</value></data>
 </root>

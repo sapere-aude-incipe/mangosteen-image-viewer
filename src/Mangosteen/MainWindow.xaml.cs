@@ -176,6 +176,8 @@ public partial class MainWindow : Window
     private GpuLargeImageRenderer? _gpuLargeImageRenderer;
     private string? _gpuFailurePath;
     private F3dModelRenderer? _modelRenderer;
+    private CancellationTokenSource? _modelStatisticsCts;
+    private ModelStatistics? _modelStatistics;
     private ViewerContentMode _contentMode;
     private bool _isNativePointerDown;
     private NativePointerEvent _lastNativePointer;
@@ -276,6 +278,7 @@ public partial class MainWindow : Window
     private void ApplyLocalization()
     {
         UpdateWindowTitle(_navigator.CurrentPath is null ? null : Path.GetFileName(_navigator.CurrentPath));
+        UpdateModelStatisticsText();
         FileMenuItem.Header = LocalizedText.Get(LocalizedText.FileMenu);
         OpenMenuItem.Header = LocalizedText.Get(LocalizedText.OpenCommand);
         PrintMenuItem.Header = LocalizedText.Get(LocalizedText.PrintCommand);
@@ -701,6 +704,7 @@ public partial class MainWindow : Window
         StopPanning();
         _loadSession?.CancelAndDisposeWhenInactive();
         _loadSession = null;
+        _modelStatisticsCts?.Cancel();
         CancelUpdateCheck();
         _printCts?.Cancel();
         _rotationSaveCts?.Cancel();
@@ -869,7 +873,7 @@ public partial class MainWindow : Window
             if (IsCurrentLoad(generation, token))
             {
                 ClearImage();
-                ShowStatus(ex.Message);
+                ShowStatus(GetLoadFailureMessage(path, ex));
             }
         }
         finally
@@ -885,6 +889,90 @@ public partial class MainWindow : Window
             _optionalComponents.IsInstalled(OptionalComponentKind.ModelViewer);
     }
 
+    private static string GetLoadFailureMessage(string path, Exception error)
+    {
+        if (error is NotSupportedException)
+        {
+            // Decoders reject missing files as unsupported, e.g. after a delete outside the app.
+            if (!File.Exists(path)) return LocalizedText.Format(LocalizedText.FileNotFoundFormat, path);
+            // Without the optional 3D component, model files fall through to the image decoders.
+            if (ModelFileExtensions.IsSupported(path)) return LocalizedText.Get(LocalizedText.ModelViewerNotInstalled);
+        }
+
+        return error.Message;
+    }
+
+    internal const long LargeModelFileBytes = 256L * 1024 * 1024;
+
+    private static bool IsLargeModelFile(string path)
+    {
+        try
+        {
+            return new FileInfo(path).Length >= LargeModelFileBytes;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
+    private void StartModelStatistics(string path, int generation)
+    {
+        ClearModelStatistics();
+        var cts = new CancellationTokenSource();
+        _modelStatisticsCts = cts;
+        _ = LoadModelStatisticsAsync(path, generation, cts);
+    }
+
+    private async Task LoadModelStatisticsAsync(string path, int generation, CancellationTokenSource cts)
+    {
+        var token = cts.Token;
+        try
+        {
+            var statistics = await Task.Run(() => ModelStatisticsReader.TryRead(path, token), token);
+            if (statistics is null || _isClosing || token.IsCancellationRequested || generation != _loadGeneration) return;
+            _modelStatistics = statistics;
+            UpdateModelStatisticsText();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            TraceBackgroundError("Model statistics failed", ex);
+        }
+        finally
+        {
+            if (ReferenceEquals(_modelStatisticsCts, cts)) _modelStatisticsCts = null;
+            cts.Dispose();
+        }
+    }
+
+    private void ClearModelStatistics()
+    {
+        _modelStatisticsCts?.Cancel();
+        _modelStatisticsCts = null;
+        _modelStatistics = null;
+        UpdateModelStatisticsText();
+    }
+
+    private void UpdateModelStatisticsText()
+    {
+        var text = FormatModelStatistics(_modelStatistics, CultureInfo.CurrentUICulture);
+        ModelStatisticsText.Text = text;
+        ModelStatisticsText.ToolTip = text;
+        ModelStatisticsText.Visibility = text is null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    internal static string? FormatModelStatistics(ModelStatistics? statistics, CultureInfo culture)
+    {
+        if (statistics is not { } value) return null;
+        var faces = value.Faces.ToString("N0", culture);
+        return value.Vertices is { } vertices
+            ? string.Format(culture, LocalizedText.Get(LocalizedText.ModelStatisticsFormat, culture), vertices.ToString("N0", culture), faces)
+            : string.Format(culture, LocalizedText.Get(LocalizedText.ModelFacesFormat, culture), faces);
+    }
+
     private async Task LoadCurrentModelAsync(string path)
     {
         StartupDiagnostics.Mark("model.load.begin", Path.GetFileName(path));
@@ -897,9 +985,11 @@ public partial class MainWindow : Window
         var generation = ++_loadGeneration;
         var session = StartLoadSession(generation);
         var token = session.Token;
-        ShowStatus(LocalizedText.Get(LocalizedText.Loading));
+        // F3D imports are a single native call with no progress, so say when it may take a while.
+        ShowStatus(LocalizedText.Get(IsLargeModelFile(path) ? LocalizedText.LoadingLargeModel : LocalizedText.Loading));
         UpdateWindowTitle(Path.GetFileName(path));
         UpdateNavigationButtons();
+        StartModelStatistics(path, generation);
 
         try
         {
@@ -952,6 +1042,7 @@ public partial class MainWindow : Window
             StartupDiagnostics.Mark("model.load.error", ex.ToString());
             if (IsCurrentLoad(generation, token))
             {
+                ClearModelStatistics();
                 ShowImageSurface();
                 ShowStatus(ex.Message);
             }
@@ -1043,6 +1134,7 @@ public partial class MainWindow : Window
 
     private void CloseAdvancedContent()
     {
+        ClearModelStatistics();
         _gpuLargeImageRenderer?.CloseCurrent();
         _modelRenderer?.CloseCurrent();
         _contentMode = ViewerContentMode.Image;
@@ -1460,6 +1552,7 @@ public partial class MainWindow : Window
             CloseAdvancedContent();
             ShowImageSurface();
         }
+        ClearModelStatistics();
         _animationTimer.Stop();
         var old = _image;
         var oldBytes = old?.EstimatedBytes ?? 0;

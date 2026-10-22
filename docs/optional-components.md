@@ -31,7 +31,10 @@ pyramidal source, but Mangosteen avoids retaining a full uncompressed image.
 ## 3D model viewing
 
 The 3D component embeds the F3D 3.5.0 engine in Mangosteen's native OpenGL
-surface. Initial browsing support covers STL, PLY, OBJ, glTF, and GLB files.
+surface. Browsing covers meshes and scenes (STL, PLY, OBJ, glTF/GLB, FBX, COLLADA, 3DS, 3MF, Alembic, USD), CAD and BIM (STEP, IGES, BREP, IFC), VTK and simulation data, volumes (MetaImage, NRRD, DICOM, VDB) and point clouds or Gaussian splats (LAS/LAZ, PCD, SPLAT); the full list is in
+`src/Mangosteen/Rendering/Advanced/ModelFileExtensions.cs`, together with the per-format F3D
+options (volume rendering, point size, splat sprites) that the F3D app would apply from its
+config files.
 
 - Left-drag orbits the camera.
 - The mouse wheel or the bottom toolbar's zoom control zooms. Its percentage is

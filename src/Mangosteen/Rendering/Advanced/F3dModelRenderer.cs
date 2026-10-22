@@ -75,6 +75,7 @@ internal sealed class F3dModelRenderer : IDisposable
                 {
                     EnsureEngine(_darkMode);
                     _api!.ClearScene(_scene);
+                    ApplyFormatOptions(path);
                     if (!_api.Supports(_scene, path) || !_api.AddSceneFile(_scene, path))
                     {
                         throw new NotSupportedException($"F3D could not load '{Path.GetFileName(path)}'.");
@@ -302,6 +303,21 @@ internal sealed class F3dModelRenderer : IDisposable
             throw new InvalidOperationException("The optional F3D engine did not expose a renderable scene.");
         }
         SetBackground(darkMode);
+    }
+
+    private void ApplyFormatOptions(string path)
+    {
+        // Engine options persist across files, so restore defaults before each format's overrides.
+        var options = _api!.GetOptions(_engine);
+        foreach (var name in ModelFileExtensions.FormatOptionNames)
+        {
+            _api.ResetOption(options, name);
+        }
+
+        foreach (var (name, value) in ModelFileExtensions.GetFormatOptions(path))
+        {
+            _api.SetFromString(options, name, value);
+        }
     }
 
     private void SetBackground(bool darkMode)

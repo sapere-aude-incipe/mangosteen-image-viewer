@@ -71,6 +71,7 @@ public partial class MainWindow
             if (prepared && IsCurrentRotation())
             {
                 HideStatus();
+                ResumeLoadingAfterRotationWrite();
             }
         }
         catch (Exception ex)
@@ -79,6 +80,7 @@ public partial class MainWindow
             if (IsCurrentRotation())
             {
                 HideStatus();
+                if (prepared) ResumeLoadingAfterRotationWrite();
                 MessageBox.Show(
                     this,
                     LocalizedText.Format(LocalizedText.RotationFailedFormat, ex.Message),
@@ -113,6 +115,16 @@ public partial class MainWindow
         CancelPreloadWorker();
         CancelBackgroundFullWarmups();
         RemovePreloadedImage(path);
+    }
+
+    // PrepareForRotationWrite cancelled the full-resolution decode and preloads;
+    // a write that did not complete must not leave the image stuck as a preview.
+    private void ResumeLoadingAfterRotationWrite()
+    {
+        if (!RestartFullResolutionLoadForCurrentPreview(forceDeferred: _isCurrentPreviewAwaitingFullResolution))
+        {
+            ScheduleSmartPreloads(allowFullPreloads: _image?.IsFullResolution == true);
+        }
     }
 
     private void UpdateRotationControls()

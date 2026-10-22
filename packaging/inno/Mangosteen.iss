@@ -109,6 +109,56 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\Fil
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".obj"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".gltf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".glb"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".3ds"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".wrl"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vrml"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".mdl"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".fbx"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".dae"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".dxf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".off"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".x"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".3mf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".drc"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".abc"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".usd"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".usda"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".usdc"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".usdz"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".step"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".stp"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".stpnc"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".p21"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".iges"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".igs"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".brep"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".xbf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".ifc"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vtk"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vtp"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vtu"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vtr"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vts"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vtm"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vtkhdf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".exo"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".ex2"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".ncdf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vti"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".mha"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".mhd"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".nrrd"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".nhdr"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".dcm"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".vdb"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".pts"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".las"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".laz"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".pcd"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".bpf"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".slpk"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".splat"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".spz"; ValueData: "{#AppModelProgId}"; Flags: uninsdeletekey; Tasks: associatefiles; Components: modelviewer
 #endif
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".3fr"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations"; ValueType: string; ValueName: ".ari"; ValueData: "{#AppImageProgId}"; Flags: uninsdeletekey; Tasks: associatefiles
@@ -192,6 +242,56 @@ Root: HKA; Subkey: "Software\Classes\.ply\OpenWithProgids"; ValueType: string; V
 Root: HKA; Subkey: "Software\Classes\.obj\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
 Root: HKA; Subkey: "Software\Classes\.gltf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
 Root: HKA; Subkey: "Software\Classes\.glb\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.3ds\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.wrl\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vrml\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.mdl\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.fbx\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.dae\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.dxf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.off\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.x\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.3mf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.drc\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.abc\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.usd\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.usda\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.usdc\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.usdz\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.step\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.stp\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.stpnc\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.p21\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.iges\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.igs\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.brep\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.xbf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.ifc\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vtk\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vtp\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vtu\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vtr\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vts\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vtm\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vtkhdf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.exo\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.ex2\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.ncdf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vti\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.mha\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.mhd\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.nrrd\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.nhdr\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.dcm\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.vdb\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.pts\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.las\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.laz\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.pcd\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.bpf\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.slpk\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.splat\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\.spz\OpenWithProgids"; ValueType: string; ValueName: "{#AppModelProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles; Components: modelviewer
 #endif
 Root: HKA; Subkey: "Software\Classes\.jpg\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
 Root: HKA; Subkey: "Software\Classes\.jpe\OpenWithProgids"; ValueType: string; ValueName: "{#AppImageProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: associatefiles
@@ -273,6 +373,56 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes";
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".obj"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".gltf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".glb"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".3ds"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".wrl"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vrml"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".mdl"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".fbx"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".dae"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".dxf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".off"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".x"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".3mf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".drc"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".abc"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".usd"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".usda"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".usdc"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".usdz"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".step"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".stp"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".stpnc"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".p21"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".iges"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".igs"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".brep"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".xbf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".ifc"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vtk"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vtp"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vtu"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vtr"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vts"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vtm"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vtkhdf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".exo"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".ex2"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".ncdf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vti"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".mha"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".mhd"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".nrrd"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".nhdr"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".dcm"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".vdb"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".pts"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".las"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".laz"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".pcd"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".bpf"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".slpk"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".splat"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExeName}\SupportedTypes"; ValueType: string; ValueName: ".spz"; ValueData: ""; Tasks: associatefiles; Components: modelviewer
 #endif
 
 [Run]
@@ -283,6 +433,13 @@ Filename: "{app}\{#AppExeName}"; Parameters: "--shutdown"; Flags: runhidden wait
 
 [Code]
 #if IncludeOptionalComponents
+procedure RemoveModelAssociation(RegistryRoot: Integer; Extension: String);
+begin
+  RegDeleteValue(RegistryRoot, 'Software\Classes\' + Extension + '\OpenWithProgids', '{#AppModelProgId}');
+  RegDeleteValue(RegistryRoot, 'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations', Extension);
+  RegDeleteValue(RegistryRoot, 'Software\Classes\Applications\{#AppExeName}\SupportedTypes', Extension);
+end;
+
 procedure RemoveDeselectedOptionalComponents;
 var
   RegistryRoot: Integer;
@@ -299,51 +456,61 @@ begin
   begin
     DelTree(ExpandConstant('{app}\components\model-viewer'), True, True, True);
     RegDeleteKeyIncludingSubkeys(RegistryRoot, 'Software\Classes\{#AppModelProgId}');
-    RegDeleteValue(RegistryRoot, 'Software\Classes\.stl\OpenWithProgids', '{#AppModelProgId}');
-    RegDeleteValue(RegistryRoot, 'Software\Classes\.ply\OpenWithProgids', '{#AppModelProgId}');
-    RegDeleteValue(RegistryRoot, 'Software\Classes\.obj\OpenWithProgids', '{#AppModelProgId}');
-    RegDeleteValue(RegistryRoot, 'Software\Classes\.gltf\OpenWithProgids', '{#AppModelProgId}');
-    RegDeleteValue(RegistryRoot, 'Software\Classes\.glb\OpenWithProgids', '{#AppModelProgId}');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
-      '.stl');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
-      '.ply');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
-      '.obj');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
-      '.gltf');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\Capabilities\FileAssociations',
-      '.glb');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
-      '.stl');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
-      '.ply');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
-      '.obj');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
-      '.gltf');
-    RegDeleteValue(
-      RegistryRoot,
-      'Software\Classes\Applications\{#AppExeName}\SupportedTypes',
-      '.glb');
+    RemoveModelAssociation(RegistryRoot, '.stl');
+    RemoveModelAssociation(RegistryRoot, '.ply');
+    RemoveModelAssociation(RegistryRoot, '.obj');
+    RemoveModelAssociation(RegistryRoot, '.gltf');
+    RemoveModelAssociation(RegistryRoot, '.glb');
+    RemoveModelAssociation(RegistryRoot, '.3ds');
+    RemoveModelAssociation(RegistryRoot, '.wrl');
+    RemoveModelAssociation(RegistryRoot, '.vrml');
+    RemoveModelAssociation(RegistryRoot, '.mdl');
+    RemoveModelAssociation(RegistryRoot, '.fbx');
+    RemoveModelAssociation(RegistryRoot, '.dae');
+    RemoveModelAssociation(RegistryRoot, '.dxf');
+    RemoveModelAssociation(RegistryRoot, '.off');
+    RemoveModelAssociation(RegistryRoot, '.x');
+    RemoveModelAssociation(RegistryRoot, '.3mf');
+    RemoveModelAssociation(RegistryRoot, '.drc');
+    RemoveModelAssociation(RegistryRoot, '.abc');
+    RemoveModelAssociation(RegistryRoot, '.usd');
+    RemoveModelAssociation(RegistryRoot, '.usda');
+    RemoveModelAssociation(RegistryRoot, '.usdc');
+    RemoveModelAssociation(RegistryRoot, '.usdz');
+    RemoveModelAssociation(RegistryRoot, '.step');
+    RemoveModelAssociation(RegistryRoot, '.stp');
+    RemoveModelAssociation(RegistryRoot, '.stpnc');
+    RemoveModelAssociation(RegistryRoot, '.p21');
+    RemoveModelAssociation(RegistryRoot, '.iges');
+    RemoveModelAssociation(RegistryRoot, '.igs');
+    RemoveModelAssociation(RegistryRoot, '.brep');
+    RemoveModelAssociation(RegistryRoot, '.xbf');
+    RemoveModelAssociation(RegistryRoot, '.ifc');
+    RemoveModelAssociation(RegistryRoot, '.vtk');
+    RemoveModelAssociation(RegistryRoot, '.vtp');
+    RemoveModelAssociation(RegistryRoot, '.vtu');
+    RemoveModelAssociation(RegistryRoot, '.vtr');
+    RemoveModelAssociation(RegistryRoot, '.vts');
+    RemoveModelAssociation(RegistryRoot, '.vtm');
+    RemoveModelAssociation(RegistryRoot, '.vtkhdf');
+    RemoveModelAssociation(RegistryRoot, '.exo');
+    RemoveModelAssociation(RegistryRoot, '.ex2');
+    RemoveModelAssociation(RegistryRoot, '.ncdf');
+    RemoveModelAssociation(RegistryRoot, '.vti');
+    RemoveModelAssociation(RegistryRoot, '.mha');
+    RemoveModelAssociation(RegistryRoot, '.mhd');
+    RemoveModelAssociation(RegistryRoot, '.nrrd');
+    RemoveModelAssociation(RegistryRoot, '.nhdr');
+    RemoveModelAssociation(RegistryRoot, '.dcm');
+    RemoveModelAssociation(RegistryRoot, '.vdb');
+    RemoveModelAssociation(RegistryRoot, '.pts');
+    RemoveModelAssociation(RegistryRoot, '.las');
+    RemoveModelAssociation(RegistryRoot, '.laz');
+    RemoveModelAssociation(RegistryRoot, '.pcd');
+    RemoveModelAssociation(RegistryRoot, '.bpf');
+    RemoveModelAssociation(RegistryRoot, '.slpk');
+    RemoveModelAssociation(RegistryRoot, '.splat');
+    RemoveModelAssociation(RegistryRoot, '.spz');
   end;
 end;
 

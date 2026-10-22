@@ -39,7 +39,7 @@ Mangosteen keeps the interface quiet, starts quickly, supports modern image form
 - Manual update checks through GitHub Releases.
 - Installer and portable zip builds for Windows x64.
 - Optional tiled GPU rendering for exceptionally large images.
-- Optional in-window 3D viewing for STL, PLY, OBJ, glTF, and GLB files.
+- Optional in-window 3D viewing for meshes and scenes (STL, PLY, OBJ, glTF/GLB, FBX, COLLADA, 3DS, 3MF, Alembic, USD), CAD and BIM (STEP, IGES, BREP, IFC), VTK and simulation data, volumes (MetaImage, NRRD, DICOM, VDB) and point clouds or Gaussian splats (LAS/LAZ, PCD, SPLAT).
 
 ## Repository Layout
 
@@ -68,7 +68,7 @@ The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, 
 Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. The complete portable edition includes two advanced components:
 
 - **GPU acceleration for large images** uses libvips, a tiled image pyramid, a bounded GPU texture cache, and a losslessly compressed disk cache. It is intended for exceptionally large TIFF, PSB, PSD, RAW-derived, and other still images without requiring a full uncompressed image to remain in RAM.
-- **3D model viewing** embeds the F3D 3.5.0 engine for STL, PLY, OBJ, glTF, and GLB browsing, including camera orbit, zoom, automatic framing, a floor grid, an XYZ indicator, and supported materials or animation.
+- **3D model viewing** embeds the F3D 3.5.0 engine for browsing every model format F3D reads that is not an image format, including camera orbit, zoom, automatic framing, a floor grid, an XYZ indicator, and supported materials or animation.
 
 Neither component is loaded during normal image viewing. See [Optional Rendering Components](docs/optional-components.md) for behavior, limits, caching, and development details.
 

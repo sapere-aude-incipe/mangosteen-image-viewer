@@ -31,7 +31,11 @@ New-Item -ItemType Directory -Path $DestinationRoot -Force | Out-Null
 if (-not (Test-Path -LiteralPath $archivePath)) {
     $url = "https://github.com/f3d-app/f3d/releases/download/v$Version/$($release.FileName)"
     Write-Host "Downloading pinned F3D $Version runtime..."
-    Invoke-WebRequest -Uri $url -OutFile $archivePath
+    # Download beside the archive and move it into place only when complete, so an
+    # interrupted download is retried instead of failing the checksum forever.
+    $partialPath = "$archivePath.partial"
+    Invoke-WebRequest -Uri $url -OutFile $partialPath
+    Move-Item -LiteralPath $partialPath -Destination $archivePath -Force
 }
 
 $actualHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()

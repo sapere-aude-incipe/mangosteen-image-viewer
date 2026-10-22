@@ -70,6 +70,126 @@ public sealed class F3dViewportTests
 
     [TestMethod]
     [TestCategory("NativeOpenGL")]
+    [TestCategory("LargeFixture")]
+    public Task Large_External_Model_Loads_And_Reports_Statistics() => StaTest.RunAsync(async () =>
+    {
+        var runtime = Environment.GetEnvironmentVariable("MANGOSTEEN_TEST_F3D_DIRECTORY");
+        var path = Environment.GetEnvironmentVariable("MANGOSTEEN_TEST_LARGE_MODEL");
+        if (string.IsNullOrEmpty(runtime) || string.IsNullOrEmpty(path))
+            Assert.Inconclusive("Set MANGOSTEEN_TEST_F3D_DIRECTORY and MANGOSTEEN_TEST_LARGE_MODEL to load a real large model.");
+
+        var statisticsClock = System.Diagnostics.Stopwatch.StartNew();
+        var statistics = ModelStatisticsReader.TryRead(path!, CancellationToken.None);
+        statisticsClock.Stop();
+        Assert.IsNotNull(statistics);
+        Assert.IsGreaterThan(0, statistics.Value.Faces);
+        Console.WriteLine($"Statistics {statistics} in {statisticsClock.Elapsed}.");
+
+        using var surface = new HwndSource(new HwndSourceParameters("Mangosteen hidden large model test") { Width = 640, Height = 480, WindowStyle = 0 });
+        using var host = new NativeGlHost { Width = 640, Height = 480 };
+        try { surface.RootVisual = host; }
+        catch (Win32Exception ex) when (ex.Message == "Could not create the OpenGL rendering context.")
+        {
+            Assert.Inconclusive("A WGL context is unavailable on this machine.");
+        }
+        host.Measure(new Size(640, 480));
+        host.Arrange(new Rect(0, 0, 640, 480));
+        host.UpdateLayout();
+        using var renderer = new F3dModelRenderer(host, runtime!);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(20));
+        var loadClock = System.Diagnostics.Stopwatch.StartNew();
+        await renderer.OpenAsync(path!, true, timeout.Token);
+        Console.WriteLine($"F3D import and first frame in {loadClock.Elapsed}.");
+        var capture = new NativeProbe(renderer).Capture(host);
+        AssertVisibleGeometry(capture);
+        SaveCapture("large-external-model.png", capture, host.PixelWidth, host.PixelHeight);
+        renderer.Dispose();
+        surface.RootVisual = null;
+    }, TimeSpan.FromMinutes(21));
+
+    [TestMethod]
+    [TestCategory("NativeOpenGL")]
+    public Task Extended_Formats_Render_With_Their_Format_Options() => StaTest.RunAsync(async () =>
+    {
+        var runtime = Environment.GetEnvironmentVariable("MANGOSTEEN_TEST_F3D_DIRECTORY");
+        if (string.IsNullOrEmpty(runtime))
+            Assert.Inconclusive("Set MANGOSTEEN_TEST_F3D_DIRECTORY to render the extended F3D formats.");
+
+        var directory = Directory.CreateTempSubdirectory("mangosteen-formats-");
+        try
+        {
+            // OFF goes through the assimp plugin, VTK legacy through VTK, MHA needs volume rendering.
+            var off = Path.Combine(directory.FullName, "tetra.off");
+            await File.WriteAllTextAsync(off, "OFF\n4 4 0\n0 0 0\n1 0 0\n0 1 0\n0 0 1\n3 0 2 1\n3 0 1 3\n3 0 3 2\n3 1 2 3\n");
+            var vtk = Path.Combine(directory.FullName, "tetra.vtk");
+            await File.WriteAllTextAsync(vtk, "# vtk DataFile Version 3.0\ntetra\nASCII\nDATASET POLYDATA\nPOINTS 4 float\n0 0 0\n1 0 0\n0 1 0\n0 0 1\nPOLYGONS 4 16\n3 0 2 1\n3 0 1 3\n3 0 3 2\n3 1 2 3\n");
+            var volume = Path.Combine(directory.FullName, "sphere.mha");
+            await File.WriteAllBytesAsync(volume, CreateSphereVolume(32));
+
+            using var surface = new HwndSource(new HwndSourceParameters("Mangosteen hidden format test") { Width = 320, Height = 240, WindowStyle = 0 });
+            using var host = new NativeGlHost { Width = 320, Height = 240 };
+            try { surface.RootVisual = host; }
+            catch (Win32Exception ex) when (ex.Message == "Could not create the OpenGL rendering context.")
+            {
+                Assert.Inconclusive("A WGL context is unavailable on this machine.");
+            }
+            host.Measure(new Size(320, 240));
+            host.Arrange(new Rect(0, 0, 320, 240));
+            host.UpdateLayout();
+            using var renderer = new F3dModelRenderer(host, runtime!);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+
+            foreach (var path in new[] { off, vtk, volume, off })
+            {
+                await renderer.OpenAsync(path, true, timeout.Token);
+                var pixels = new NativeProbe(renderer).Capture(host);
+                SaveCapture($"format-{Path.GetExtension(path).TrimStart('.')}.png", pixels, host.PixelWidth, host.PixelHeight);
+                // The mesh brightness heuristic does not fit a coloured volume; the warm check covers it.
+                if (path != volume) AssertVisibleGeometry(pixels);
+                // Volume rendering colours the sphere warm; without it F3D draws a grey slab.
+                var warm = CountWarmPixels(pixels);
+                if (path == volume) Assert.IsGreaterThan(200, warm, "The volume must be rendered as a volume.");
+                else Assert.IsLessThan(200, warm, "Volume options must not leak into the next file.");
+            }
+
+            renderer.Dispose();
+            surface.RootVisual = null;
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    });
+
+    private static byte[] CreateSphereVolume(int size)
+    {
+        var header = System.Text.Encoding.ASCII.GetBytes(
+            $"ObjectType = Image\nNDims = 3\nDimSize = {size} {size} {size}\nElementType = MET_UCHAR\nElementDataFile = LOCAL\n");
+        var bytes = new byte[header.Length + size * size * size];
+        header.CopyTo(bytes, 0);
+        var center = size / 2.0;
+        for (var z = 0; z < size; z++)
+            for (var y = 0; y < size; y++)
+                for (var x = 0; x < size; x++)
+                {
+                    var distance = Math.Sqrt((x - center) * (x - center) + (y - center) * (y - center) + (z - center) * (z - center));
+                    bytes[header.Length + (z * size + y) * size + x] = distance < size / 3.0 ? (byte)255 : (byte)0;
+                }
+        return bytes;
+    }
+
+    private static int CountWarmPixels(byte[] rgb)
+    {
+        var count = 0;
+        for (var i = 0; i + 2 < rgb.Length; i += 3)
+        {
+            if (rgb[i] > 120 && rgb[i] - rgb[i + 2] > 60) count++;
+        }
+        return count;
+    }
+
+    [TestMethod]
+    [TestCategory("NativeOpenGL")]
     public Task Model_Remains_Visible_After_Hidden_Load_Resize_Orbit_And_Reset() => StaTest.RunAsync(async () =>
     {
         var runtime = Environment.GetEnvironmentVariable("MANGOSTEEN_TEST_F3D_DIRECTORY");

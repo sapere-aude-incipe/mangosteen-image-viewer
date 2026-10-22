@@ -273,4 +273,8 @@ Wersje przenośne nie mogą aktualizować się w miejscu. Otworzyć stronę GitH
   <data name="ModelView" xml:space="preserve"><value>Widok 3D</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Siatka w początku układu świata</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Umieść siatkę w pierwotnym początku układu współrzędnych zamiast pod modelem.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>Modele 3D wymagają przeglądarki 3D, która jest dostępna w przenośnej edycji Complete programu Mangosteen.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>Ładowanie dużego modelu 3D... Może to potrwać minutę lub dłużej.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>Wierzchołki: {0} · ściany: {1}</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>Ściany: {0}</value></data>
 </root>

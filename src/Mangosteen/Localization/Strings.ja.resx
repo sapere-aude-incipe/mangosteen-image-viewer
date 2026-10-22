@@ -273,4 +273,8 @@
   <data name="ModelView" xml:space="preserve"><value>3D表示</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>グリッドをワールド原点に配置</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>モデルの下ではなく、元の座標原点にグリッドを配置します。</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D モデルを表示するには、Mangosteen の Complete ポータブル版に含まれる 3D ビューアーが必要です。</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>大きな 3D モデルを読み込み中... 1 分以上かかる場合があります。</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>頂点 {0} · 面 {1}</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>面 {0}</value></data>
 </root>

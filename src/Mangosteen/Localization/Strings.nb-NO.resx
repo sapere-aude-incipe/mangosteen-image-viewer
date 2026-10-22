@@ -22,10 +22,10 @@
     <value>Finner ikke filen: {0}</value>
   </data>
   <data name="FullResolutionDecodeFailed" xml:space="preserve">
-    <value>FullopplÃ¸sningsdekoding mislyktes.</value>
+    <value>Fulloppløsningsdekoding mislyktes.</value>
   </data>
   <data name="FullResolutionDecodeFailedFormat" xml:space="preserve">
-    <value>FullopplÃ¸sningsdekoding mislyktes: {0}</value>
+    <value>Fulloppløsningsdekoding mislyktes: {0}</value>
   </data>
   <data name="ImageFiles" xml:space="preserve">
     <value>Bildefiler</value>
@@ -37,7 +37,7 @@
     <value>Manuell</value>
   </data>
   <data name="Nearest" xml:space="preserve">
-    <value>NÃ¦rmeste</value>
+    <value>Nærmeste</value>
   </data>
   <data name="NextImage" xml:space="preserve">
     <value>Neste bilde</value>
@@ -46,19 +46,19 @@
     <value>Dra og slipp eller klikk for å åpne</value>
   </data>
   <data name="OpenImage" xml:space="preserve">
-    <value>Ã…pne bilde</value>
+    <value>Åpne bilde</value>
   </data>
   <data name="Preload" xml:space="preserve">
-    <value>ForhÃ¥ndslast</value>
+    <value>Forhåndslast</value>
   </data>
   <data name="PreloadMemoryBudgetTooltip" xml:space="preserve">
-    <value>Minnebudsjett for full dekoding og forhÃ¥ndslasting</value>
+    <value>Minnebudsjett for full dekoding og forhåndslasting</value>
   </data>
   <data name="PreloadNearbyImages" xml:space="preserve">
     <value>Forhåndslast filer i nærheten</value>
   </data>
   <data name="PreviewOnly" xml:space="preserve">
-    <value>Kun forhÃ¥ndsvisning</value>
+    <value>Kun forhåndsvisning</value>
   </data>
   <data name="PreviousImage" xml:space="preserve">
     <value>Forrige bilde</value>
@@ -67,19 +67,19 @@
     <value>Jevn</value>
   </data>
   <data name="ToggleActualPixels" xml:space="preserve">
-    <value>Bytt faktisk pikselstÃ¸rrelse</value>
+    <value>Bytt faktisk pikselstørrelse</value>
   </data>
   <data name="ToggleDarkMode" xml:space="preserve">
     <value>Mørk modus</value>
   </data>
   <data name="ToggleSmoothNearestUpscaling" xml:space="preserve">
-    <value>Bytt mellom jevn og nÃ¦rmeste-nabo-oppskalering</value>
+    <value>Bytt mellom jevn og nærmeste-nabo-oppskalering</value>
   </data>
   <data name="UnexpectedError" xml:space="preserve">
     <value>Det oppstod en uventet feil.</value>
   </data>
   <data name="UseDarkMode" xml:space="preserve">
-    <value>Bruk mÃ¸rk modus</value>
+    <value>Bruk mørk modus</value>
   </data>
   <data name="UseLightMode" xml:space="preserve">
     <value>Bruk lys modus</value>
@@ -273,4 +273,8 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="ModelView" xml:space="preserve"><value>3D-visning</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Rutenett ved verdens origo</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Plasser rutenettet ved det opprinnelige koordinatsystemets origo i stedet for under modellen.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D-modeller krever 3D-visningen, som følger med Complete-portable-utgaven av Mangosteen.</value></data>
+  <data name="LoadingLargeModel" xml:space="preserve"><value>Laster stor 3D-modell... Dette kan ta et minutt eller mer.</value></data>
+  <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} hjørnepunkter · {1} flater</value></data>
+  <data name="ModelFacesFormat" xml:space="preserve"><value>{0} flater</value></data>
 </root>
