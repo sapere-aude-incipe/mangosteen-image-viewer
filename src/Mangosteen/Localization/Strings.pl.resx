@@ -277,4 +277,6 @@ Wersje przenośne nie mogą aktualizować się w miejscu. Otworzyć stronę GitH
   <data name="LoadingLargeModel" xml:space="preserve"><value>Ładowanie dużego modelu 3D... Może to potrwać minutę lub dłużej.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>Wierzchołki: {0} · ściany: {1}</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>Ściany: {0}</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>Akceleracja GPU dla dużych obrazów</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Renderuje bardzo duże obrazy jako kafelki na karcie graficznej. Domyślnie włączone po wykryciu dedykowanej karty graficznej.</value></data>
 </root>

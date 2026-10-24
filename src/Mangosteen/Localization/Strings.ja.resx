@@ -277,4 +277,6 @@
   <data name="LoadingLargeModel" xml:space="preserve"><value>大きな 3D モデルを読み込み中... 1 分以上かかる場合があります。</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>頂点 {0} · 面 {1}</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>面 {0}</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>大きな画像の GPU アクセラレーション</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>非常に大きな画像をグラフィックス カードでタイル表示します。専用グラフィックス カードが検出されると既定でオンになります。</value></data>
 </root>

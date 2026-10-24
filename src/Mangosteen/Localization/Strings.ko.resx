@@ -277,4 +277,6 @@
   <data name="LoadingLargeModel" xml:space="preserve"><value>큰 3D 모델 로드 중... 1분 이상 걸릴 수 있습니다.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>정점 {0}개 · 면 {1}개</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>면 {0}개</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>큰 이미지의 GPU 가속</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>매우 큰 이미지를 그래픽 카드에서 타일로 렌더링합니다. 전용 그래픽 카드가 감지되면 기본적으로 켜집니다.</value></data>
 </root>

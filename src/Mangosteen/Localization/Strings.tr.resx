@@ -277,4 +277,6 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="LoadingLargeModel" xml:space="preserve"><value>Büyük 3B model yükleniyor... Bu işlem bir dakika veya daha uzun sürebilir.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} köşe · {1} yüz</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} yüz</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>Büyük görüntüler için GPU hızlandırma</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Çok büyük görüntüleri ekran kartında döşemeler halinde işler. Ayrı bir ekran kartı algılandığında varsayılan olarak açıktır.</value></data>
 </root>

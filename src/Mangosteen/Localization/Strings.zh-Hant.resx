@@ -277,4 +277,6 @@
   <data name="LoadingLargeModel" xml:space="preserve"><value>正在載入大型 3D 模型... 這可能需要一分鐘或更長時間。</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} 個頂點 · {1} 個面</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} 個面</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>大型影像 GPU 加速</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>在顯示卡上以圖塊方式算繪超大型影像。偵測到獨立顯示卡時預設開啟。</value></data>
 </root>

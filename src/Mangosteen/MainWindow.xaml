@@ -643,7 +643,8 @@
                                           IsCheckable="True"
                                           Click="NearestSamplingMenuItem_Click" />
                             </MenuItem>
-                            <MenuItem x:Name="PerformanceMenuItem">
+                            <MenuItem x:Name="PerformanceMenuItem"
+                                      SubmenuOpened="PerformanceMenuItem_SubmenuOpened">
                                 <MenuItem x:Name="PreloadEnabledMenuItem"
                                           IsCheckable="True"
                                           IsChecked="True"
@@ -690,6 +691,9 @@
                                           IsCheckable="True"
                                           IsChecked="True"
                                           Click="KeepReadyInBackgroundMenuItem_Click" />
+                                <MenuItem x:Name="GpuLargeImagesMenuItem"
+                                          IsCheckable="True"
+                                          Click="GpuLargeImagesMenuItem_Click" />
                             </MenuItem>
                             <MenuItem x:Name="AutoRefreshMenuItem"
                                       IsCheckable="True"

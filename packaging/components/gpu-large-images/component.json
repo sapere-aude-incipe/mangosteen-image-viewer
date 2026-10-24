@@ -1,6 +1,0 @@
-{
-  "id": "gpu-large-images",
-  "name": "GPU acceleration for large images",
-  "version": 1,
-  "optional": true
-}

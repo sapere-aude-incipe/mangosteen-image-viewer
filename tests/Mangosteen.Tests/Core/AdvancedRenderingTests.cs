@@ -66,34 +66,46 @@ public sealed class AdvancedRenderingTests
     }
 
     [TestMethod]
-    public void OptionalComponentCatalog_DetectsManifest()
-    {
-        using var directory = TemporaryDirectory.Create();
-        var componentDirectory = Path.Combine(directory.Path, "components", "gpu-large-images");
-        Directory.CreateDirectory(componentDirectory);
-        File.WriteAllText(
-            Path.Combine(componentDirectory, "component.json"),
-            """{"id":"gpu-large-images","version":1,"optional":true}""");
-        var catalog = new OptionalComponentCatalog(directory.Path);
-
-        Assert.IsTrue(catalog.IsInstalled(OptionalComponentKind.GpuLargeImages));
-        Assert.IsFalse(catalog.IsInstalled(OptionalComponentKind.ModelViewer));
-    }
-
-    [TestMethod]
     public void OptionalComponentCatalog_RejectsMalformedOrIncompatibleManifest()
     {
         using var directory = TemporaryDirectory.Create();
-        var componentDirectory = Path.Combine(directory.Path, "components", "gpu-large-images");
-        Directory.CreateDirectory(componentDirectory);
+        var componentDirectory = Path.Combine(directory.Path, "components", "model-viewer");
+        Directory.CreateDirectory(Path.Combine(componentDirectory, "bin"));
+        File.WriteAllBytes(Path.Combine(componentDirectory, "bin", "f3d_c_api.dll"), [1]);
         var manifestPath = Path.Combine(componentDirectory, "component.json");
         var catalog = new OptionalComponentCatalog(directory.Path);
 
         File.WriteAllText(manifestPath, "not-json");
-        Assert.IsFalse(catalog.IsInstalled(OptionalComponentKind.GpuLargeImages));
+        Assert.IsFalse(catalog.IsInstalled(OptionalComponentKind.ModelViewer));
 
-        File.WriteAllText(manifestPath, """{"id":"gpu-large-images","version":2}""");
-        Assert.IsFalse(catalog.IsInstalled(OptionalComponentKind.GpuLargeImages));
+        File.WriteAllText(manifestPath, """{"id":"model-viewer","engine":"F3D","engineVersion":"3.4.0"}""");
+        Assert.IsFalse(catalog.IsInstalled(OptionalComponentKind.ModelViewer));
+    }
+
+    [TestMethod]
+    public void GraphicsAdapters_Count_Only_Hardware_Cards_With_Dedicated_Memory_As_Dedicated()
+    {
+        const ulong megabyte = 1024 * 1024;
+
+        Assert.IsTrue(GraphicsAdapters.IsDedicated(new("NVIDIA GeForce RTX 5060 Ti", 0x10DE, 16_384 * megabyte, false)));
+        Assert.IsTrue(GraphicsAdapters.IsDedicated(new("Entry card", 0x1002, 512 * megabyte, false)));
+        Assert.IsFalse(GraphicsAdapters.IsDedicated(new("Intel UHD Graphics", 0x8086, 128 * megabyte, false)));
+        Assert.IsFalse(GraphicsAdapters.IsDedicated(new("Microsoft Basic Render Driver", 0x1414, 0, true)));
+        Assert.IsFalse(GraphicsAdapters.IsDedicated(new("Microsoft Hyper-V Video", 0x1414, 1024 * megabyte, false)));
+    }
+
+    [TestMethod]
+    public void GraphicsAdapters_Enumerates_This_Machine_Without_Failing()
+    {
+        var adapters = GraphicsAdapters.Enumerate();
+
+        foreach (var adapter in adapters)
+        {
+            Console.WriteLine($"{adapter.Name} vendor=0x{adapter.VendorId:X4} vram={adapter.DedicatedVideoMemory / (1024 * 1024)} MB software={adapter.IsSoftware}");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(adapter.Name));
+        }
+
+        Assert.AreEqual(adapters.Any(GraphicsAdapters.IsDedicated), GraphicsAdapters.HasDedicatedGpu);
     }
 
     [TestMethod]
@@ -101,8 +113,6 @@ public sealed class AdvancedRenderingTests
     [DataRow("[]")]
     [DataRow("42")]
     [DataRow("{\"id\":null}")]
-    [DataRow("{\"id\":\"gpu-large-images\",\"version\":\"1\"}")]
-    [DataRow("{\"id\":\"gpu-large-images\",\"version\":null}")]
     [DataRow("{\"id\":\"model-viewer\",\"engine\":42,\"engineVersion\":\"3.5.0\"}")]
     [DataRow("{\"id\":\"model-viewer\",\"engine\":\"F3D\",\"engineVersion\":[]}")]
     public void OptionalComponentCatalog_Rejects_Invalid_Json_Shapes(string json)

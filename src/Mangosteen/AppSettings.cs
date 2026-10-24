@@ -23,6 +23,8 @@ internal sealed class AppSettings
     public bool IsAutoRefreshEnabled { get; init; }
     public bool KeepReadyInBackground { get; init; } = true;
     public bool IsModelGridAtWorldOrigin { get; init; }
+    /// <summary>Null means automatic: on when a dedicated graphics card is present.</summary>
+    public bool? IsGpuLargeImageRenderingEnabled { get; init; }
     public int PreloadBudgetGigabytes { get; init; } = DefaultPreloadBudgetGigabytes;
     public PreloadAggressiveness PreloadAggressiveness { get; init; } = PreloadAggressiveness.Balanced;
 
@@ -137,6 +139,7 @@ internal sealed class AppSettings
             IsAutoRefreshEnabled = settings.IsAutoRefreshEnabled,
             KeepReadyInBackground = keepReadyInBackground ?? settings.KeepReadyInBackground,
             IsModelGridAtWorldOrigin = settings.IsModelGridAtWorldOrigin,
+            IsGpuLargeImageRenderingEnabled = settings.IsGpuLargeImageRenderingEnabled,
             PreloadBudgetGigabytes = Math.Clamp(
                 settings.PreloadBudgetGigabytes,
                 MinimumPreloadBudgetGigabytes,

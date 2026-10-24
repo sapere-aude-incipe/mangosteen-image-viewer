@@ -176,6 +176,7 @@ public partial class MainWindow : Window
     private GpuLargeImageRenderer? _gpuLargeImageRenderer;
     private string? _gpuFailurePath;
     private F3dModelRenderer? _modelRenderer;
+    private bool? _isGpuLargeImageRenderingEnabled;
     private CancellationTokenSource? _modelStatisticsCts;
     private ModelStatistics? _modelStatistics;
     private ViewerContentMode _contentMode;
@@ -244,6 +245,7 @@ public partial class MainWindow : Window
         _isAutoRefreshEnabled = settings.IsAutoRefreshEnabled;
         _keepReadyInBackground = settings.KeepReadyInBackground;
         _isModelGridAtWorldOrigin = settings.IsModelGridAtWorldOrigin;
+        _isGpuLargeImageRenderingEnabled = settings.IsGpuLargeImageRenderingEnabled;
         _preloadBudgetGigabytes = Math.Clamp(settings.PreloadBudgetGigabytes, 1, 15);
         _preloadAggressiveness = settings.PreloadAggressiveness;
         if (settings.IsDarkMode == _isDarkMode)
@@ -270,6 +272,7 @@ public partial class MainWindow : Window
             IsAutoRefreshEnabled = _isAutoRefreshEnabled,
             KeepReadyInBackground = _keepReadyInBackground,
             IsModelGridAtWorldOrigin = _isModelGridAtWorldOrigin,
+            IsGpuLargeImageRenderingEnabled = _isGpuLargeImageRenderingEnabled,
             PreloadBudgetGigabytes = _preloadBudgetGigabytes,
             PreloadAggressiveness = _preloadAggressiveness
         }.Save();
@@ -302,6 +305,8 @@ public partial class MainWindow : Window
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
         AutoRefreshMenuItem.Header = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImage);
         KeepReadyInBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.KeepReadyInBackground);
+        GpuLargeImagesMenuItem.Header = LocalizedText.Get(LocalizedText.GpuLargeImages);
+        GpuLargeImagesMenuItem.ToolTip = LocalizedText.Get(LocalizedText.GpuLargeImagesTooltip);
         ModelViewMenuItem.Header = LocalizedText.Get(LocalizedText.ModelView);
         ModelGridAtWorldOriginMenuItem.Header = LocalizedText.Get(LocalizedText.ModelGridAtWorldOrigin);
         ModelGridAtWorldOriginMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ModelGridAtWorldOriginTooltip);
@@ -1065,7 +1070,7 @@ public partial class MainWindow : Window
         CancellationToken token)
     {
         var generation = _loadGeneration;
-        if (!_optionalComponents.IsInstalled(OptionalComponentKind.GpuLargeImages) ||
+        if (!IsGpuLargeImageRenderingEnabled ||
             string.Equals(path, _gpuFailurePath, StringComparison.OrdinalIgnoreCase) ||
             image.FrameCount != 1 ||
             !LargeImageClassifier.Classify(image.Metadata, path).UseAdvancedRenderer)
@@ -2344,6 +2349,31 @@ public partial class MainWindow : Window
         UpdateSettingsMenuChecks();
         UpdateAutoRefreshWatcher();
         SaveSettings();
+    }
+
+    // An explicit choice wins; otherwise detect a dedicated graphics card (lazily, off the startup path).
+    private bool IsGpuLargeImageRenderingEnabled =>
+        _isGpuLargeImageRenderingEnabled ?? GraphicsAdapters.HasDedicatedGpu;
+
+    private void PerformanceMenuItem_SubmenuOpened(object sender, RoutedEventArgs e)
+    {
+        GpuLargeImagesMenuItem.IsChecked = IsGpuLargeImageRenderingEnabled;
+    }
+
+    private async void GpuLargeImagesMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var wasEnabled = IsGpuLargeImageRenderingEnabled;
+        _isGpuLargeImageRenderingEnabled = GpuLargeImagesMenuItem.IsChecked;
+        _gpuFailurePath = null;
+        SaveSettings();
+        // Reload so the current image switches renderer immediately.
+        if (wasEnabled != IsGpuLargeImageRenderingEnabled &&
+            _contentMode != ViewerContentMode.Model &&
+            _navigator.CurrentPath is not null &&
+            !_isApplyingRotation)
+        {
+            await RunUiCommandAsync(() => LoadCurrentImageAsync(fitToWindow: false));
+        }
     }
 
     private void ModelGridAtWorldOriginMenuItem_Click(object sender, RoutedEventArgs e)

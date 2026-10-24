@@ -277,4 +277,6 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="LoadingLargeModel" xml:space="preserve"><value>Großes 3D-Modell wird geladen... Dies kann eine Minute oder länger dauern.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} Eckpunkte · {1} Flächen</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} Flächen</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>GPU-Beschleunigung für große Bilder</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Sehr große Bilder als Kacheln auf der Grafikkarte darstellen. Standardmäßig aktiv, wenn eine dedizierte Grafikkarte erkannt wird.</value></data>
 </root>

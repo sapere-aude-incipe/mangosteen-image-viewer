@@ -277,4 +277,6 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="LoadingLargeModel" xml:space="preserve"><value>Laster stor 3D-modell... Dette kan ta et minutt eller mer.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} hjørnepunkter · {1} flater</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} flater</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>GPU-akselerasjon for store bilder</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Vis svært store bilder som fliser på skjermkortet. På som standard når et dedikert skjermkort oppdages.</value></data>
 </root>

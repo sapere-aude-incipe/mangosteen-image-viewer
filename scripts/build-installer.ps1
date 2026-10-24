@@ -186,10 +186,6 @@ Write-Host "Creating portable zip..."
 Compress-Archive -Path (Join-Path $installerInputDir "*") -DestinationPath $portableZip -Force
 
 if (-not $SkipOptionalComponents) {
-    $gpuSource = Join-Path $projectRoot "packaging\components\gpu-large-images"
-    $gpuDestination = Join-Path $optionalInputDir "gpu-large-images"
-    Copy-Item -LiteralPath $gpuSource -Destination $gpuDestination -Recurse -Force
-
     $f3dRoot = & (Join-Path $PSScriptRoot "fetch-f3d-runtime.ps1")
     if ($f3dRoot -is [array]) {
         $f3dRoot = $f3dRoot[-1]
@@ -205,7 +201,6 @@ if (-not $SkipOptionalComponents) {
     Copy-Item -Path (Join-Path $installerInputDir "*") -Destination $completePortableDir -Recurse -Force
     $completeComponentsDir = Join-Path $completePortableDir "components"
     New-Item -ItemType Directory -Path $completeComponentsDir -Force | Out-Null
-    Copy-Item -LiteralPath $gpuDestination -Destination (Join-Path $completeComponentsDir "gpu-large-images") -Recurse -Force
     Copy-Item -LiteralPath $modelDestination -Destination (Join-Path $completeComponentsDir "model-viewer") -Recurse -Force
 
     $completePortableZip = Join-Path $distDir "Mangosteen-Complete-Portable-$Version-x64.zip"
@@ -229,7 +224,7 @@ $installerArgs = @(
     "/DOutputDir=$distDir"
 )
 if (-not $SkipOptionalComponents) {
-    # One installer offers Core (default), Full and Custom; components install only when selected.
+    # One installer offers Core (default) and Full; 3D model viewing installs only with Full.
     $installerArgs += "/DIncludeOptionalComponents=1"
     $installerArgs += "/DOptionalComponentsDir=$optionalInputDir"
 }

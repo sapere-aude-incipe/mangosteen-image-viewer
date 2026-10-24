@@ -89,9 +89,13 @@ try {
     if (-not (Test-Path -LiteralPath $installedExe)) {
         throw "Installer did not create the application executable: $installedExe"
     }
+    # GPU large-image rendering is a built-in setting now, never a component.
+    if (Test-Path -LiteralPath $gpuManifest) {
+        throw "The installer created the retired GPU large-image component."
+    }
     if ($SetupType -eq "core") {
-        if ((Test-Path -LiteralPath $gpuManifest) -or (Test-Path -LiteralPath $modelManifest)) {
-            throw "The default core installation unexpectedly selected an optional component."
+        if (Test-Path -LiteralPath $modelManifest) {
+            throw "The default core installation unexpectedly selected 3D model viewing."
         }
         foreach ($extension in $modelExtensions) {
             if ($null -ne (Get-RegistryValueOrNull -Path $capabilitiesPath -Name $extension)) {
@@ -100,9 +104,6 @@ try {
         }
     }
     else {
-        if (-not (Test-Path -LiteralPath $gpuManifest)) {
-            throw "The full installation did not install GPU acceleration for large images."
-        }
         if (-not (Test-Path -LiteralPath $modelManifest) -or
             -not (Test-Path -LiteralPath (Join-Path $resolvedInstallDirectory "components\model-viewer\bin\f3d_c_api.dll"))) {
             throw "The full installation did not install the 3D model viewer."

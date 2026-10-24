@@ -1,15 +1,26 @@
 # Optional Rendering Components
 
-Mangosteen keeps its normal WPF and SkiaSharp image path as the default. Optional
-components are discovered only when their `component.json` manifest is present
-under the application's `components` directory. They are not loaded at startup
-and do not add work to ordinary image viewing.
+Mangosteen keeps its normal WPF and SkiaSharp image path as the default. GPU
+large-image rendering is built into every edition and controlled by a setting.
+3D model viewing is an optional component, discovered only when its
+`component.json` manifest is present under the application's `components`
+directory. Neither is loaded at startup or adds work to ordinary image viewing.
 
 ## GPU acceleration for large images
 
-The large-image component is intended for exceptionally large still images. It
+The large-image renderer is intended for exceptionally large still images. It
 is selected when the estimated decoded RGBA image is at least 256 MiB, or when a
-PSB file is opened.
+PSB file is opened, and **Options > Performance > GPU acceleration for large
+images** is on.
+
+The setting is automatic until the user changes it: Mangosteen asks DXGI for the
+graphics adapters the first time a large image needs the answer (never at
+startup) and turns it on when a hardware adapter outside Microsoft's own
+(Basic Render Driver, Hyper-V) reports at least 512 MB of dedicated video
+memory. Integrated GPUs typically report 128 MB or less. Once chosen, the
+explicit on/off value is stored as `IsGpuLargeImageRenderingEnabled` in
+`settings.json`. On Windows' OpenGL 1.1 software renderer ("GDI Generic") the
+renderer stands aside regardless of the setting.
 
 - libvips decodes only the visible 512-pixel tiles and a one-tile margin.
 - A power-of-two pyramid supplies a suitable resolution for the current zoom.
@@ -74,23 +85,22 @@ it is selected. It reduces potential disk latency without competing for the
 active viewport's graphics context. Actual improvement depends on the storage
 device, Windows' existing cache, and the model's import cost.
 
-## Getting the advanced components
+## Getting 3D model viewing
 
-Run `Mangosteen-Setup-<version>-x64.exe` and choose the **Full** setup type (or
-**Custom** to pick one component), or download
-`Mangosteen-Complete-Portable-<version>-x64.zip` to get both components already
-included. The installer defaults to the Core type, which installs only the core
-image viewer; the 3D file types are registered only when 3D model viewing is
-selected. The standard portable ZIP is core-only, and separate component
-archives are not published. The
+Run `Mangosteen-Setup-<version>-x64.exe` and choose the **Full** setup type, or
+download `Mangosteen-Complete-Portable-<version>-x64.zip` to get the 3D viewer
+already included. The installer defaults to the Core type, which installs only
+the core image viewer; the 3D file types are registered only with Full. The
+standard portable ZIP has no 3D viewer, and separate component archives are not
+published. Upgrading removes the retired `components\gpu-large-images` switch
+folder from earlier installs. The
 unpacked complete build is available at `publish\complete-portable\Mangosteen.exe`
 for local testing.
 
-For source-tree development, the following environment variables enable routing
+For source-tree development, this environment variable enables 3D routing
 without copying the lightweight manifest:
 
 ```powershell
-$env:MANGOSTEEN_ENABLE_GPU_LARGE_IMAGES = "1"
 $env:MANGOSTEEN_ENABLE_3D_VIEWER = "1"
 ```
 
