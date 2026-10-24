@@ -76,9 +76,13 @@ device, Windows' existing cache, and the model's import cost.
 
 ## Getting the advanced components
 
-Download `Mangosteen-Complete-Portable-<version>-x64.zip` to get both components
-already installed. The standard installer and standard portable ZIP contain only
-the core image viewer, and separate component archives are not published. The
+Run `Mangosteen-Setup-<version>-x64.exe` and choose the **Full** setup type (or
+**Custom** to pick one component), or download
+`Mangosteen-Complete-Portable-<version>-x64.zip` to get both components already
+included. The installer defaults to the Core type, which installs only the core
+image viewer; the 3D file types are registered only when 3D model viewing is
+selected. The standard portable ZIP is core-only, and separate component
+archives are not published. The
 unpacked complete build is available at `publish\complete-portable\Mangosteen.exe`
 for local testing.
 

@@ -228,6 +228,11 @@ $installerArgs = @(
     "/DSourceDir=$installerInputDir",
     "/DOutputDir=$distDir"
 )
+if (-not $SkipOptionalComponents) {
+    # One installer offers Core (default), Full and Custom; components install only when selected.
+    $installerArgs += "/DIncludeOptionalComponents=1"
+    $installerArgs += "/DOptionalComponentsDir=$optionalInputDir"
+}
 $installerArgs += $issPath
 
 Write-Host "Compiling installer with $iscc..."
