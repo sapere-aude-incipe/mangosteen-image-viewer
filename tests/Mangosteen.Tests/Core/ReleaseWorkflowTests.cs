@@ -39,14 +39,28 @@ public sealed class ReleaseWorkflowTests
     }
 
     [TestMethod]
-    public void Release_Build_Keeps_Optional_Components_Out_Of_Standard_Installer()
+    public void Release_Build_Offers_Optional_Components_In_The_Single_Installer()
     {
         var script = File.ReadAllText(Path.Combine(GetRepositoryRoot(), "scripts", "build-installer.ps1"));
 
         StringAssert.Contains(script, "Mangosteen-Complete-Portable-$Version-x64.zip");
-        Assert.IsFalse(script.Contains("/DIncludeOptionalComponents=1", StringComparison.Ordinal));
+        StringAssert.Contains(script, "\"/DIncludeOptionalComponents=1\"");
+        StringAssert.Contains(script, "\"/DOptionalComponentsDir=$optionalInputDir\"");
         Assert.IsFalse(script.Contains("Mangosteen-GPU-Large-Images-$Version-x64.zip", StringComparison.Ordinal));
         Assert.IsFalse(script.Contains("Mangosteen-3D-Viewer-$Version-x64.zip", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void Release_And_Pr_Builds_Smoke_Test_Core_And_Full_Installs()
+    {
+        foreach (var workflow in new[] { "release.yml", "pr-artifacts.yml" })
+        {
+            var text = File.ReadAllText(Path.Combine(GetRepositoryRoot(), ".github", "workflows", workflow));
+
+            StringAssert.Contains(text, "- name: Smoke-test installer", workflow);
+            StringAssert.Contains(text, "- name: Smoke-test full installer", workflow);
+            StringAssert.Contains(text, "-SetupType full", workflow);
+        }
     }
 
     private static string GetReleaseWorkflowText()

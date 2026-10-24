@@ -65,7 +65,7 @@ The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, 
 
 ## Optional Components
 
-Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. The complete portable edition includes two advanced components:
+Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. The installer's Full setup type and the complete portable edition include two advanced components:
 
 - **GPU acceleration for large images** uses libvips, a tiled image pyramid, a bounded GPU texture cache, and a losslessly compressed disk cache. It is intended for exceptionally large TIFF, PSB, PSD, RAW-derived, and other still images without requiring a full uncompressed image to remain in RAM.
 - **3D model viewing** embeds the F3D 3.5.0 engine for browsing every model format F3D reads that is not an image format, including camera orbit, zoom, automatic framing, a floor grid, an XYZ indicator, and supported materials or animation.
@@ -76,11 +76,11 @@ Neither component is loaded during normal image viewing. See [Optional Rendering
 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
-- **Standard installer**: `Mangosteen-Setup-<version>-x64.exe` - the lightweight image viewer with a Start menu shortcut and an optional, checked-by-default file type registration step.
+- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - installs the core image viewer by default, with a Start menu shortcut and an optional, checked-by-default file type registration step. Choose **Full** in setup to also install GPU large-image rendering and 3D model viewing, or **Custom** to pick either one.
 - **Standard portable**: `Mangosteen-Portable-<version>-x64.zip` - the same lightweight viewer without installation or a separate .NET runtime.
 - **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - a ready-to-run portable build with GPU large-image rendering and 3D model viewing already included.
 
-The standard installer and standard portable ZIP contain only the core viewer. Use the complete portable build when you want the advanced rendering features. Separate component archives are not published, keeping the Releases page compact and making each edition unambiguous.
+The installer carries the optional components but installs and registers them only when you choose Full or Custom; a Core installation contains only the core viewer. The standard portable ZIP is core-only, and the complete portable build includes everything. Separate component archives are not published, keeping the Releases page compact.
 
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 

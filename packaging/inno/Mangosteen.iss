@@ -71,16 +71,18 @@ Name: "associatefiles"; Description: "Register supported image file types with {
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Types]
+; The first type is the default: a lean core install unless Full or Custom is chosen.
 Name: "core"; Description: "Core image viewer"
 #if IncludeOptionalComponents
-Name: "complete"; Description: "Core viewer with all optional components"
+Name: "full"; Description: "Full: core viewer with 3D models and GPU acceleration for large images"
+Name: "custom"; Description: "Custom"; Flags: iscustom
 #endif
 
 [Components]
 #if IncludeOptionalComponents
-Name: "core"; Description: "Mangosteen Image Viewer"; Types: core complete; Flags: fixed
-Name: "gpulargeimages"; Description: "GPU acceleration for large images"; Types: complete
-Name: "modelviewer"; Description: "3D model viewing (F3D 3.5.0, adds about 119 MB)"; Types: complete
+Name: "core"; Description: "Mangosteen Image Viewer"; Types: core full custom; Flags: fixed
+Name: "gpulargeimages"; Description: "GPU acceleration for large images"; Types: full
+Name: "modelviewer"; Description: "3D model viewing (F3D 3.5.0, adds about 119 MB)"; Types: full
 #else
 Name: "core"; Description: "Mangosteen Image Viewer"; Types: core; Flags: fixed
 #endif

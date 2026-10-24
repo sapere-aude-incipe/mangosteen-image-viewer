@@ -83,13 +83,20 @@ public sealed partial class InstallerSupportedTypesTests
     }
 
     [TestMethod]
-    public void Inno_Setup_Defaults_To_Core_Viewer_Without_Optional_Components()
+    public void Inno_Setup_Defaults_To_Core_And_Offers_Full_And_Custom()
     {
         var text = GetInstallerScriptText();
+        var types = text[text.IndexOf("[Types]", StringComparison.Ordinal)..text.IndexOf("[Components]", StringComparison.Ordinal)]
+            .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries)
+            .Where(line => line.StartsWith("Name:", StringComparison.Ordinal))
+            .ToArray();
 
-        StringAssert.Contains(text, "Name: \"core\"; Description: \"Core image viewer\"");
-        StringAssert.Contains(text, "Name: \"gpulargeimages\"; Description: \"GPU acceleration for large images\"; Types: complete");
-        StringAssert.Contains(text, "Name: \"modelviewer\"; Description: \"3D model viewing");
+        // Inno Setup selects the first type by default, so Core must stay first.
+        StringAssert.StartsWith(types[0], "Name: \"core\"; Description: \"Core image viewer\"");
+        StringAssert.Contains(text, "Name: \"full\"; Description: \"Full: core viewer with 3D models and GPU acceleration for large images\"");
+        StringAssert.Contains(text, "Name: \"custom\"; Description: \"Custom\"; Flags: iscustom");
+        StringAssert.Contains(text, "Name: \"gpulargeimages\"; Description: \"GPU acceleration for large images\"; Types: full");
+        StringAssert.Contains(text, "Name: \"modelviewer\"; Description: \"3D model viewing (F3D 3.5.0, adds about 119 MB)\"; Types: full");
     }
 
     [TestMethod]

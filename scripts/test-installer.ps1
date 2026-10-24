@@ -2,7 +2,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $InstallerPath,
     [string] $InstallDirectory,
-    [string] $AllowedRoot = [System.IO.Path]::GetTempPath()
+    [string] $AllowedRoot = [System.IO.Path]::GetTempPath(),
+    [ValidateSet("core", "full")]
+    [string] $SetupType = "core"
 )
 
 $ErrorActionPreference = "Stop"
@@ -65,24 +67,51 @@ $gpuManifest = Join-Path $resolvedInstallDirectory "components\gpu-large-images\
 $modelManifest = Join-Path $resolvedInstallDirectory "components\model-viewer\component.json"
 $registeredApplicationsPath = "HKCU:\Software\RegisteredApplications"
 $capabilitiesPath = "HKCU:\Software\Classes\Applications\Mangosteen.exe\Capabilities\FileAssociations"
+$modelExtensions = @(".obj", ".stl", ".abc", ".usdz", ".step")
 $uninstallPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{5505BFA7-AFF8-4C6E-8B60-52EDF84880D3}_is1"
 $installed = $false
 
 try {
-    Invoke-HiddenProcess -FilePath $resolvedInstaller -Arguments @(
+    $installArguments = @(
         "/VERYSILENT",
         "/SUPPRESSMSGBOXES",
         "/NORESTART",
         "/DIR=`"$resolvedInstallDirectory`"",
         "/TASKS=associatefiles"
     )
+    # Core is checked without /TYPE so the installer's default selection is what gets tested.
+    if ($SetupType -eq "full") {
+        $installArguments += "/TYPE=full"
+    }
+    Invoke-HiddenProcess -FilePath $resolvedInstaller -Arguments $installArguments
     $installed = $true
 
     if (-not (Test-Path -LiteralPath $installedExe)) {
         throw "Installer did not create the application executable: $installedExe"
     }
-    if ((Test-Path -LiteralPath $gpuManifest) -or (Test-Path -LiteralPath $modelManifest)) {
-        throw "The default core installation unexpectedly selected an optional component."
+    if ($SetupType -eq "core") {
+        if ((Test-Path -LiteralPath $gpuManifest) -or (Test-Path -LiteralPath $modelManifest)) {
+            throw "The default core installation unexpectedly selected an optional component."
+        }
+        foreach ($extension in $modelExtensions) {
+            if ($null -ne (Get-RegistryValueOrNull -Path $capabilitiesPath -Name $extension)) {
+                throw "The core installation registered the 3D file type '$extension'."
+            }
+        }
+    }
+    else {
+        if (-not (Test-Path -LiteralPath $gpuManifest)) {
+            throw "The full installation did not install GPU acceleration for large images."
+        }
+        if (-not (Test-Path -LiteralPath $modelManifest) -or
+            -not (Test-Path -LiteralPath (Join-Path $resolvedInstallDirectory "components\model-viewer\bin\f3d_c_api.dll"))) {
+            throw "The full installation did not install the 3D model viewer."
+        }
+        foreach ($extension in $modelExtensions) {
+            if ((Get-RegistryValueOrNull -Path $capabilitiesPath -Name $extension) -ne "Mangosteen.Model") {
+                throw "The full installation did not register the 3D file type '$extension'."
+            }
+        }
     }
 
     $displayName = Get-RegistryValueOrNull -Path $uninstallPath -Name "DisplayName"
@@ -123,7 +152,15 @@ try {
         throw "Uninstaller left its uninstall registry entry behind."
     }
 
-    Write-Host "Installer smoke test passed."
+    if (Test-Path -LiteralPath "HKCU:\Software\Classes\Mangosteen.Model") {
+        throw "Uninstaller left the 3D model file type behind."
+    }
+
+    if (Test-Path -LiteralPath (Join-Path $resolvedInstallDirectory "components")) {
+        throw "Uninstaller left optional components behind."
+    }
+
+    Write-Host "Installer smoke test passed ($SetupType)."
 }
 finally {
     if ($installed -and (Test-Path -LiteralPath $uninstaller)) {
