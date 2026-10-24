@@ -279,4 +279,6 @@
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} 個面</value></data>
   <data name="GpuLargeImages" xml:space="preserve"><value>大型影像 GPU 加速</value></data>
   <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>在顯示卡上以圖塊方式算繪超大型影像。偵測到獨立顯示卡時預設開啟。</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>正在載入 3D 模型... {0}% ({1} / {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>正在準備顯示 3D 模型...</value></data>
 </root>

@@ -856,6 +856,11 @@
                                    FontSize="14"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap" />
+                        <ProgressBar x:Name="ModelLoadProgressBar"
+                                     Margin="0,11,0,2"
+                                     HorizontalAlignment="Center"
+                                     Style="{StaticResource UpdateProgressBarStyle}"
+                                     Visibility="Collapsed" />
                         <StackPanel x:Name="UpdateProgressPanel"
                                     Margin="0,11,0,0"
                                     HorizontalAlignment="Center"

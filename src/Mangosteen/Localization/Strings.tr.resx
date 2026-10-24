@@ -279,4 +279,6 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} yüz</value></data>
   <data name="GpuLargeImages" xml:space="preserve"><value>Büyük görüntüler için GPU hızlandırma</value></data>
   <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Çok büyük görüntüleri ekran kartında döşemeler halinde işler. Ayrı bir ekran kartı algılandığında varsayılan olarak açıktır.</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>3B model yükleniyor... %{0} ({1} / {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>3B model görüntüleme için hazırlanıyor...</value></data>
 </root>

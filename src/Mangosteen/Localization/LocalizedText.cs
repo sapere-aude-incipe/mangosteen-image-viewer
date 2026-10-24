@@ -7,6 +7,8 @@ namespace Mangosteen.Localization;
 internal static class LocalizedText
 {
     public const string Performance = nameof(Performance);
+    public const string ModelLoadingProgressFormat = nameof(ModelLoadingProgressFormat);
+    public const string PreparingModel = nameof(PreparingModel);
     public const string GpuLargeImages = nameof(GpuLargeImages);
     public const string GpuLargeImagesTooltip = nameof(GpuLargeImagesTooltip);
     public const string ResetView = nameof(ResetView);
@@ -236,6 +238,8 @@ internal static class LocalizedText
         Yes,
         GpuLargeImages,
         GpuLargeImagesTooltip,
+        ModelLoadingProgressFormat,
+        PreparingModel,
         Zoom
     ];
 

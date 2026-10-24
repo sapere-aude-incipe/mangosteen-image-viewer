@@ -21,17 +21,18 @@ internal static class ModelStatisticsReader
     // STL repeats each corner per triangle; deduplicating beyond this costs too much memory.
     internal const long MaxStlTrianglesToDeduplicate = 4_000_000;
 
-    public static ModelStatistics? TryRead(string path, CancellationToken token)
+    /// <param name="counter">Receives the bytes this scan reads, so load progress can exclude them.</param>
+    public static ModelStatistics? TryRead(string path, CancellationToken token, ModelReadCounter? counter = null)
     {
         try
         {
             return Path.GetExtension(path).ToLowerInvariant() switch
             {
-                ".obj" => ReadObj(path, token),
-                ".ply" => ReadPly(path),
-                ".stl" => ReadStl(path, token),
-                ".gltf" => ReadGltfJson(File.ReadAllBytes(path)),
-                ".glb" => ReadGlb(path),
+                ".obj" => ReadObj(path, token, counter),
+                ".ply" => ReadPly(path, counter),
+                ".stl" => ReadStl(path, token, counter),
+                ".gltf" => ReadGltfJson(ReadAllBytes(path, counter)),
+                ".glb" => ReadGlb(path, counter),
                 _ => null
             };
         }
@@ -43,9 +44,9 @@ internal static class ModelStatisticsReader
         }
     }
 
-    internal static ModelStatistics ReadObj(string path, CancellationToken token)
+    internal static ModelStatistics ReadObj(string path, CancellationToken token, ModelReadCounter? counter = null)
     {
-        using var stream = OpenSequential(path);
+        using var stream = OpenSequential(path, counter);
         return ReadObj(stream, token);
     }
 
@@ -111,9 +112,9 @@ internal static class ModelStatisticsReader
         return new ModelStatistics(vertices, faces);
     }
 
-    internal static ModelStatistics? ReadPly(string path)
+    internal static ModelStatistics? ReadPly(string path, ModelReadCounter? counter = null)
     {
-        using var stream = OpenSequential(path);
+        using var stream = OpenSequential(path, counter);
         return ReadPly(stream);
     }
 
@@ -139,9 +140,9 @@ internal static class ModelStatisticsReader
         return vertices is null ? null : new ModelStatistics(vertices, faces);
     }
 
-    internal static ModelStatistics? ReadStl(string path, CancellationToken token)
+    internal static ModelStatistics? ReadStl(string path, CancellationToken token, ModelReadCounter? counter = null)
     {
-        using var stream = OpenSequential(path);
+        using var stream = OpenSequential(path, counter);
         return ReadStl(stream, token);
     }
 
@@ -221,9 +222,9 @@ internal static class ModelStatisticsReader
         return faces == 0 ? null : new ModelStatistics(unique?.Count, faces);
     }
 
-    private static ModelStatistics? ReadGlb(string path)
+    private static ModelStatistics? ReadGlb(string path, ModelReadCounter? counter)
     {
-        using var stream = OpenSequential(path);
+        using var stream = OpenSequential(path, counter);
         Span<byte> header = stackalloc byte[20];
         stream.ReadExactly(header);
         // "glTF" magic, then a JSON chunk header.
@@ -330,9 +331,46 @@ internal static class ModelStatisticsReader
         return accessors[index.GetInt32()].GetProperty("count").GetInt64();
     }
 
-    private static FileStream OpenSequential(string path)
+    private static byte[] ReadAllBytes(string path, ModelReadCounter? counter)
     {
-        return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, BufferSize, FileOptions.SequentialScan);
+        var bytes = File.ReadAllBytes(path);
+        counter?.Add(bytes.Length);
+        return bytes;
+    }
+
+    private static Stream OpenSequential(string path, ModelReadCounter? counter)
+    {
+        // No FileStream buffer: the readers use large buffers, and bytes are counted as read.
+        var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 1, FileOptions.SequentialScan);
+        return counter is null ? stream : new CountingStream(stream, counter);
+    }
+
+    private sealed class CountingStream(Stream inner, ModelReadCounter counter) : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => inner.CanSeek;
+        public override bool CanWrite => false;
+        public override long Length => inner.Length;
+        public override long Position { get => inner.Position; set => inner.Position = value; }
+
+        public override int Read(byte[] buffer, int offset, int count) => Count(inner.Read(buffer, offset, count));
+        public override int Read(Span<byte> buffer) => Count(inner.Read(buffer));
+        public override long Seek(long offset, SeekOrigin origin) => inner.Seek(offset, origin);
+        public override void Flush() { }
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) inner.Dispose();
+            base.Dispose(disposing);
+        }
+
+        private int Count(int read)
+        {
+            counter.Add(read);
+            return read;
+        }
     }
 
     private readonly record struct StlVertex(int X, int Y, int Z);

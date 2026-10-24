@@ -279,4 +279,6 @@ Portable builds cannot update in place. Open the GitHub Releases page?</value>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} faces</value></data>
   <data name="GpuLargeImages" xml:space="preserve"><value>GPU acceleration for large images</value></data>
   <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Render very large images as tiles on the graphics card. On by default when a dedicated graphics card is detected.</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>Loading 3D model... {0}% ({1} of {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>Preparing 3D model for display...</value></data>
 </root>

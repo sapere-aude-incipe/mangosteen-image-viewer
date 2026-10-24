@@ -279,4 +279,6 @@ Les versions portables ne peuvent pas se mettre à jour sur place. Ouvrir la pag
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} faces</value></data>
   <data name="GpuLargeImages" xml:space="preserve"><value>Accélération GPU pour les grandes images</value></data>
   <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Affiche les très grandes images en tuiles sur la carte graphique. Activé par défaut lorsqu'une carte graphique dédiée est détectée.</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>Chargement du modèle 3D... {0} % ({1} sur {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>Préparation du modèle 3D pour l'affichage...</value></data>
 </root>

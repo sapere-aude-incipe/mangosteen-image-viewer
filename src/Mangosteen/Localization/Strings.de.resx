@@ -279,4 +279,6 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} Flächen</value></data>
   <data name="GpuLargeImages" xml:space="preserve"><value>GPU-Beschleunigung für große Bilder</value></data>
   <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Sehr große Bilder als Kacheln auf der Grafikkarte darstellen. Standardmäßig aktiv, wenn eine dedizierte Grafikkarte erkannt wird.</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>3D-Modell wird geladen... {0} % ({1} von {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>3D-Modell wird für die Anzeige vorbereitet...</value></data>
 </root>

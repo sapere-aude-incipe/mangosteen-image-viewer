@@ -279,4 +279,6 @@
   <data name="ModelFacesFormat" xml:space="preserve"><value>Граней: {0}</value></data>
   <data name="GpuLargeImages" xml:space="preserve"><value>Ускорение GPU для больших изображений</value></data>
   <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Отображает очень большие изображения плитками на видеокарте. Включено по умолчанию, если обнаружена дискретная видеокарта.</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>Загрузка 3D-модели... {0} % ({1} из {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>Подготовка 3D-модели к отображению...</value></data>
 </root>
