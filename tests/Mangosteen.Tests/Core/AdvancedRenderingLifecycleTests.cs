@@ -30,6 +30,11 @@ public sealed class AdvancedRenderingLifecycleTests
             host.Measure(new System.Windows.Size(64, 64));
             host.Arrange(new System.Windows.Rect(0, 0, 64, 64));
             host.UpdateLayout();
+            if (host.IsSoftwareRenderer)
+            {
+                // CI runners without a GPU get Windows' OpenGL 1.1 renderer, where GPU mode stands aside.
+                Assert.Inconclusive("Only the Windows OpenGL 1.1 software renderer is available; GPU image rendering is disabled there.");
+            }
             using var renderer = new GpuLargeImageRenderer(host, new StubSource
             {
                 Metadata = (_, _) => Task.FromResult(new LargeImageMetadata(64, 64, 4, 8, false)),
@@ -149,8 +154,16 @@ public sealed class AdvancedRenderingLifecycleTests
         Assert.IsGreaterThan(0, host.PixelWidth);
         Assert.IsGreaterThan(0, host.PixelHeight);
         var called = false;
-        Assert.IsTrue(host.Render(() => called = true));
+        string? renderer = null;
+        Assert.IsTrue(host.Render(() =>
+        {
+            called = true;
+            renderer = OpenGl11.GetString(OpenGl11.Renderer);
+        }));
         Assert.IsTrue(called);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(renderer));
+        Assert.AreEqual(renderer == OpenGl11.SoftwareRendererName, host.IsSoftwareRenderer, renderer);
+        Console.WriteLine($"OpenGL renderer: {renderer}");
         source.RootVisual = null;
         return Task.CompletedTask;
     });

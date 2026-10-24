@@ -27,9 +27,20 @@ internal static partial class OpenGl11
     public const uint Blend = 0x0BE2;
     public const uint SrcAlpha = 0x0302;
     public const uint OneMinusSrcAlpha = 0x0303;
+    public const uint Renderer = 0x1F01;
+    public const string SoftwareRendererName = "GDI Generic";
 
     [LibraryImport("opengl32.dll", EntryPoint = "glGetError")]
     public static partial uint GetError();
+
+    [LibraryImport("opengl32.dll", EntryPoint = "glGetString")]
+    private static partial nint GetStringPointer(uint name);
+
+    /// <summary>Reads a context string such as <see cref="Renderer"/>; needs a current context.</summary>
+    public static string? GetString(uint name)
+    {
+        return Marshal.PtrToStringAnsi(GetStringPointer(name));
+    }
 
     [LibraryImport("opengl32.dll", EntryPoint = "glViewport")]
     public static partial void Viewport(int x, int y, int width, int height);

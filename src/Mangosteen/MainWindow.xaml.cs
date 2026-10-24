@@ -1007,6 +1007,12 @@ public partial class MainWindow : Window
                 throw new InvalidOperationException("The optional 3D rendering surface could not be initialized.");
             }
 
+            if (host.IsSoftwareRenderer)
+            {
+                // F3D needs OpenGL 3.2; creating its engine on the 1.1 software renderer crashes the process.
+                throw new InvalidOperationException("3D viewing needs a graphics driver with OpenGL 3.2. Windows is currently using its basic software renderer.");
+            }
+
             if (_modelRenderer is null)
             {
                 _modelRenderer = new F3dModelRenderer(

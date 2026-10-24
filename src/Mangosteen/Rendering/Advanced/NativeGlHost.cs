@@ -85,6 +85,13 @@ internal sealed partial class NativeGlHost : HwndHost
 
     public bool IsSurfaceReady => _renderingContext != nint.Zero;
 
+    /// <summary>
+    /// True when Windows only offers its OpenGL 1.1 software renderer (no GPU driver, some
+    /// virtual machines and remote sessions). It lacks GL 1.2 texture clamping and the
+    /// GL 3.2 core profile F3D needs.
+    /// </summary>
+    public bool IsSoftwareRenderer { get; private set; }
+
     protected override HandleRef BuildWindowCore(HandleRef hwndParent)
     {
         EnsureWindowClassRegistered();
@@ -135,6 +142,10 @@ internal sealed partial class NativeGlHost : HwndHost
             lock (_contextGate)
             {
                 MakeCurrentCore();
+                IsSoftwareRenderer = string.Equals(
+                    OpenGl11.GetString(OpenGl11.Renderer),
+                    OpenGl11.SoftwareRendererName,
+                    StringComparison.Ordinal);
                 SurfaceReady?.Invoke(this, EventArgs.Empty);
                 NativeMethods.WglMakeCurrent(nint.Zero, nint.Zero);
             }
