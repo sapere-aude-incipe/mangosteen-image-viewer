@@ -177,6 +177,109 @@ public sealed class SkiaImageDecoderTests
     }
 
     [TestMethod]
+    [DataRow(".png")]
+    [DataRow(".jpg")]
+    public async Task DecodeAsync_Stops_Reading_The_File_Promptly_When_Cancelled(string extension)
+    {
+        var path = CreateTempImagePath(extension);
+        try
+        {
+            using (var source = new MagickImage("plasma:", 1500, 1500))
+            {
+                source.Quality = 90;
+                source.Write(path);
+            }
+
+            var length = new FileInfo(path).Length;
+            var decoder = new SkiaImageDecoder();
+            using var cts = new CancellationTokenSource();
+            long lastRead = 0;
+            SkiaImageDecoder.FileRead.Value = bytes =>
+            {
+                lastRead = bytes;
+                if (bytes > length / 4) cts.Cancel();
+            };
+            try
+            {
+                await Assert.ThrowsAsync<OperationCanceledException>(
+                    () => decoder.DecodeAsync(new ImageDecodeRequest(path, FullResolution: true), cts.Token));
+            }
+            finally
+            {
+                SkiaImageDecoder.FileRead.Value = null;
+            }
+
+            Assert.IsLessThan(length * 3 / 4, lastRead, "The decoder kept reading after cancellation.");
+
+            // The same file still decodes normally afterwards.
+            using var image = await decoder.DecodeAsync(new ImageDecodeRequest(path, FullResolution: true), CancellationToken.None);
+            Assert.AreEqual(1500, image.Frames[0].Image.Width);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(".png")]
+    [DataRow(".jpg")]
+    [DataRow(".webp")]
+    public async Task DecodeAsync_Cancellable_Stream_Decode_Matches_Path_Decode(string extension)
+    {
+        var path = CreateTempImagePath(extension);
+        try
+        {
+            using (var source = new MagickImage("plasma:", 700, 900))
+            {
+                source.Quality = 90;
+                source.Write(path);
+            }
+
+            using var image = await new SkiaImageDecoder().DecodeAsync(new ImageDecodeRequest(path, FullResolution: true), CancellationToken.None);
+            using var decoded = SKBitmap.FromImage(image.Frames[0].Image);
+
+            using var codec = SKCodec.Create(path);
+            var info = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+            using var expected = new SKBitmap(info);
+            Assert.AreEqual(SKCodecResult.Success, codec.GetPixels(info, expected.GetPixels()));
+
+            CollectionAssert.AreEqual(expected.GetPixelSpan().ToArray(), decoded.GetPixelSpan().ToArray());
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
+    public async Task DecodeAsync_Truncated_Png_Still_Decodes_The_Rows_Present()
+    {
+        var path = CreateTempImagePath(".png");
+        try
+        {
+            using (var source = new MagickImage(MagickColors.Red, 512, 4096))
+            {
+                source.Settings.SetDefine(MagickFormat.Png, "compression-level", "0");
+                source.Write(path);
+            }
+
+            var bytes = File.ReadAllBytes(path);
+            File.WriteAllBytes(path, bytes[..(bytes.Length / 2)]);
+
+            using var image = await new SkiaImageDecoder().DecodeAsync(new ImageDecodeRequest(path, FullResolution: true), CancellationToken.None);
+            using var bitmap = SKBitmap.FromImage(image.Frames[0].Image);
+
+            Assert.AreEqual(SKColors.Red, bitmap.GetPixel(10, 10));
+            Assert.AreEqual((byte)0, bitmap.GetPixel(10, 4095).Alpha);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
     public void CreateBitmapOrThrow_Rejects_Single_Frame_Buffers_Too_Large_For_Skia()
     {
         var width = (int)(ImageDecodeGuards.MaxSingleFrameBgraBufferBytes / 4L) + 1;
