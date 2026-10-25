@@ -60,6 +60,9 @@ internal sealed class GpuLargeImageRenderer : IDisposable
 
         ObjectDisposedException.ThrowIf(_disposed, this);
         token.ThrowIfCancellationRequested();
+        // Without a GPU driver this path is unsupported (GL 1.1) and no faster; the
+        // standard decoder keeps showing the image.
+        if (_host.IsSoftwareRenderer) return false;
         CloseCurrent();
         var generation = _generation;
         // The UI may dispose its preview while metadata is loading.
