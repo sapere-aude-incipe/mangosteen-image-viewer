@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
@@ -283,9 +284,7 @@ internal sealed class AppInstanceCoordinator : IDisposable
         AppActivationRequest request,
         CancellationToken token)
     {
-        var payload = JsonSerializer.SerializeToUtf8Bytes(
-            request,
-            AppInstanceJsonContext.Default.AppActivationRequest);
+        var payload = SerializeRequest(request);
         if (payload.Length > MaximumMessageBytes)
         {
             throw new InvalidDataException("The activation request is too large.");
@@ -296,6 +295,24 @@ internal sealed class AppInstanceCoordinator : IDisposable
         await stream.WriteAsync(lengthBuffer, token).ConfigureAwait(false);
         await stream.WriteAsync(payload, token).ConfigureAwait(false);
         await stream.FlushAsync(token).ConfigureAwait(false);
+    }
+
+    // Written by hand because JsonSerializer's first-use setup costs ~25 ms in the
+    // short-lived forwarding process. The output matches JsonSerializer with the
+    // default options, which the receiving side (possibly an older version) reads.
+    internal static byte[] SerializeRequest(AppActivationRequest request)
+    {
+        var buffer = new ArrayBufferWriter<byte>(256);
+        using (var writer = new Utf8JsonWriter(buffer))
+        {
+            writer.WriteStartObject();
+            writer.WriteString(nameof(AppActivationRequest.FilePath), request.FilePath);
+            writer.WriteBoolean(nameof(AppActivationRequest.Activate), request.Activate);
+            writer.WriteBoolean(nameof(AppActivationRequest.RequestShutdown), request.RequestShutdown);
+            writer.WriteEndObject();
+        }
+
+        return buffer.WrittenSpan.ToArray();
     }
 
     private static async Task<AppActivationRequest> ReadRequestAsync(

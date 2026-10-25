@@ -1,5 +1,4 @@
-using Mangosteen.Localization;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -7,45 +6,34 @@ namespace Mangosteen;
 
 public partial class App : Application
 {
-    private static readonly TimeSpan HandoffTimeout = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan HandoffRetryDelay = TimeSpan.FromMilliseconds(100);
-
+    private readonly StartupLaunchOptions _launch;
     private AppInstanceCoordinator? _instanceCoordinator;
     private MainWindow? _mainWindow;
     private bool _isExiting;
 
+    // Program.Main has already parsed the arguments and won the instance mutex;
+    // secondary launches are forwarded there without constructing App.
+    internal App(StartupLaunchOptions launch, AppInstanceCoordinator coordinator)
+    {
+        ArgumentNullException.ThrowIfNull(launch);
+        ArgumentNullException.ThrowIfNull(coordinator);
+        if (!coordinator.IsPrimaryInstance)
+        {
+            throw new ArgumentException("App is only constructed for the primary instance.", nameof(coordinator));
+        }
+
+        _launch = launch;
+        _instanceCoordinator = coordinator;
+    }
+
     protected override async void OnStartup(StartupEventArgs e)
     {
-        var launch = StartupLaunchOptions.Parse(e.Args);
+        var launch = _launch;
+        var coordinator = _instanceCoordinator!;
         StartupDiagnostics.Mark("app.startup.begin", launch.FilePath is null ? null : System.IO.Path.GetFileName(launch.FilePath));
         base.OnStartup(e);
         DispatcherUnhandledException += App_DispatcherUnhandledException;
 
-        var coordinator = new AppInstanceCoordinator();
-        StartupDiagnostics.Mark(coordinator.IsPrimaryInstance ? "app.instance.primary" : "app.instance.secondary");
-        if (!coordinator.IsPrimaryInstance)
-        {
-            var (primary, forwarded) = await ForwardOrTakeOverAsync(coordinator, launch.ToActivationRequest());
-            if (primary is null)
-            {
-                if (!forwarded && !launch.IsBackgroundLaunch && !launch.RequestShutdown)
-                {
-                    MessageBox.Show(
-                        LocalizedText.Get(LocalizedText.RunningInstanceUnavailable),
-                        LocalizedText.Get(LocalizedText.AppTitle),
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-                }
-
-                Shutdown(forwarded ? 0 : 1);
-                return;
-            }
-
-            coordinator = primary;
-            StartupDiagnostics.Mark("app.instance.primary_after_handoff");
-        }
-
-        _instanceCoordinator = coordinator;
         if (launch.RequestShutdown)
         {
             Shutdown();
@@ -144,42 +132,6 @@ public partial class App : Application
         // shutdown starts a fresh instance rather than reaching this closing one.
         _isExiting = true;
         _instanceCoordinator?.ReleasePrimary();
-    }
-
-    private static async Task<(AppInstanceCoordinator? Primary, bool Forwarded)> ForwardOrTakeOverAsync(
-        AppInstanceCoordinator secondary,
-        AppActivationRequest request)
-    {
-        var elapsed = Stopwatch.StartNew();
-        var coordinator = secondary;
-        while (true)
-        {
-            var result = await coordinator.TrySendAsync(request);
-            coordinator.Dispose();
-            if (result == ActivationSendResult.Delivered)
-            {
-                return (null, true);
-            }
-
-            // A refusal means the running instance is exiting and has released (or is
-            // about to release) the instance lock; a failure may mean the same.
-            if (result == ActivationSendResult.Rejected)
-            {
-                await Task.Delay(HandoffRetryDelay);
-            }
-
-            coordinator = new AppInstanceCoordinator();
-            if (coordinator.IsPrimaryInstance)
-            {
-                return (coordinator, false);
-            }
-
-            if (result == ActivationSendResult.Failed || elapsed.Elapsed > HandoffTimeout)
-            {
-                coordinator.Dispose();
-                return (null, false);
-            }
-        }
     }
 
     private async Task HandleActivationRequestOnUiAsync(AppActivationRequest request)

@@ -60,6 +60,52 @@ public sealed class AppInstanceCoordinatorTests
     }
 
     [TestMethod]
+    public void Launch_Refused_By_An_Exiting_Instance_Takes_Over_On_Its_Own_Thread()
+    {
+        var instanceName = $"Mangosteen.Tests.{Guid.NewGuid():N}";
+        using var refused = new ManualResetEventSlim();
+        using var released = new ManualResetEventSlim();
+        using var finished = new ManualResetEventSlim();
+        // The exiting instance lives on its own thread because mutex ownership is per thread.
+        var exiting = new Thread(() =>
+        {
+            using var primary = new AppInstanceCoordinator(instanceName);
+            primary.StartServer(_ =>
+            {
+                refused.Set();
+                return Task.FromResult(false);
+            });
+            refused.Wait(TimeSpan.FromSeconds(5));
+            primary.ReleasePrimary();
+            released.Set();
+            finished.Wait(TimeSpan.FromSeconds(10));
+        }) { IsBackground = true };
+        exiting.Start();
+        Thread.Sleep(200);
+
+        var secondary = new AppInstanceCoordinator(instanceName);
+        Assert.IsFalse(secondary.IsPrimaryInstance);
+        var (primary, forwarded) = ActivationHandoff.ForwardOrTakeOver(
+            secondary,
+            new AppActivationRequest(@"C:\Pictures\sample.png", Activate: true, RequestShutdown: false),
+            () => new AppInstanceCoordinator(instanceName));
+        try
+        {
+            Assert.IsTrue(released.IsSet);
+            Assert.IsFalse(forwarded);
+            Assert.IsNotNull(primary);
+            Assert.IsTrue(primary.IsPrimaryInstance);
+            // Must not throw: the new primary owns the mutex on this (the App) thread.
+            primary.ReleasePrimary();
+        }
+        finally
+        {
+            primary?.Dispose();
+            finished.Set();
+        }
+    }
+
+    [TestMethod]
     public void ReleasePrimary_LetsTheNextLaunchBecomePrimary_WhileOtherHandlesRemainOpen()
     {
         var instanceName = $"Mangosteen.Tests.{Guid.NewGuid():N}";
