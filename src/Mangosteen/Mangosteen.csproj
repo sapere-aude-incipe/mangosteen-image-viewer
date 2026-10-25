@@ -31,6 +31,14 @@
     <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.4" />
   </ItemGroup>
 
+  <!-- Program.Main is the entry point: a second launch forwards its file to the
+       running instance before any WPF type loads. App.xaml stays a Page so its
+       resources still load through InitializeComponent. -->
+  <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
   <ItemGroup>
     <Resource Include="Assets\mangosteen.ico" />
     <None Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

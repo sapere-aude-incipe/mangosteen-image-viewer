@@ -28,4 +28,18 @@ public sealed class BackgroundLifetimeTests
             exitRequested,
             dispatcherIsShuttingDown));
     }
+
+    [TestMethod]
+    public void DeletedImage_IsRemovedFromNavigation_OnlyIfStillCurrent()
+    {
+        const string deleted = @"C:\Pictures\a.png";
+
+        Assert.IsTrue(MainWindow.IsDeletedImageStillCurrent(deleted, 3, @"c:\pictures\A.PNG", 3, isClosing: false));
+        // An activation opened another image while the shell's confirmation dialog was up.
+        Assert.IsFalse(MainWindow.IsDeletedImageStillCurrent(deleted, 3, @"C:\Other\b.png", 4, isClosing: false));
+        // Reopening the same path is still a new open the delete must not tear down.
+        Assert.IsFalse(MainWindow.IsDeletedImageStillCurrent(deleted, 3, deleted, 4, isClosing: false));
+        Assert.IsFalse(MainWindow.IsDeletedImageStillCurrent(deleted, 3, @"C:\Pictures\b.png", 3, isClosing: false));
+        Assert.IsFalse(MainWindow.IsDeletedImageStillCurrent(deleted, 3, deleted, 3, isClosing: true));
+    }
 }

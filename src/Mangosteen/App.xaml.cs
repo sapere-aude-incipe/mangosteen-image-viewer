@@ -1,5 +1,4 @@
-using Mangosteen.Localization;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -7,37 +6,34 @@ namespace Mangosteen;
 
 public partial class App : Application
 {
+    private readonly StartupLaunchOptions _launch;
     private AppInstanceCoordinator? _instanceCoordinator;
     private MainWindow? _mainWindow;
+    private bool _isExiting;
+
+    // Program.Main has already parsed the arguments and won the instance mutex;
+    // secondary launches are forwarded there without constructing App.
+    internal App(StartupLaunchOptions launch, AppInstanceCoordinator coordinator)
+    {
+        ArgumentNullException.ThrowIfNull(launch);
+        ArgumentNullException.ThrowIfNull(coordinator);
+        if (!coordinator.IsPrimaryInstance)
+        {
+            throw new ArgumentException("App is only constructed for the primary instance.", nameof(coordinator));
+        }
+
+        _launch = launch;
+        _instanceCoordinator = coordinator;
+    }
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        var launch = StartupLaunchOptions.Parse(e.Args);
+        var launch = _launch;
+        var coordinator = _instanceCoordinator!;
         StartupDiagnostics.Mark("app.startup.begin", launch.FilePath is null ? null : System.IO.Path.GetFileName(launch.FilePath));
         base.OnStartup(e);
         DispatcherUnhandledException += App_DispatcherUnhandledException;
 
-        var coordinator = new AppInstanceCoordinator();
-        StartupDiagnostics.Mark(coordinator.IsPrimaryInstance ? "app.instance.primary" : "app.instance.secondary");
-        if (!coordinator.IsPrimaryInstance)
-        {
-            var forwarded = await coordinator.TrySendAsync(launch.ToActivationRequest());
-            coordinator.Dispose();
-
-            if (!forwarded && !launch.IsBackgroundLaunch && !launch.RequestShutdown)
-            {
-                MessageBox.Show(
-                    LocalizedText.Get(LocalizedText.RunningInstanceUnavailable),
-                    LocalizedText.Get(LocalizedText.AppTitle),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-            }
-
-            Shutdown(forwarded ? 0 : 1);
-            return;
-        }
-
-        _instanceCoordinator = coordinator;
         if (launch.RequestShutdown)
         {
             Shutdown();
@@ -56,6 +52,7 @@ public partial class App : Application
         StartupDiagnostics.Mark("app.main_window.constructed");
         _mainWindow = window;
         MainWindow = window;
+        window.ApplicationExitStarting += MainWindow_ApplicationExitStarting;
         SessionEnding += App_SessionEnding;
         coordinator.StartServer(HandleActivationRequestAsync);
 
@@ -89,33 +86,52 @@ public partial class App : Application
         base.OnExit(e);
     }
 
-    private Task HandleActivationRequestAsync(AppActivationRequest request)
+    // The sender is told whether the request was taken, so one refused here (while
+    // exiting) is retried by that process as the new primary instead of being lost.
+    // A shutdown request is satisfied by an exit that is already under way.
+    private async Task<bool> HandleActivationRequestAsync(AppActivationRequest request)
     {
-        if (_mainWindow is null || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+        if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
         {
-            return Task.CompletedTask;
+            return request.RequestShutdown;
         }
 
-        return Dispatcher.InvokeAsync(
-                () => QueueActivationRequest(request),
-                DispatcherPriority.Send)
-            .Task;
+        try
+        {
+            return await Dispatcher.InvokeAsync(
+                    () => QueueActivationRequest(request),
+                    DispatcherPriority.Send)
+                .Task.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return request.RequestShutdown;
+        }
     }
 
-    private void QueueActivationRequest(AppActivationRequest request)
+    private bool QueueActivationRequest(AppActivationRequest request)
     {
-        if (_mainWindow is null)
+        if (_mainWindow is null || _isExiting)
         {
-            return;
+            return request.RequestShutdown;
         }
 
         if (request.RequestShutdown)
         {
             _mainWindow.RequestApplicationExit();
-            return;
+            return true;
         }
 
         _ = HandleActivationRequestOnUiAsync(request);
+        return true;
+    }
+
+    private void MainWindow_ApplicationExitStarting(object? sender, EventArgs e)
+    {
+        // Give up the instance lock as soon as exit begins so a file opened during
+        // shutdown starts a fresh instance rather than reaching this closing one.
+        _isExiting = true;
+        _instanceCoordinator?.ReleasePrimary();
     }
 
     private async Task HandleActivationRequestOnUiAsync(AppActivationRequest request)

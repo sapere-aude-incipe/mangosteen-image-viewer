@@ -706,6 +706,8 @@ public partial class MainWindow : Window
         }
     }
 
+    internal event EventHandler? ApplicationExitStarting;
+
     internal void RequestApplicationExit()
     {
         if (_exitRequested)
@@ -714,7 +716,15 @@ public partial class MainWindow : Window
         }
 
         _exitRequested = true;
+        NotifyApplicationExitStarting();
         Application.Current.Shutdown();
+    }
+
+    private void NotifyApplicationExitStarting()
+    {
+        var handler = ApplicationExitStarting;
+        ApplicationExitStarting = null;
+        handler?.Invoke(this, EventArgs.Empty);
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -728,6 +738,10 @@ public partial class MainWindow : Window
         }
 
         base.OnClosing(e);
+        if (!e.Cancel)
+        {
+            NotifyApplicationExitStarting();
+        }
     }
 
     protected override void OnClosed(EventArgs e)
@@ -2453,7 +2467,7 @@ public partial class MainWindow : Window
         var requested = KeepReadyInBackgroundMenuItem.IsChecked == true;
         if (!StartupRegistration.TrySetEnabled(requested, out var error))
         {
-            KeepReadyInBackgroundMenuItem.IsChecked = _keepReadyInBackground;
+            UpdateSettingsMenuChecks();
             MessageBox.Show(
                 this,
                 LocalizedText.Format(
@@ -2572,7 +2586,10 @@ public partial class MainWindow : Window
         NearestSamplingMenuItem.IsChecked = !_useSmoothSampling;
         PreloadEnabledMenuItem.IsChecked = _isPreloadEnabled;
         AutoRefreshMenuItem.IsChecked = _isAutoRefreshEnabled;
-        KeepReadyInBackgroundMenuItem.IsChecked = _keepReadyInBackground;
+        // Another installation may own the startup entry; show what Windows will run,
+        // so choosing the item registers this copy instead of removing the other one.
+        KeepReadyInBackgroundMenuItem.IsChecked =
+            _keepReadyInBackground && StartupRegistration.IsEnabledForCurrentExecutable();
         ModelGridAtWorldOriginMenuItem.IsChecked = _isModelGridAtWorldOrigin;
 
         foreach (var item in PreloadMemoryBudgetMenuItem.Items.OfType<MenuItem>())
@@ -2779,9 +2796,18 @@ public partial class MainWindow : Window
 
         // The shell confirmation dialog and the recycle are a single operation, so a
         // cancelled dialog can only be detected by the file still existing afterwards.
+        // The dialog pumps the dispatcher, so an activation can open another image
+        // meanwhile; only drop the deleted file if it is still the one being viewed.
+        var openGeneration = _openGeneration;
         FileSystem.DeleteFile(path, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.DoNothing);
         if (File.Exists(path))
         {
+            return;
+        }
+
+        if (!IsDeletedImageStillCurrent(path, openGeneration, _navigator.CurrentPath, _openGeneration, _isClosing))
+        {
+            if (!_isClosing) UpdateNavigationButtons();
             return;
         }
 
@@ -2810,6 +2836,16 @@ public partial class MainWindow : Window
 
         await LoadCurrentImageAsync(fitToWindow: true);
     }
+
+    internal static bool IsDeletedImageStillCurrent(
+        string deletedPath,
+        int openGenerationBeforeDelete,
+        string? currentPath,
+        int currentOpenGeneration,
+        bool isClosing) =>
+        !isClosing &&
+        openGenerationBeforeDelete == currentOpenGeneration &&
+        string.Equals(deletedPath, currentPath, StringComparison.OrdinalIgnoreCase);
 
     private void UpdateViewport()
     {

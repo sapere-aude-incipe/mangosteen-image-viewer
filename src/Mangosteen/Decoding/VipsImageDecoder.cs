@@ -83,7 +83,7 @@ public sealed class VipsImageDecoder : IImageDecoder
                 using var decodeImage = OpenForDecode(request.Path, target, isFull);
                 using var normalized = NormalizeForViewer(decodeImage, decodeForPixels: true);
                 using var sized = ResizeToTarget(normalized, target);
-                var skiaImage = CreateSkiaImage(sized, request.MaxDecodedBytes);
+                var skiaImage = CreateSkiaImage(sized, request.MaxDecodedBytes, token);
                 return new DecodedImage(metadata, [new DecodedFrame(skiaImage, TimeSpan.FromMilliseconds(100))], isFull);
             }
             finally
@@ -213,7 +213,7 @@ public sealed class VipsImageDecoder : IImageDecoder
         return image.Resize(xScale, kernel: Enums.Kernel.Lanczos3, vscale: yScale);
     }
 
-    private static SKImage CreateSkiaImage(VipsImage image, long? maxDecodedBytes)
+    private static SKImage CreateSkiaImage(VipsImage image, long? maxDecodedBytes, CancellationToken token)
     {
         if (image.Width <= 0 || image.Height <= 0)
         {
@@ -231,7 +231,7 @@ public sealed class VipsImageDecoder : IImageDecoder
         {
             // Wrap libvips' native buffer directly: copying it into a zero-filled, pinned managed
             // array cost an extra full-size allocation and copy (about 400 MB for 100 MP).
-            var pixels = rgba.WriteToMemory(out var size);
+            var pixels = WriteToMemory(rgba, out var size, token);
             if (pixels == IntPtr.Zero)
             {
                 throw new InvalidDataException("libvips could not write the decoded pixels.");
@@ -262,6 +262,48 @@ public sealed class VipsImageDecoder : IImageDecoder
             if (!ReferenceEquals(rgba, image))
             {
                 rgba.Dispose();
+            }
+        }
+    }
+
+    /// <summary>For tests: called just before libvips evaluates the decoded pixels.</summary>
+    internal static readonly AsyncLocal<Action?> BeforePixelEvaluation = new();
+
+    /// <summary>
+    /// Evaluates the pipeline, aborting it promptly when the load is cancelled. libvips checks the
+    /// image's kill flag between work units, so a stale 100 MP decode stops within a few tiles
+    /// instead of holding the full-decode gate for a second or more.
+    /// </summary>
+    private static IntPtr WriteToMemory(VipsImage image, out ulong size, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        BeforePixelEvaluation.Value?.Invoke();
+        var registration = token.Register(static state => ((VipsImage)state!).SetKill(true), image);
+        try
+        {
+            var pixels = image.WriteToMemory(out size);
+            if (token.IsCancellationRequested)
+            {
+                // Small images can finish before libvips looks at the flag.
+                NetVips.NetVips.Free(pixels);
+                throw new OperationCanceledException(token);
+            }
+
+            return pixels;
+        }
+        catch (VipsException) when (token.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(token);
+        }
+        finally
+        {
+            // Dispose waits for a running callback, so the flag cannot be set after it is cleared.
+            // The image can be a cached libvips operation result, and a later decode of the same
+            // file must not inherit the kill flag.
+            registration.Dispose();
+            if (token.IsCancellationRequested)
+            {
+                image.SetKill(false);
             }
         }
     }

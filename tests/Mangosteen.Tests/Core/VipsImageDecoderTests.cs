@@ -108,6 +108,55 @@ public sealed class VipsImageDecoderTests
     }
 
     [TestMethod]
+    public async Task DecodeAsync_Cancelled_During_Evaluation_Throws_And_Does_Not_Poison_Later_Decodes()
+    {
+        var path = CreateTempImagePath(".tiff");
+        try
+        {
+            using (var source = new MagickImage("gradient:red-blue", 2400, 1600))
+            {
+                source.Depth = 16;
+                source.Write(path);
+            }
+
+            var decoder = new VipsImageDecoder();
+            var request = new ImageDecodeRequest(path, FullResolution: true);
+            var reference = await DecodePixelHash(decoder, request);
+
+            // Cancel before, at the start of, and part-way through evaluation; whichever point
+            // the cancellation lands at, the cached libvips pipeline must still decode afterwards.
+            foreach (var delayMs in new[] { -1, 0, 1, 3, 8, 20 })
+            {
+                using var cts = new CancellationTokenSource();
+                VipsImageDecoder.BeforePixelEvaluation.Value = delayMs < 0 ? cts.Cancel : () => cts.CancelAfter(delayMs);
+                try
+                {
+                    using var image = await decoder.DecodeAsync(request, cts.Token);
+                    Assert.IsFalse(cts.IsCancellationRequested && delayMs < 0, "A decode cancelled before evaluation returned pixels.");
+                }
+                catch (OperationCanceledException)
+                {
+                    Assert.IsTrue(cts.IsCancellationRequested);
+                }
+                finally
+                {
+                    VipsImageDecoder.BeforePixelEvaluation.Value = null;
+                }
+
+                Assert.AreEqual(reference, await DecodePixelHash(decoder, request), $"Decode after cancelling at {delayMs} ms differs.");
+            }
+        }
+        finally { File.Delete(path); }
+    }
+
+    private static async Task<string> DecodePixelHash(VipsImageDecoder decoder, ImageDecodeRequest request)
+    {
+        using var image = await decoder.DecodeAsync(request, CancellationToken.None);
+        using var bitmap = SKBitmap.FromImage(image.Frames[0].Image);
+        return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bitmap.GetPixelSpan()));
+    }
+
+    [TestMethod]
     public void CanDecode_Returns_False_For_Gif_To_Preserve_Animation_Path()
     {
         var path = CreateTempImagePath(".gif");

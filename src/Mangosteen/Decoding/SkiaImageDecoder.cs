@@ -40,7 +40,7 @@ public sealed class SkiaImageDecoder : IImageDecoder
         return Task.Run(() =>
         {
             token.ThrowIfCancellationRequested();
-            using var codec = SKCodec.Create(request.Path) ?? throw new InvalidDataException("SkiaSharp could not decode the image.");
+            using var codec = CreateCancellableCodec(request.Path, token);
             var size = ImageOrientation.GetOrientedSize(codec.Info.Width, codec.Info.Height, codec.EncodedOrigin);
             var metadata = new ImageMetadata(request.Path, size.Width, size.Height, 1, Name);
             var target = ImageDecodeSizing.GetTargetSize(metadata.Width, metadata.Height, request.TargetPreviewSize, request.FullResolution);
@@ -66,7 +66,13 @@ public sealed class SkiaImageDecoder : IImageDecoder
                 skiaDecodeSize,
                 decodesAllFrames: true,
                 request.MaxDecodedBytes);
-            var image = DecodeImage(codec, request.Path, decodeTarget, skiaDecodeSize, allowFullBitmapFallback: isFull);
+            var image = DecodeImage(codec, request.Path, decodeTarget, skiaDecodeSize, allowFullBitmapFallback: isFull, token);
+            if (token.IsCancellationRequested)
+            {
+                image.Dispose();
+                token.ThrowIfCancellationRequested();
+            }
+
             image = ImageOrientation.ApplyAndDisposeSource(image, codec.EncodedOrigin);
 
             return new DecodedImage(metadata, [new DecodedFrame(image, TimeSpan.FromMilliseconds(100))], isFull);
@@ -118,11 +124,13 @@ public sealed class SkiaImageDecoder : IImageDecoder
         string path,
         PixelSize target,
         PixelSize decodeSize,
-        bool allowFullBitmapFallback)
+        bool allowFullBitmapFallback,
+        CancellationToken token)
     {
         var info = new SKImageInfo(decodeSize.Width, decodeSize.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
         using var bitmap = CreateBitmapOrThrow(info, "the decoded Skia image");
         var result = codec.GetPixels(info, bitmap.GetPixels());
+        token.ThrowIfCancellationRequested();
 
         if (result is SKCodecResult.Success or SKCodecResult.IncompleteInput)
         {
@@ -136,6 +144,72 @@ public sealed class SkiaImageDecoder : IImageDecoder
 
         using var full = SKBitmap.Decode(path) ?? throw new InvalidDataException("SkiaSharp could not decode the image.");
         return ScaleToTarget(full, target);
+    }
+
+    /// <summary>For tests: called after each read from the image file with the total bytes read.</summary>
+    internal static readonly AsyncLocal<Action<long>?> FileRead = new();
+
+    /// <summary>
+    /// Opens the codec over a file stream that reports end-of-file once the load is cancelled.
+    /// PNG and JPEG read the file as they decode, so a cancelled full decode stops at its next
+    /// read (within a few milliseconds) as a truncated image, instead of holding the full-decode
+    /// gate for the rest of the image. WebP reads the whole file up front and still runs to the end.
+    /// </summary>
+    private static SKCodec CreateCancellableCodec(string path, CancellationToken token)
+    {
+        var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 64 * 1024);
+        var stream = new SKManagedStream(new CancellableReadStream(file, token, FileRead.Value), disposeManagedStream: true);
+        var codec = SKCodec.Create(stream);
+        if (codec is null)
+        {
+            stream.Dispose();
+            token.ThrowIfCancellationRequested();
+            throw new InvalidDataException("SkiaSharp could not decode the image.");
+        }
+
+        return codec;
+    }
+
+    private sealed class CancellableReadStream(FileStream inner, CancellationToken token, Action<long>? observer) : Stream
+    {
+        private long _bytesRead;
+
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => false;
+        public override long Length => inner.Length;
+
+        public override long Position
+        {
+            get => inner.Position;
+            set => inner.Position = value;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+        public override int Read(Span<byte> buffer)
+        {
+            if (token.IsCancellationRequested)
+            {
+                return 0;
+            }
+
+            var read = inner.Read(buffer);
+            _bytesRead += read;
+            observer?.Invoke(_bytesRead);
+            return read;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => inner.Seek(offset, origin);
+        public override void Flush() { }
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) inner.Dispose();
+            base.Dispose(disposing);
+        }
     }
 
     private static SKImage ScaleToTarget(SKBitmap source, PixelSize target)

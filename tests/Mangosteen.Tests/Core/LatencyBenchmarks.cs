@@ -47,6 +47,97 @@ public sealed class LatencyBenchmarks
         }
     }
 
+    /// <summary>
+    /// How long a cancelled full decode keeps the (single) full-decode gate, and how long the
+    /// next image's full resolution then takes, as the viewer sees it after navigating away.
+    /// </summary>
+    [TestMethod]
+    public async Task Cancelled_Full_Decode_Gate_Release_Latency()
+    {
+        RequireBenchmarks();
+        var fixtures = EnsureImageFixtures()
+            .Where(path => path.EndsWith(".png", StringComparison.Ordinal) || path.EndsWith(".jpg", StringComparison.Ordinal))
+            .Append(EnsureLargeTiffFixture())
+            .ToArray();
+        using var registry = DecoderRegistry.CreateDefault();
+
+        foreach (var path in fixtures)
+        {
+            var fullRequest = new ImageDecodeRequest(path, null, FullResolution: true);
+            using (await registry.DecodeAsync(fullRequest, CancellationToken.None)) { }
+            var full = await Measure(3, () => registry.DecodeAsync(fullRequest, CancellationToken.None));
+            var decoder = registry.GetDecoderPlan(path, fullRequest).First(d => d.CanDecode(path)).Name;
+
+            foreach (var fraction in new[] { 0.25, 0.5 })
+            {
+                var delay = TimeSpan.FromMilliseconds(full * fraction);
+                var release = new List<double>();
+                var navigate = new List<double>();
+                for (var run = 0; run < 3; run++)
+                {
+                    using var gate = new SemaphoreSlim(1, 1);
+                    using var stale = new CancellationTokenSource();
+                    var staleDecode = DecodeUnderGate(registry, gate, fullRequest, stale.Token);
+                    await Task.Delay(delay);
+
+                    var clock = Stopwatch.StartNew();
+                    stale.Cancel();
+                    var next = DecodeUnderGate(registry, gate, fullRequest, CancellationToken.None);
+                    var staleResult = await staleDecode;
+                    release.Add(clock.Elapsed.TotalMilliseconds);
+                    staleResult?.Dispose();
+                    using (var nextResult = await next)
+                    {
+                        navigate.Add(clock.Elapsed.TotalMilliseconds);
+                        // A cancelled decode must not leave state that makes the next one fall back.
+                        Assert.AreEqual(decoder, nextResult!.Metadata.DecoderName);
+                    }
+                }
+
+                release.Sort();
+                navigate.Sort();
+                Console.WriteLine(
+                    $"{Path.GetFileName(path),-24} {decoder,-9} full {full,6:F0} ms  cancel at {fraction:P0}: " +
+                    $"gate released after {release[1],6:F0} ms   navigation to next full {navigate[1],6:F0} ms");
+            }
+        }
+    }
+
+    private static async Task<DecodedImage?> DecodeUnderGate(
+        DecoderRegistry registry,
+        SemaphoreSlim gate,
+        ImageDecodeRequest request,
+        CancellationToken token)
+    {
+        await gate.WaitAsync(CancellationToken.None);
+        try
+        {
+            return await registry.DecodeAsync(request, token);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    private static string EnsureLargeTiffFixture()
+    {
+        Directory.CreateDirectory(FixtureDirectory);
+        var path = Path.Combine(FixtureDirectory, "scan-100mp.tif");
+        if (!File.Exists(path))
+        {
+            using var image = new MagickImage("plasma:", 12000, 8400);
+            image.Depth = 16;
+            image.Write(path, MagickFormat.Tiff);
+        }
+
+        return path;
+    }
+
     [TestMethod]
     public async Task Fit_Paint_With_Mipmaps_Latency()
     {
