@@ -272,6 +272,8 @@ public sealed class WicImageDecoder : IImageDecoder
         }
 
         converted.CopyPixels(new Int32Rect(0, 0, width, height), pixels, bufferLength, stride);
+        // Immutable bitmaps share their pixels with the image instead of being copied.
+        bitmap.SetImmutable();
         return SKImage.FromBitmap(bitmap);
     }
 

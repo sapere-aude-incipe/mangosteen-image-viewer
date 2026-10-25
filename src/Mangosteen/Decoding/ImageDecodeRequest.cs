@@ -37,6 +37,12 @@ public sealed record ImageDecodeRequest
 
     public bool FullResolution { get; init; }
 
+    /// <summary>
+    /// For the image being opened: when a codec cannot decode at a reduced size, return the
+    /// full-resolution image instead of a downscaled preview so it is not decoded twice.
+    /// </summary>
+    public bool PreferFullResolutionWhenUnscalable { get; init; }
+
     public long? MaxDecodedBytes
     {
         get => _maxDecodedBytes;

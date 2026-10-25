@@ -16,7 +16,14 @@ internal readonly record struct LargeImageMetadata(
 internal sealed class VipsLargeImageSource : ILargeImageSource
 {
     private const int LanczosFilterMarginPixels = 3;
-    public const string DecoderVersion = "libvips-8.18-mangosteen-tiles-v1";
+    // v2: reduced levels come from a shrink-on-load thumbnail instead of per-tile Lanczos.
+    public const string DecoderVersion = "libvips-8.18-mangosteen-tiles-v2";
+    /// <summary>Reduced levels up to this decoded size are built once and kept in memory.</summary>
+    internal const long MaximumCachedLevelBytes = 96L * 1024 * 1024;
+    private const long MaximumCachedLevelsBytes = 192L * 1024 * 1024;
+
+    private readonly object _levelGate = new();
+    private readonly LinkedList<CachedLevel> _levels = new();
 
     public Task<LargeImageMetadata> LoadMetadataAsync(string path, CancellationToken token)
     {
@@ -44,7 +51,7 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
         return Task.Run(() => DecodeTile(path, pyramid, key, token), token);
     }
 
-    private static ImageTileData DecodeTile(
+    private ImageTileData DecodeTile(
         string path,
         ImagePyramid pyramid,
         ImageTileKey key,
@@ -57,6 +64,11 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
         }
 
         var level = pyramid.Levels[key.Level];
+        if (level.Downsample > 1 && EstimateLevelBytes(level) <= MaximumCachedLevelBytes)
+        {
+            return DecodeTileFromCachedLevel(path, pyramid, level, key, token);
+        }
+
         var sourceSpan = checked(pyramid.TileSize * level.Downsample);
         using var source = Open(path);
         using var oriented = source.Autorot();
@@ -100,6 +112,114 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
         }
 
         using var filteredTile = sized.Crop(outputLeft, outputTop, outputWidth, outputHeight);
+        return ToTileData(filteredTile, key, sourceWidth, sourceHeight, token);
+    }
+
+    /// <summary>
+    /// Opening the full image per tile made each fit-zoom tile of a 100 MP JPEG cost ~250 ms.
+    /// A reduced level is decoded once with libvips' shrink-on-load thumbnail (JPEG, WebP,
+    /// HEIF and pyramidal TIFF decode directly at the smaller size) and tiles are cropped from it.
+    /// </summary>
+    private ImageTileData DecodeTileFromCachedLevel(
+        string path,
+        ImagePyramid pyramid,
+        ImagePyramidLevel level,
+        ImageTileKey key,
+        CancellationToken token)
+    {
+        var levelImage = GetOrCreateLevel(path, level, token);
+        var left = checked(key.X * pyramid.TileSize);
+        var top = checked(key.Y * pyramid.TileSize);
+        if (left >= levelImage.Width || top >= levelImage.Height)
+        {
+            throw new ArgumentOutOfRangeException(nameof(key), "The tile lies outside the image.");
+        }
+
+        var width = Math.Min(pyramid.TileSize, levelImage.Width - left);
+        var height = Math.Min(pyramid.TileSize, levelImage.Height - top);
+        var sourceSpan = checked(pyramid.TileSize * level.Downsample);
+        var fullWidth = pyramid.Levels[0].Width;
+        var fullHeight = pyramid.Levels[0].Height;
+        var sourceWidth = Math.Min(sourceSpan, fullWidth - left * level.Downsample);
+        var sourceHeight = Math.Min(sourceSpan, fullHeight - top * level.Downsample);
+        using var tile = levelImage.Crop(left, top, width, height);
+        using var colorManaged = VipsDisplayColor.ConvertToSrgb(tile, preserveHighBitDepth: true);
+        return ToTileData(colorManaged, key, sourceWidth, sourceHeight, token);
+    }
+
+    private VipsImage GetOrCreateLevel(string path, ImagePyramidLevel level, CancellationToken token)
+    {
+        var file = new FileInfo(path);
+        var identity = (Path.GetFullPath(path), file.Length, file.LastWriteTimeUtc, level.Index, level.Width, level.Height);
+        Lazy<VipsImage> entry;
+        lock (_levelGate)
+        {
+            var node = _levels.First;
+            while (node is not null && node.Value.Identity != identity) node = node.Next;
+            if (node is not null)
+            {
+                _levels.Remove(node);
+                _levels.AddFirst(node);
+                entry = node.Value.Image;
+            }
+            else
+            {
+                entry = new Lazy<VipsImage>(() => CreateLevel(path, level), LazyThreadSafetyMode.ExecutionAndPublication);
+                _levels.AddFirst(new CachedLevel(identity, entry, EstimateLevelBytes(level)));
+                TrimLevels();
+            }
+        }
+
+        token.ThrowIfCancellationRequested();
+        try
+        {
+            return entry.Value;
+        }
+        catch
+        {
+            lock (_levelGate)
+            {
+                var node = _levels.First;
+                while (node is not null && !ReferenceEquals(node.Value.Image, entry)) node = node.Next;
+                if (node is not null) _levels.Remove(node);
+            }
+            throw;
+        }
+    }
+
+    private static VipsImage CreateLevel(string path, ImagePyramidLevel level)
+    {
+        // Thumbnail auto-rotates like the full-resolution path and keeps the ICC profile.
+        using var thumbnail = VipsImage.Thumbnail(
+            path,
+            level.Width,
+            height: level.Height,
+            size: Enums.Size.Force,
+            failOn: Enums.FailOn.None);
+        return thumbnail.CopyMemory();
+    }
+
+    private void TrimLevels()
+    {
+        // Evicted images may still be cropping on another thread; let the finalizer release them.
+        var total = 0L;
+        for (var node = _levels.First; node is not null;)
+        {
+            var next = node.Next;
+            total += node.Value.EstimatedBytes;
+            if (total > MaximumCachedLevelsBytes && node != _levels.First) _levels.Remove(node);
+            node = next;
+        }
+    }
+
+    internal static long EstimateLevelBytes(ImagePyramidLevel level)
+    {
+        // Up to four 16-bit channels.
+        return (long)level.Width * level.Height * 8;
+    }
+
+    private static ImageTileData ToTileData(VipsImage filteredTile, ImageTileKey key, int sourceWidth, int sourceHeight, CancellationToken token)
+    {
         using var rgba = EnsureRgba(filteredTile);
         token.ThrowIfCancellationRequested();
 
@@ -127,6 +247,11 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
             highBitDepth ? ImageTilePixelFormat.Rgba16 : ImageTilePixelFormat.Rgba8,
             pixels);
     }
+
+    private sealed record CachedLevel(
+        (string Path, long Length, DateTime LastWrite, int Level, int Width, int Height) Identity,
+        Lazy<VipsImage> Image,
+        long EstimatedBytes);
 
     private static VipsImage Open(string path)
     {

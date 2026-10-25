@@ -178,6 +178,14 @@ public partial class MainWindow : Window
     private F3dModelRenderer? _modelRenderer;
     private bool? _isGpuLargeImageRenderingEnabled;
     private CancellationTokenSource? _modelStatisticsCts;
+    private long _lastImagePaintTimestamp;
+    private bool _isNativeInputFlushQueued;
+    private double _pendingOrbitX;
+    private double _pendingOrbitY;
+    private double _pendingModelZoom = 1;
+    private long _lastRelativeNavigationTimestamp;
+    private bool _isRapidNavigation;
+    private DispatcherTimer? _qualityRepaintTimer;
     private DispatcherTimer? _modelLoadProgressTimer;
     private bool _isModelLoadProgressVisible;
     private ModelStatistics? _modelStatistics;
@@ -635,7 +643,30 @@ public partial class MainWindow : Window
                 Hide();
                 ShowInTaskbar = false;
             }
+
+            PrimeDecodersInBackground();
         }
+    }
+
+    /// <summary>
+    /// The ready shell otherwise loads the decoder stack (libvips' native DLLs and init) on the
+    /// first image after login. Do it once the shell is idle, never on the startup path.
+    /// </summary>
+    private void PrimeDecodersInBackground()
+    {
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                _ = _decoders.Value;
+                _ = NetVips.NetVips.Version(0);
+            }
+            catch (Exception ex)
+            {
+                // A decoder that fails here will report its error on first real use.
+                TraceBackgroundError("Decoder warm-up failed", ex);
+            }
+        });
     }
 
     internal async Task HandleActivationAsync(AppActivationRequest request)
@@ -1317,15 +1348,16 @@ public partial class MainWindow : Window
         _lastNativePointer = e;
         if (_contentMode == ViewerContentMode.Model)
         {
-            _modelRenderer?.OrbitFromDrag(deltaX, deltaY);
+            _pendingOrbitX += deltaX;
+            _pendingOrbitY += deltaY;
+            QueueNativeInputFlush();
             return;
         }
 
         if (_contentMode == ViewerContentMode.GpuLargeImage)
         {
             _viewerState.PanBy(new SKPoint(deltaX, deltaY));
-            UpdateZoomText();
-            InvalidateViewer();
+            QueueNativeInputFlush();
         }
     }
 
@@ -1339,17 +1371,47 @@ public partial class MainWindow : Window
         var factor = e.Delta > 0 ? 1.15 : 1.0 / 1.15;
         if (_contentMode == ViewerContentMode.Model)
         {
-            _modelRenderer?.Zoom(factor);
-            UpdateZoomText();
+            _pendingModelZoom *= factor;
+            QueueNativeInputFlush();
             return;
         }
 
         if (_contentMode == ViewerContentMode.GpuLargeImage)
         {
             _viewerState.ZoomAt(factor, new SKPoint(e.X, e.Y));
-            UpdateZoomText();
+            QueueNativeInputFlush();
+        }
+    }
+
+    /// <summary>
+    /// Each native render waits for vsync on the UI thread, so rendering per mouse-move or
+    /// wheel notch let input queue up behind frames. WPF runs Input-priority work only once
+    /// no input is pending, so all moves and notches since the last frame become one render.
+    /// </summary>
+    private void QueueNativeInputFlush()
+    {
+        if (_isNativeInputFlushQueued) return;
+        _isNativeInputFlushQueued = true;
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(FlushNativeInput));
+    }
+
+    private void FlushNativeInput()
+    {
+        _isNativeInputFlushQueued = false;
+        var (orbitX, orbitY, zoom) = (_pendingOrbitX, _pendingOrbitY, _pendingModelZoom);
+        (_pendingOrbitX, _pendingOrbitY, _pendingModelZoom) = (0, 0, 1);
+        if (_isClosing) return;
+        if (_contentMode == ViewerContentMode.Model)
+        {
+            if (orbitX != 0 || orbitY != 0) _modelRenderer?.OrbitFromDrag(orbitX, orbitY);
+            if (zoom != 1) _modelRenderer?.Zoom(zoom);
+        }
+        else if (_contentMode == ViewerContentMode.GpuLargeImage)
+        {
             InvalidateViewer();
         }
+
+        UpdateZoomText();
     }
 
     private async void NativeGlHost_NavigationRequested(object? sender, int delta)
@@ -1409,8 +1471,41 @@ public partial class MainWindow : Window
         }
 
         ScheduleSmartPreloads(allowFullPreloads: false);
+        if (_isRapidNavigation)
+        {
+            StartFullResolutionLoadWhenNavigationSettles(path, session);
+            return;
+        }
+
         StartFullResolutionLoad(path, session);
         StartupDiagnostics.Mark("load_state.started_full_decode", Path.GetFileName(path));
+    }
+
+    internal static readonly TimeSpan RapidNavigationInterval = TimeSpan.FromMilliseconds(300);
+    internal static readonly TimeSpan NavigationSettleDelay = TimeSpan.FromMilliseconds(200);
+
+    /// <summary>
+    /// Decodes cannot be interrupted once started, so while steps arrive in quick succession
+    /// (a held arrow key) each one would leave a stale full decode occupying the single full
+    /// decode slot. The viewport-sized preview is already shown; wait until the user pauses.
+    /// </summary>
+    private async void StartFullResolutionLoadWhenNavigationSettles(string path, LoadSession session)
+    {
+        if (!session.TryAddReference()) return;
+        try
+        {
+            await Task.Delay(NavigationSettleDelay, session.Token);
+            if (!IsCurrentLoad(session.Generation, session.Token)) return;
+            StartFullResolutionLoad(path, session);
+            StartupDiagnostics.Mark("load_state.started_full_decode", Path.GetFileName(path));
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            session.Release();
+        }
     }
 
     private async Task<DecodedImage?> DecodePreviewExclusiveAsync(
@@ -1434,7 +1529,10 @@ public partial class MainWindow : Window
                     path,
                     previewSize,
                     FullResolution: false,
-                    MaxDecodedBytes: GetInteractiveDecodedByteLimit()),
+                    MaxDecodedBytes: GetInteractiveDecodedByteLimit())
+                {
+                    PreferFullResolutionWhenUnscalable = true
+                },
                 token);
             if (!IsCurrentLoad(generation, token))
             {
@@ -1688,9 +1786,10 @@ public partial class MainWindow : Window
 
         var frame = _image.Frames[Math.Clamp(_frameIndex, 0, _image.FrameCount - 1)];
         var destination = _viewerState.GetDestinationRect();
+        var sampling = GetPaintSamplingOptions();
         if (_pendingRotationQuarterTurns == 0)
         {
-            canvas.DrawImage(frame.Image, destination, GetRenderSamplingOptions(), _imagePaint);
+            canvas.DrawImage(frame.Image, destination, sampling, _imagePaint);
             return;
         }
 
@@ -1702,7 +1801,7 @@ public partial class MainWindow : Window
         canvas.DrawImage(
             frame.Image,
             new SKRect(-sourceWidth / 2f, -sourceHeight / 2f, sourceWidth / 2f, sourceHeight / 2f),
-            GetRenderSamplingOptions(),
+            sampling,
             _imagePaint);
         canvas.Restore();
     }
@@ -1840,6 +1939,9 @@ public partial class MainWindow : Window
         }
 
         _isNavigating = true;
+        var now = Stopwatch.GetTimestamp();
+        _isRapidNavigation = Stopwatch.GetElapsedTime(_lastRelativeNavigationTimestamp, now) < RapidNavigationInterval;
+        _lastRelativeNavigationTimestamp = now;
         try
         {
             var path = delta < 0
@@ -1855,6 +1957,7 @@ public partial class MainWindow : Window
         finally
         {
             _isNavigating = false;
+            _isRapidNavigation = false;
         }
     }
 
@@ -2752,6 +2855,43 @@ public partial class MainWindow : Window
         return new SKPoint((float)(point.X * dpi.DpiScaleX), (float)(point.Y * dpi.DpiScaleY));
     }
 
+    internal static readonly TimeSpan InteractivePaintWindow = TimeSpan.FromMilliseconds(150);
+
+    /// <summary>
+    /// Trilinear (blended) mipmap sampling costs ~55 ms per CPU paint of a fitted 24 MP image,
+    /// nearest-level sampling ~5 ms. Paints that follow each other quickly (pan, wheel zoom,
+    /// resize, animation) use the fast mode; one full-quality paint follows when they stop.
+    /// </summary>
+    private SKSamplingOptions GetPaintSamplingOptions()
+    {
+        var sampling = GetRenderSamplingOptions();
+        var now = Stopwatch.GetTimestamp();
+        var isInteractive = Stopwatch.GetElapsedTime(_lastImagePaintTimestamp, now) < InteractivePaintWindow;
+        _lastImagePaintTimestamp = now;
+        if (!isInteractive || sampling.Mipmap != SKMipmapMode.Linear)
+        {
+            return sampling;
+        }
+
+        _qualityRepaintTimer ??= CreateQualityRepaintTimer();
+        _qualityRepaintTimer.Stop();
+        _qualityRepaintTimer.Start();
+        return new SKSamplingOptions(sampling.Filter, SKMipmapMode.Nearest);
+    }
+
+    private DispatcherTimer CreateQualityRepaintTimer()
+    {
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = InteractivePaintWindow };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            // Reset so the refining paint is not itself treated as interactive.
+            _lastImagePaintTimestamp = 0;
+            if (_contentMode == ViewerContentMode.Image) ImageSurface.InvalidateVisual();
+        };
+        return timer;
+    }
+
     private SKSamplingOptions GetRenderSamplingOptions()
     {
         return !_useSmoothSampling && _viewerState.Zoom > 1.0
@@ -3590,15 +3730,26 @@ public partial class MainWindow : Window
             if (scheduledLoadGeneration != Volatile.Read(ref _loadGeneration)) return;
             if (_fullPreloadCache.ContainsFullResolution(path)) continue;
 
+            // Each navigation step reschedules this loop over up to 60-120 neighbours; reading
+            // every header again (a RAW decoder per RAW file) delayed reaching uncached files.
+            var mayPreloadFull = allowFullPreloads && priority < fullPreloadLikelyPathLimit;
+            if (_previewPreloadCache.Contains(path) && !mayPreloadFull) continue;
+
             Mangosteen.Decoding.ImageMetadata metadata;
             try
             {
-                if (!PreloadDecoderPolicy.HasPreloadCandidate(Decoders, path, _isClosing, token))
+                if (_previewPreloadCache.TryGetMetadata(path, out var cachedMetadata) && cachedMetadata is not null)
+                {
+                    metadata = cachedMetadata;
+                }
+                else if (!PreloadDecoderPolicy.HasPreloadCandidate(Decoders, path, _isClosing, token))
                 {
                     continue;
                 }
-
-                metadata = await Decoders.LoadMetadataAsync(path, token, PreloadDecoderPolicy.IsPreloadDecoder);
+                else
+                {
+                    metadata = await Decoders.LoadMetadataAsync(path, token, PreloadDecoderPolicy.IsPreloadDecoder);
+                }
             }
             catch (OperationCanceledException)
             {

@@ -177,6 +177,8 @@ public sealed class WicGifImageDecoder : IImageDecoder
             pixels,
             bufferLength,
             stride);
+        // Immutable bitmaps share their pixels with the image instead of being copied.
+        bitmap.SetImmutable();
         return SKImage.FromBitmap(bitmap);
     }
 

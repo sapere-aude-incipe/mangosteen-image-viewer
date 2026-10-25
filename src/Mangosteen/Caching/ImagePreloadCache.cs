@@ -61,6 +61,18 @@ public sealed class ImagePreloadCache : IDisposable
         }
     }
 
+    /// <summary>Full-image metadata of a cached entry (previews carry it too), without a file read.</summary>
+    public bool TryGetMetadata(string path, out ImageMetadata? metadata)
+    {
+        ValidatePath(path);
+
+        lock (_gate)
+        {
+            metadata = !_disposed && _images.TryGetValue(path, out var entry) ? entry.Image.Metadata : null;
+            return metadata is not null;
+        }
+    }
+
     public bool ContainsFullResolution(string path)
     {
         ValidatePath(path);

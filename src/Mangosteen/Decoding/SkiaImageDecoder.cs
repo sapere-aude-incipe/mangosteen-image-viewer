@@ -52,6 +52,15 @@ public sealed class SkiaImageDecoder : IImageDecoder
                 request.MaxDecodedBytes);
             var decodeTarget = ImageOrientation.GetDecodeTarget(target, codec.EncodedOrigin);
             var skiaDecodeSize = GetSkiaDecodeSize(codec, decodeTarget, isFull);
+            if (ShouldDecodeFullInsteadOfPreview(request, codec, skiaDecodeSize, isFull))
+            {
+                // PNG/BMP/ICO/WebP cannot decode smaller, so a preview costs a full decode plus a
+                // resize and the full-resolution pass decodes again. Show the full image now.
+                target = new PixelSize(metadata.Width, metadata.Height);
+                decodeTarget = new PixelSize(codec.Info.Width, codec.Info.Height);
+                skiaDecodeSize = decodeTarget;
+                isFull = true;
+            }
             ImageDecodeGuards.ThrowIfEstimatedDecodedBytesExceedLimit(
                 metadata,
                 skiaDecodeSize,
@@ -62,6 +71,22 @@ public sealed class SkiaImageDecoder : IImageDecoder
 
             return new DecodedImage(metadata, [new DecodedFrame(image, TimeSpan.FromMilliseconds(100))], isFull);
         }, token);
+    }
+
+    /// <summary>Above this, a viewport-sized preview is worth its resize (memory and first paint).</summary>
+    internal const long MaximumDirectFullDecodeBytes = 160L * 1024 * 1024;
+
+    internal static bool ShouldDecodeFullInsteadOfPreview(ImageDecodeRequest request, SKCodec codec, PixelSize decodeSize, bool isFull)
+    {
+        // Skia reports reduced WebP sizes, but decodes the full image and resamples (measured
+        // 254 ms preview vs 270 ms full for 24 MP), so treat WebP as unscalable too.
+        var unscalable = codec.EncodedFormat == SKEncodedImageFormat.Webp ||
+            decodeSize.Width == codec.Info.Width && decodeSize.Height == codec.Info.Height;
+        return !isFull &&
+            request.PreferFullResolutionWhenUnscalable &&
+            unscalable &&
+            (long)codec.Info.Width * codec.Info.Height * 4 <= MaximumDirectFullDecodeBytes &&
+            (request.MaxDecodedBytes is not { } limit || (long)codec.Info.Width * codec.Info.Height * 4 <= limit);
     }
 
     internal static PixelSize GetSkiaDecodeSize(SKCodec codec, PixelSize target, bool fullResolution)
@@ -117,6 +142,8 @@ public sealed class SkiaImageDecoder : IImageDecoder
     {
         if (source.Width == target.Width && source.Height == target.Height)
         {
+            // Immutable bitmaps share their pixels with the image instead of being copied.
+            source.SetImmutable();
             return SKImage.FromBitmap(source);
         }
 
@@ -127,6 +154,7 @@ public sealed class SkiaImageDecoder : IImageDecoder
             throw new InvalidDataException("SkiaSharp could not scale the decoded image.");
         }
 
+        scaled.SetImmutable();
         return SKImage.FromBitmap(scaled);
     }
 
