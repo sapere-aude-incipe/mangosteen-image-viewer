@@ -3,15 +3,14 @@ using System.Text.Json;
 
 namespace Mangosteen.Rendering.Advanced;
 
+// GPU large-image rendering ships in every edition and is a setting, not a component.
 internal enum OptionalComponentKind
 {
-    GpuLargeImages,
     ModelViewer
 }
 
 internal sealed class OptionalComponentCatalog
 {
-    private const string GpuEnvironmentVariable = "MANGOSTEEN_ENABLE_GPU_LARGE_IMAGES";
     private const string ModelEnvironmentVariable = "MANGOSTEEN_ENABLE_3D_VIEWER";
     private readonly string _applicationDirectory;
 
@@ -24,7 +23,6 @@ internal sealed class OptionalComponentCatalog
     {
         var environmentVariable = component switch
         {
-            OptionalComponentKind.GpuLargeImages => GpuEnvironmentVariable,
             OptionalComponentKind.ModelViewer => ModelEnvironmentVariable,
             _ => throw new ArgumentOutOfRangeException(nameof(component))
         };
@@ -43,7 +41,6 @@ internal sealed class OptionalComponentCatalog
     {
         var directoryName = component switch
         {
-            OptionalComponentKind.GpuLargeImages => "gpu-large-images",
             OptionalComponentKind.ModelViewer => "model-viewer",
             _ => throw new ArgumentOutOfRangeException(nameof(component))
         };
@@ -76,12 +73,6 @@ internal sealed class OptionalComponentCatalog
 
             return component switch
             {
-                OptionalComponentKind.GpuLargeImages =>
-                    id.GetString() == "gpu-large-images" &&
-                    root.TryGetProperty("version", out var version) &&
-                    version.ValueKind == JsonValueKind.Number &&
-                    version.TryGetInt32(out var versionNumber) &&
-                    versionNumber == 1,
                 OptionalComponentKind.ModelViewer =>
                     id.GetString() == "model-viewer" &&
                     root.TryGetProperty("engine", out var engine) &&

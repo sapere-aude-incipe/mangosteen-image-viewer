@@ -38,7 +38,7 @@ Mangosteen keeps the interface quiet, starts quickly, supports modern image form
 - Animated GIF support.
 - Manual update checks through GitHub Releases.
 - Installer and portable zip builds for Windows x64.
-- Optional tiled GPU rendering for exceptionally large images.
+- Tiled GPU rendering for exceptionally large images, on by default when a dedicated graphics card is detected.
 - Optional in-window 3D viewing for meshes and scenes (STL, PLY, OBJ, glTF/GLB, FBX, COLLADA, 3DS, 3MF, Alembic, USD), CAD and BIM (STEP, IGES, BREP, IFC), VTK and simulation data, volumes (MetaImage, NRRD, DICOM, VDB) and point clouds or Gaussian splats (LAS/LAZ, PCD, SPLAT).
 
 ## Repository Layout
@@ -65,22 +65,22 @@ The goal is broad practical coverage for common formats such as JPEG, PNG, BMP, 
 
 ## Optional Components
 
-Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. The installer's Full setup type and the complete portable edition include two advanced components:
+Mangosteen's regular image viewer stays lightweight and follows the existing SkiaSharp path. Two advanced renderers are available:
 
-- **GPU acceleration for large images** uses libvips, a tiled image pyramid, a bounded GPU texture cache, and a losslessly compressed disk cache. It is intended for exceptionally large TIFF, PSB, PSD, RAW-derived, and other still images without requiring a full uncompressed image to remain in RAM.
+- **GPU acceleration for large images** uses libvips, a tiled image pyramid, a bounded GPU texture cache, and a losslessly compressed disk cache. It is intended for exceptionally large TIFF, PSB, PSD, RAW-derived, and other still images without requiring a full uncompressed image to remain in RAM. It is built into every edition and controlled by **Options > Performance > GPU acceleration for large images**, which is on by default when a dedicated graphics card (at least 512 MB of its own video memory) is detected.
 - **3D model viewing** embeds the F3D 3.5.0 engine for browsing every model format F3D reads that is not an image format, including camera orbit, zoom, automatic framing, a floor grid, an XYZ indicator, and supported materials or animation.
 
-Neither component is loaded during normal image viewing. See [Optional Rendering Components](docs/optional-components.md) for behavior, limits, caching, and development details.
+3D model viewing is the optional component, included by the installer's Full setup type and the complete portable edition. Neither renderer is loaded during normal image viewing. See [Optional Rendering Components](docs/optional-components.md) for behavior, limits, caching, and development details.
 
 ## Download
 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
-- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - installs the core image viewer by default, with a Start menu shortcut and an optional, checked-by-default file type registration step. Choose **Full** in setup to also install GPU large-image rendering and 3D model viewing, or **Custom** to pick either one.
+- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - installs the core image viewer by default, with a Start menu shortcut and an optional, checked-by-default file type registration step. Choose **Full** in setup to also install 3D model viewing.
 - **Standard portable**: `Mangosteen-Portable-<version>-x64.zip` - the same lightweight viewer without installation or a separate .NET runtime.
-- **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - a ready-to-run portable build with GPU large-image rendering and 3D model viewing already included.
+- **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - a ready-to-run portable build with 3D model viewing already included.
 
-The installer carries the optional components but installs and registers them only when you choose Full or Custom; a Core installation contains only the core viewer. The standard portable ZIP is core-only, and the complete portable build includes everything. Separate component archives are not published, keeping the Releases page compact.
+The installer carries the 3D component but installs and registers it only when you choose Full; a Core installation contains only the core viewer. GPU large-image rendering is part of every edition. The standard portable ZIP is core-only, and the complete portable build includes everything. Separate component archives are not published, keeping the Releases page compact.
 
 The first public releases are unsigned while the project builds enough public reputation for open-source code signing.
 
@@ -156,6 +156,7 @@ The unpacked all-features test executable is written to
 - Preload nearby files: decodes likely next and previous images in the background. For 3D files it reads up to two nearby models into Windows' file cache after an idle delay, reducing disk-read work without locking the active 3D view. Model parsing and GPU setup still happen when selected. Read-ahead is limited to 64 MiB per model and 128 MiB per pass (or less with a smaller preload budget); very large models are only partially prefetched. Network locations and external texture/buffer files are not prefetched.
 - Preload memory: limits how much RAM Mangosteen may use for decoded-image cache entries.
 - Preload aggressiveness: controls how far ahead Mangosteen scans and how eagerly it warms likely next images.
+- GPU acceleration for large images: renders exceptionally large images as tiles on the graphics card. Automatic by default (on with a dedicated graphics card); choosing it explicitly keeps your choice. It never activates on Windows' basic software OpenGL renderer.
 - Keep Mangosteen ready in the background: enabled by default. Mangosteen starts with Windows and keeps its already-constructed viewer shell ready. Closing the window releases the current image and caches, then returns the viewer to the background; `File > Exit` quits it completely.
 
 This readiness mode does not perform telemetry, update checks, or network activity. Disable it from `Options` to remove Mangosteen from Windows startup and restore normal close-to-exit behavior.

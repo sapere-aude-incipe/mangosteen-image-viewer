@@ -83,7 +83,7 @@ public sealed partial class InstallerSupportedTypesTests
     }
 
     [TestMethod]
-    public void Inno_Setup_Defaults_To_Core_And_Offers_Full_And_Custom()
+    public void Inno_Setup_Defaults_To_Core_And_Offers_Full()
     {
         var text = GetInstallerScriptText();
         var types = text[text.IndexOf("[Types]", StringComparison.Ordinal)..text.IndexOf("[Components]", StringComparison.Ordinal)]
@@ -93,10 +93,17 @@ public sealed partial class InstallerSupportedTypesTests
 
         // Inno Setup selects the first type by default, so Core must stay first.
         StringAssert.StartsWith(types[0], "Name: \"core\"; Description: \"Core image viewer\"");
-        StringAssert.Contains(text, "Name: \"full\"; Description: \"Full: core viewer with 3D models and GPU acceleration for large images\"");
-        StringAssert.Contains(text, "Name: \"custom\"; Description: \"Custom\"; Flags: iscustom");
-        StringAssert.Contains(text, "Name: \"gpulargeimages\"; Description: \"GPU acceleration for large images\"; Types: full");
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                "Name: \"core\"; Description: \"Core image viewer\"",
+                "Name: \"full\"; Description: \"Full: core viewer with 3D model viewing\""
+            },
+            types);
         StringAssert.Contains(text, "Name: \"modelviewer\"; Description: \"3D model viewing (F3D 3.5.0, adds about 119 MB)\"; Types: full");
+        // GPU large-image rendering is a built-in setting; upgrades remove the old component folder.
+        Assert.IsFalse(text.Contains("gpulargeimages", StringComparison.Ordinal));
+        StringAssert.Contains(text, "Type: filesandordirs; Name: \"{app}\\components\\gpu-large-images\"");
     }
 
     [TestMethod]

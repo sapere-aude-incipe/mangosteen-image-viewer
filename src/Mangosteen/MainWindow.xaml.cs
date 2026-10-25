@@ -176,7 +176,10 @@ public partial class MainWindow : Window
     private GpuLargeImageRenderer? _gpuLargeImageRenderer;
     private string? _gpuFailurePath;
     private F3dModelRenderer? _modelRenderer;
+    private bool? _isGpuLargeImageRenderingEnabled;
     private CancellationTokenSource? _modelStatisticsCts;
+    private DispatcherTimer? _modelLoadProgressTimer;
+    private bool _isModelLoadProgressVisible;
     private ModelStatistics? _modelStatistics;
     private ViewerContentMode _contentMode;
     private bool _isNativePointerDown;
@@ -244,6 +247,7 @@ public partial class MainWindow : Window
         _isAutoRefreshEnabled = settings.IsAutoRefreshEnabled;
         _keepReadyInBackground = settings.KeepReadyInBackground;
         _isModelGridAtWorldOrigin = settings.IsModelGridAtWorldOrigin;
+        _isGpuLargeImageRenderingEnabled = settings.IsGpuLargeImageRenderingEnabled;
         _preloadBudgetGigabytes = Math.Clamp(settings.PreloadBudgetGigabytes, 1, 15);
         _preloadAggressiveness = settings.PreloadAggressiveness;
         if (settings.IsDarkMode == _isDarkMode)
@@ -270,6 +274,7 @@ public partial class MainWindow : Window
             IsAutoRefreshEnabled = _isAutoRefreshEnabled,
             KeepReadyInBackground = _keepReadyInBackground,
             IsModelGridAtWorldOrigin = _isModelGridAtWorldOrigin,
+            IsGpuLargeImageRenderingEnabled = _isGpuLargeImageRenderingEnabled,
             PreloadBudgetGigabytes = _preloadBudgetGigabytes,
             PreloadAggressiveness = _preloadAggressiveness
         }.Save();
@@ -302,6 +307,8 @@ public partial class MainWindow : Window
         AggressivePreloadMenuItem.Header = LocalizedText.Get(LocalizedText.Aggressive);
         AutoRefreshMenuItem.Header = LocalizedText.Get(LocalizedText.AutoRefreshCurrentImage);
         KeepReadyInBackgroundMenuItem.Header = LocalizedText.Get(LocalizedText.KeepReadyInBackground);
+        GpuLargeImagesMenuItem.Header = LocalizedText.Get(LocalizedText.GpuLargeImages);
+        GpuLargeImagesMenuItem.ToolTip = LocalizedText.Get(LocalizedText.GpuLargeImagesTooltip);
         ModelViewMenuItem.Header = LocalizedText.Get(LocalizedText.ModelView);
         ModelGridAtWorldOriginMenuItem.Header = LocalizedText.Get(LocalizedText.ModelGridAtWorldOrigin);
         ModelGridAtWorldOriginMenuItem.ToolTip = LocalizedText.Get(LocalizedText.ModelGridAtWorldOriginTooltip);
@@ -916,20 +923,20 @@ public partial class MainWindow : Window
         }
     }
 
-    private void StartModelStatistics(string path, int generation)
+    private void StartModelStatistics(string path, int generation, ModelReadCounter readCounter)
     {
         ClearModelStatistics();
         var cts = new CancellationTokenSource();
         _modelStatisticsCts = cts;
-        _ = LoadModelStatisticsAsync(path, generation, cts);
+        _ = LoadModelStatisticsAsync(path, generation, cts, readCounter);
     }
 
-    private async Task LoadModelStatisticsAsync(string path, int generation, CancellationTokenSource cts)
+    private async Task LoadModelStatisticsAsync(string path, int generation, CancellationTokenSource cts, ModelReadCounter readCounter)
     {
         var token = cts.Token;
         try
         {
-            var statistics = await Task.Run(() => ModelStatisticsReader.TryRead(path, token), token);
+            var statistics = await Task.Run(() => ModelStatisticsReader.TryRead(path, token, readCounter), token);
             if (statistics is null || _isClosing || token.IsCancellationRequested || generation != _loadGeneration) return;
             _modelStatistics = statistics;
             UpdateModelStatisticsText();
@@ -946,6 +953,77 @@ public partial class MainWindow : Window
             if (ReferenceEquals(_modelStatisticsCts, cts)) _modelStatisticsCts = null;
             cts.Dispose();
         }
+    }
+
+    private void StartModelLoadProgress(string path, int generation, ModelReadCounter readCounter)
+    {
+        StopModelLoadProgress();
+        long fileBytes;
+        try
+        {
+            fileBytes = new FileInfo(path).Length;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return;
+        }
+
+        if (fileBytes < ModelLoadProgress.MinimumFileBytes ||
+            ModelLoadProgress.TryGetProcessBytesRead() is not { } readsAtStart)
+        {
+            return;
+        }
+
+        var shownFraction = 0d;
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(250) };
+        timer.Tick += (_, _) =>
+        {
+            if (_isClosing || generation != _loadGeneration || !ReferenceEquals(timer, _modelLoadProgressTimer) ||
+                ModelLoadProgress.TryGetProcessBytesRead() is not { } readsNow)
+            {
+                return;
+            }
+
+            var progress = ModelLoadProgress.Estimate(readsAtStart, readsNow, readCounter.BytesRead, fileBytes);
+            // Other reads can only inflate the estimate briefly; never move the bar backwards.
+            shownFraction = Math.Max(shownFraction, progress.Fraction);
+            if (new ModelLoadProgress((long)(shownFraction * fileBytes), fileBytes).IsPreparing)
+            {
+                ShowStatus(LocalizedText.Get(LocalizedText.PreparingModel));
+                ModelLoadProgressBar.IsIndeterminate = true;
+            }
+            else
+            {
+                ShowStatus(LocalizedText.Format(
+                    LocalizedText.ModelLoadingProgressFormat,
+                    (int)Math.Floor(shownFraction * 100),
+                    FormatMegabytes((long)(shownFraction * fileBytes)),
+                    FormatMegabytes(fileBytes)));
+                ModelLoadProgressBar.IsIndeterminate = false;
+                ModelLoadProgressBar.Value = shownFraction;
+            }
+
+            _isModelLoadProgressVisible = true;
+            RefreshStatusOverlay();
+        };
+        _modelLoadProgressTimer = timer;
+        timer.Start();
+    }
+
+    private static string FormatMegabytes(long bytes)
+    {
+        return (bytes / (1024d * 1024)).ToString("N0", CultureInfo.CurrentCulture) + " MB";
+    }
+
+    private void StopModelLoadProgress()
+    {
+        _modelLoadProgressTimer?.Stop();
+        _modelLoadProgressTimer = null;
+        if (!_isModelLoadProgressVisible) return;
+        _isModelLoadProgressVisible = false;
+        ModelLoadProgressBar.IsIndeterminate = false;
+        ModelLoadProgressBar.Value = 0;
+        RefreshStatusOverlay();
     }
 
     private void ClearModelStatistics()
@@ -989,7 +1067,9 @@ public partial class MainWindow : Window
         ShowStatus(LocalizedText.Get(IsLargeModelFile(path) ? LocalizedText.LoadingLargeModel : LocalizedText.Loading));
         UpdateWindowTitle(Path.GetFileName(path));
         UpdateNavigationButtons();
-        StartModelStatistics(path, generation);
+        var readCounter = new ModelReadCounter();
+        StartModelLoadProgress(path, generation, readCounter);
+        StartModelStatistics(path, generation, readCounter);
 
         try
         {
@@ -1022,6 +1102,7 @@ public partial class MainWindow : Window
             }
             _modelRenderer.SetGridAtWorldOrigin(_isModelGridAtWorldOrigin);
             await _modelRenderer.OpenAsync(path, _isDarkMode, token);
+            StopModelLoadProgress();
             StartupDiagnostics.Mark("model.f3d.opened", Path.GetFileName(path));
             if (!IsCurrentLoad(generation, token) || !_modelRenderer.IsOpen)
             {
@@ -1049,12 +1130,14 @@ public partial class MainWindow : Window
             if (IsCurrentLoad(generation, token))
             {
                 ClearModelStatistics();
+                StopModelLoadProgress();
                 ShowImageSurface();
                 ShowStatus(ex.Message);
             }
         }
         finally
         {
+            if (generation == _loadGeneration) StopModelLoadProgress();
             session.Release();
         }
     }
@@ -1065,7 +1148,7 @@ public partial class MainWindow : Window
         CancellationToken token)
     {
         var generation = _loadGeneration;
-        if (!_optionalComponents.IsInstalled(OptionalComponentKind.GpuLargeImages) ||
+        if (!IsGpuLargeImageRenderingEnabled ||
             string.Equals(path, _gpuFailurePath, StringComparison.OrdinalIgnoreCase) ||
             image.FrameCount != 1 ||
             !LargeImageClassifier.Classify(image.Metadata, path).UseAdvancedRenderer)
@@ -1141,6 +1224,7 @@ public partial class MainWindow : Window
     private void CloseAdvancedContent()
     {
         ClearModelStatistics();
+        StopModelLoadProgress();
         _gpuLargeImageRenderer?.CloseCurrent();
         _modelRenderer?.CloseCurrent();
         _contentMode = ViewerContentMode.Image;
@@ -2344,6 +2428,31 @@ public partial class MainWindow : Window
         UpdateSettingsMenuChecks();
         UpdateAutoRefreshWatcher();
         SaveSettings();
+    }
+
+    // An explicit choice wins; otherwise detect a dedicated graphics card (lazily, off the startup path).
+    private bool IsGpuLargeImageRenderingEnabled =>
+        _isGpuLargeImageRenderingEnabled ?? GraphicsAdapters.HasDedicatedGpu;
+
+    private void PerformanceMenuItem_SubmenuOpened(object sender, RoutedEventArgs e)
+    {
+        GpuLargeImagesMenuItem.IsChecked = IsGpuLargeImageRenderingEnabled;
+    }
+
+    private async void GpuLargeImagesMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var wasEnabled = IsGpuLargeImageRenderingEnabled;
+        _isGpuLargeImageRenderingEnabled = GpuLargeImagesMenuItem.IsChecked;
+        _gpuFailurePath = null;
+        SaveSettings();
+        // Reload so the current image switches renderer immediately.
+        if (wasEnabled != IsGpuLargeImageRenderingEnabled &&
+            _contentMode != ViewerContentMode.Model &&
+            _navigator.CurrentPath is not null &&
+            !_isApplyingRotation)
+        {
+            await RunUiCommandAsync(() => LoadCurrentImageAsync(fitToWindow: false));
+        }
     }
 
     private void ModelGridAtWorldOriginMenuItem_Click(object sender, RoutedEventArgs e)
@@ -4502,6 +4611,9 @@ public partial class MainWindow : Window
         }
 
         UpdateStatusOverlayMaxWidth();
+        ModelLoadProgressBar.Visibility = _isModelLoadProgressVisible && _updateStatusText is null
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         var isEmptyState = _updateStatusText is null &&
             string.Equals(text, LocalizedText.Get(LocalizedText.NoImage), StringComparison.Ordinal);
         StatusText.ToolTip = text;

@@ -74,14 +74,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; The first type is the default: a lean core install unless Full or Custom is chosen.
 Name: "core"; Description: "Core image viewer"
 #if IncludeOptionalComponents
-Name: "full"; Description: "Full: core viewer with 3D models and GPU acceleration for large images"
-Name: "custom"; Description: "Custom"; Flags: iscustom
+Name: "full"; Description: "Full: core viewer with 3D model viewing"
 #endif
 
 [Components]
 #if IncludeOptionalComponents
-Name: "core"; Description: "Mangosteen Image Viewer"; Types: core full custom; Flags: fixed
-Name: "gpulargeimages"; Description: "GPU acceleration for large images"; Types: full
+Name: "core"; Description: "Mangosteen Image Viewer"; Types: core full; Flags: fixed
 Name: "modelviewer"; Description: "3D model viewing (F3D 3.5.0, adds about 119 MB)"; Types: full
 #else
 Name: "core"; Description: "Mangosteen Image Viewer"; Types: core; Flags: fixed
@@ -90,9 +88,12 @@ Name: "core"; Description: "Mangosteen Image Viewer"; Types: core; Flags: fixed
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: core
 #if IncludeOptionalComponents
-Source: "{#OptionalComponentsDir}\gpu-large-images\*"; DestDir: "{app}\components\gpu-large-images"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: gpulargeimages
 Source: "{#OptionalComponentsDir}\model-viewer\*"; DestDir: "{app}\components\model-viewer"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: modelviewer
 #endif
+
+[InstallDelete]
+; GPU large-image rendering became a built-in setting; remove the old switch-only component.
+Type: filesandordirs; Name: "{app}\components\gpu-large-images"
 
 [Icons]
 Name: "{autoprograms}\{#AppDisplayName}"; Filename: "{app}\{#AppExeName}"
@@ -450,9 +451,6 @@ begin
     RegistryRoot := HKEY_LOCAL_MACHINE
   else
     RegistryRoot := HKEY_CURRENT_USER;
-
-  if not WizardIsComponentSelected('gpulargeimages') then
-    DelTree(ExpandConstant('{app}\components\gpu-large-images'), True, True, True);
 
   if not WizardIsComponentSelected('modelviewer') then
   begin

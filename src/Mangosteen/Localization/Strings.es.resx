@@ -277,4 +277,8 @@ Las versiones portables no pueden actualizarse en el mismo lugar. ¿Abrir la pá
   <data name="LoadingLargeModel" xml:space="preserve"><value>Cargando modelo 3D grande... Esto puede tardar un minuto o más.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} vértices · {1} caras</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} caras</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>Aceleración por GPU para imágenes grandes</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Muestra imágenes muy grandes como mosaicos en la tarjeta gráfica. Activado de forma predeterminada si se detecta una tarjeta gráfica dedicada.</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>Cargando modelo 3D... {0} % ({1} de {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>Preparando el modelo 3D para mostrarlo...</value></data>
 </root>

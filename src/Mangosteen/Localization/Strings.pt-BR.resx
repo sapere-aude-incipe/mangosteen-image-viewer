@@ -277,4 +277,8 @@ Versões portáteis não podem ser atualizadas no local. Abrir a página GitHub 
   <data name="LoadingLargeModel" xml:space="preserve"><value>Carregando modelo 3D grande... Isso pode levar um minuto ou mais.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} vértices · {1} faces</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} faces</value></data>
+  <data name="GpuLargeImages" xml:space="preserve"><value>Aceleração por GPU para imagens grandes</value></data>
+  <data name="GpuLargeImagesTooltip" xml:space="preserve"><value>Renderiza imagens muito grandes em blocos na placa de vídeo. Ativado por padrão quando uma placa de vídeo dedicada é detectada.</value></data>
+  <data name="ModelLoadingProgressFormat" xml:space="preserve"><value>Carregando modelo 3D... {0}% ({1} de {2})</value></data>
+  <data name="PreparingModel" xml:space="preserve"><value>Preparando o modelo 3D para exibição...</value></data>
 </root>

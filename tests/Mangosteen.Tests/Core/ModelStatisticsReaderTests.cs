@@ -191,6 +191,62 @@ public sealed class ModelStatisticsReaderTests
         }
     }
 
+    [TestMethod]
+    public void TryRead_Counts_The_Bytes_It_Reads()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"mangosteen-{Guid.NewGuid():N}.obj");
+        try
+        {
+            File.WriteAllText(path, string.Concat(Enumerable.Repeat("v 0.125 1.5 -2.75\n", 50_000)) + "f 1 2 3\n");
+            var counter = new ModelReadCounter();
+
+            Assert.AreEqual(new ModelStatistics(50_000, 1), ModelStatisticsReader.TryRead(path, CancellationToken.None, counter));
+            Assert.AreEqual(new FileInfo(path).Length, counter.BytesRead);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
+    public void Load_Progress_Excludes_The_Viewers_Own_Reads()
+    {
+        const long megabyte = 1024 * 1024;
+        // 845 MB file: the statistics scan read all of it, F3D has read 405 MB so far.
+        var progress = ModelLoadProgress.Estimate(1_000 * megabyte, 2_250 * megabyte, 845 * megabyte, 845 * megabyte);
+
+        Assert.AreEqual(405 * megabyte, progress.BytesRead);
+        Assert.AreEqual(405d / 845, progress.Fraction, 1e-9);
+        Assert.IsFalse(progress.IsPreparing);
+        Assert.IsTrue(ModelLoadProgress.Estimate(0, 900 * megabyte, 0, 845 * megabyte).IsPreparing, "Extra reads clamp to complete.");
+        Assert.AreEqual(0, ModelLoadProgress.Estimate(500, 400, 0, megabyte).BytesRead, "Counter skew never goes negative.");
+    }
+
+    [TestMethod]
+    public void Process_Read_Counter_Advances_When_Reading_A_File()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"mangosteen-{Guid.NewGuid():N}.bin");
+        try
+        {
+            File.WriteAllBytes(path, new byte[4 * 1024 * 1024]);
+            var before = ModelLoadProgress.TryGetProcessBytesRead();
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.None))
+            {
+                stream.ReadExactly(new byte[4 * 1024 * 1024]);
+            }
+            var after = ModelLoadProgress.TryGetProcessBytesRead();
+
+            Assert.IsNotNull(before);
+            Assert.IsNotNull(after);
+            Assert.IsGreaterThanOrEqualTo(4L * 1024 * 1024, after.Value - before.Value);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private static MemoryStream ToStream(string text) => new(Encoding.ASCII.GetBytes(text));
 
     private static byte[] CreateBinaryStl(params (float X, float Y, float Z)[][] triangles)
