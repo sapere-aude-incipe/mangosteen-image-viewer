@@ -66,6 +66,14 @@ public sealed class VipsImageDecoder : IImageDecoder
                 var metadata = new ImageMetadata(request.Path, normalizedMetadata.Width, normalizedMetadata.Height, 1, Name);
                 var target = ImageDecodeSizing.GetTargetSize(metadata.Width, metadata.Height, request.TargetPreviewSize, request.FullResolution);
                 var isFull = ImageDecodeSizing.IsFullResolution(request, target, metadata, animated: false);
+                if (!isFull && ShouldDecodeFullInsteadOfPreview(request, metadataImage, metadata))
+                {
+                    // These loaders cannot shrink on load, so a thumbnail decodes everything and
+                    // the full-resolution pass decodes it again. Show the full image now.
+                    target = new PixelSize(metadata.Width, metadata.Height);
+                    isFull = true;
+                }
+
                 ImageDecodeGuards.ThrowIfEstimatedDecodedBytesExceedLimit(
                     metadata,
                     target,
@@ -86,6 +94,26 @@ public sealed class VipsImageDecoder : IImageDecoder
                 }
             }
         }, token);
+    }
+
+    private static readonly HashSet<string> FullDecodeOnlyLoaders = new(StringComparer.Ordinal)
+    {
+        "pngload", "heifload", "tiffload"
+    };
+
+    private static bool ShouldDecodeFullInsteadOfPreview(ImageDecodeRequest request, VipsImage source, ImageMetadata metadata)
+    {
+        if (!request.PreferFullResolutionWhenUnscalable ||
+            (long)metadata.Width * metadata.Height * 4 > SkiaImageDecoder.MaximumDirectFullDecodeBytes ||
+            request.MaxDecodedBytes is { } limit && (long)metadata.Width * metadata.Height * 4 > limit ||
+            source.GetTypeOf("vips-loader") == 0 ||
+            !FullDecodeOnlyLoaders.Contains((string)source.Get("vips-loader")))
+        {
+            return false;
+        }
+
+        // Pyramidal TIFFs carry reduced subimages that thumbnails read cheaply.
+        return source.GetTypeOf("n-subifds") == 0 || source.Get("n-subifds") is not int subifds || subifds == 0;
     }
 
     internal static bool UsesDecoderSidePreview(ImageDecodeRequest request, ImageMetadata metadata)
@@ -195,28 +223,38 @@ public sealed class VipsImageDecoder : IImageDecoder
         ImageDecodeGuards.ThrowIfSingleFrameDecodedBytesExceedLimit(image.Width, image.Height, maxDecodedBytes);
         ImageDecodeGuards.ThrowIfSingleFrameBgraBufferExceedsDecoderLimit(image.Width, image.Height);
 
+        // Without a source alpha band the filled-in alpha is constant; Opaque spares Skia the
+        // premultiply work on every paint.
+        var alphaType = image.Bands == 3 ? SKAlphaType.Opaque : SKAlphaType.Unpremul;
         var rgba = EnsureRgba(image);
         try
         {
-            var pixels = rgba.WriteToMemory<byte>();
-            var expectedLength = checked(rgba.Width * rgba.Height * 4);
-            if (pixels.Length != expectedLength)
+            // Wrap libvips' native buffer directly: copying it into a zero-filled, pinned managed
+            // array cost an extra full-size allocation and copy (about 400 MB for 100 MP).
+            var pixels = rgba.WriteToMemory(out var size);
+            if (pixels == IntPtr.Zero)
             {
-                throw new InvalidDataException("libvips returned an unexpected pixel buffer size.");
+                throw new InvalidDataException("libvips could not write the decoded pixels.");
             }
 
-            var info = new SKImageInfo(rgba.Width, rgba.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
-            PinnedPixelBuffer? pinnedPixels = new(pixels);
+            var ownsPixels = true;
             try
             {
-                using var pixmap = new SKPixmap(info, pinnedPixels.Pointer, info.RowBytes);
-                var skiaImage = SKImage.FromPixels(pixmap, ReleasePinnedPixels, pinnedPixels);
-                pinnedPixels = null;
+                var expectedLength = checked((ulong)rgba.Width * (ulong)rgba.Height * 4);
+                if (size != expectedLength)
+                {
+                    throw new InvalidDataException("libvips returned an unexpected pixel buffer size.");
+                }
+
+                var info = new SKImageInfo(rgba.Width, rgba.Height, SKColorType.Rgba8888, alphaType);
+                using var pixmap = new SKPixmap(info, pixels, info.RowBytes);
+                var skiaImage = SKImage.FromPixels(pixmap, static (address, _) => NetVips.NetVips.Free(address));
+                ownsPixels = skiaImage is null;
                 return skiaImage ?? throw new InvalidDataException("SkiaSharp could not wrap the decoded libvips pixels.");
             }
             finally
             {
-                pinnedPixels?.Dispose();
+                if (ownsPixels) NetVips.NetVips.Free(pixels);
             }
         }
         finally
@@ -247,35 +285,5 @@ public sealed class VipsImageDecoder : IImageDecoder
         }
 
         throw new InvalidDataException($"libvips returned an unsupported band count: {image.Bands}.");
-    }
-
-    private static void ReleasePinnedPixels(IntPtr address, object context)
-    {
-        if (context is PinnedPixelBuffer buffer)
-        {
-            buffer.Dispose();
-        }
-    }
-
-    private sealed class PinnedPixelBuffer : IDisposable
-    {
-        private GCHandle _handle;
-
-        public PinnedPixelBuffer(byte[] pixels)
-        {
-            _handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
-        }
-
-        public IntPtr Pointer => _handle.AddrOfPinnedObject();
-
-        public void Dispose()
-        {
-            if (!_handle.IsAllocated)
-            {
-                return;
-            }
-
-            _handle.Free();
-        }
     }
 }
