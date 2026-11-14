@@ -127,7 +127,24 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
         ImageTileKey key,
         CancellationToken token)
     {
-        var levelImage = GetOrCreateLevel(path, level, token);
+        var lease = LeaseLevel(path, level, token);
+        try
+        {
+            return DecodeTileFromLevel(lease.Image.Value, pyramid, level, key, token);
+        }
+        finally
+        {
+            ReleaseLevel(lease);
+        }
+    }
+
+    private static ImageTileData DecodeTileFromLevel(
+        VipsImage levelImage,
+        ImagePyramid pyramid,
+        ImagePyramidLevel level,
+        ImageTileKey key,
+        CancellationToken token)
+    {
         var left = checked(key.X * pyramid.TileSize);
         var top = checked(key.Y * pyramid.TileSize);
         if (left >= levelImage.Width || top >= levelImage.Height)
@@ -147,11 +164,34 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
         return ToTileData(colorManaged, key, sourceWidth, sourceHeight, token);
     }
 
-    private VipsImage GetOrCreateLevel(string path, ImagePyramidLevel level, CancellationToken token)
+    /// <summary>
+    /// Drops every cached reduced level. Called when the image is closed so a parked
+    /// background window does not keep up to 192 MB of decoded pixels alive.
+    /// </summary>
+    public void ReleaseCachedData() => ClearLevels();
+
+    public void ClearLevels()
+    {
+        lock (_levelGate)
+        {
+            for (var node = _levels.First; node is not null; node = node.Next) Evict(node.Value);
+            _levels.Clear();
+        }
+    }
+
+    internal int CachedLevelCount
+    {
+        get
+        {
+            lock (_levelGate) return _levels.Count;
+        }
+    }
+
+    private CachedLevel LeaseLevel(string path, ImagePyramidLevel level, CancellationToken token)
     {
         var file = new FileInfo(path);
         var identity = (Path.GetFullPath(path), file.Length, file.LastWriteTimeUtc, level.Index, level.Width, level.Height);
-        Lazy<VipsImage> entry;
+        CachedLevel entry;
         lock (_levelGate)
         {
             var node = _levels.First;
@@ -160,35 +200,83 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
             {
                 _levels.Remove(node);
                 _levels.AddFirst(node);
-                entry = node.Value.Image;
+                entry = node.Value;
             }
             else
             {
-                entry = new Lazy<VipsImage>(() => CreateLevel(path, level), LazyThreadSafetyMode.ExecutionAndPublication);
-                _levels.AddFirst(new CachedLevel(identity, entry, EstimateLevelBytes(level)));
+                entry = new CachedLevel(
+                    identity,
+                    new Lazy<VipsImage>(() => CreateLevel(path, level), LazyThreadSafetyMode.ExecutionAndPublication),
+                    EstimateLevelBytes(level));
+                _levels.AddFirst(entry);
                 TrimLevels();
             }
+
+            entry.Leases++;
         }
 
-        token.ThrowIfCancellationRequested();
         try
         {
-            return entry.Value;
+            token.ThrowIfCancellationRequested();
+        }
+        catch
+        {
+            ReleaseLevel(entry);
+            throw;
+        }
+
+        try
+        {
+            _ = entry.Image.Value;
+            return entry;
         }
         catch
         {
             lock (_levelGate)
             {
-                var node = _levels.First;
-                while (node is not null && !ReferenceEquals(node.Value.Image, entry)) node = node.Next;
-                if (node is not null) _levels.Remove(node);
+                // Lazy caches the exception, so a failed level must leave the cache to be retried.
+                _levels.Remove(entry);
             }
+
+            ReleaseLevel(entry);
             throw;
         }
     }
 
-    private static VipsImage CreateLevel(string path, ImagePyramidLevel level)
+    private void ReleaseLevel(CachedLevel entry)
     {
+        lock (_levelGate)
+        {
+            entry.Leases--;
+            if (entry.Evicted) DisposeIfUnused(entry);
+        }
+    }
+
+    private static void Evict(CachedLevel entry)
+    {
+        entry.Evicted = true;
+        DisposeIfUnused(entry);
+    }
+
+    // Tiles still cropping on another thread hold a lease; the image is freed when the last one ends.
+    private static void DisposeIfUnused(CachedLevel entry)
+    {
+        if (entry.Leases == 0 && entry.Image.IsValueCreated) entry.Image.Value.Dispose();
+    }
+
+    internal static VipsImage CreateLevel(string path, ImagePyramidLevel level)
+    {
+        using (var header = VipsImage.NewFromFile(path, access: Enums.Access.Sequential, failOn: Enums.FailOn.None))
+        {
+            // Thumbnail always returns 8-bit sRGB-style pixels and converts CMYK with a different
+            // rendering intent than the full-resolution tiles. Those sources are reduced here
+            // instead, so every zoom level keeps the source bit depth and colour handling.
+            if (GetBitsPerChannel(header.Format) > 8 || header.Interpretation == Enums.Interpretation.Cmyk)
+            {
+                return CreateLevelPreservingFormat(path, level);
+            }
+        }
+
         // Thumbnail auto-rotates like the full-resolution path and keeps the ICC profile.
         using var thumbnail = VipsImage.Thumbnail(
             path,
@@ -199,15 +287,37 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
         return thumbnail.CopyMemory();
     }
 
+    private static VipsImage CreateLevelPreservingFormat(string path, ImagePyramidLevel level)
+    {
+        // Random access: rotating a sideways image reads it out of order.
+        using var source = Open(path);
+        using var oriented = source.Autorot();
+        var format = oriented.Format;
+        using var resized = oriented.Resize(
+            level.Width / (double)oriented.Width,
+            kernel: Enums.Kernel.Lanczos3,
+            vscale: level.Height / (double)oriented.Height);
+        // Lanczos can change the band format of integer images; restore the source format.
+        using var cast = resized.Format == format ? resized.Copy() : resized.Cast(format);
+        using var fitted = cast.Width > level.Width || cast.Height > level.Height
+            ? cast.Crop(0, 0, Math.Min(cast.Width, level.Width), Math.Min(cast.Height, level.Height))
+            : cast.Copy();
+        return fitted.CopyMemory();
+    }
+
     private void TrimLevels()
     {
-        // Evicted images may still be cropping on another thread; let the finalizer release them.
         var total = 0L;
         for (var node = _levels.First; node is not null;)
         {
             var next = node.Next;
             total += node.Value.EstimatedBytes;
-            if (total > MaximumCachedLevelsBytes && node != _levels.First) _levels.Remove(node);
+            if (total > MaximumCachedLevelsBytes && node != _levels.First)
+            {
+                Evict(node.Value);
+                _levels.Remove(node);
+            }
+
             node = next;
         }
     }
@@ -248,10 +358,18 @@ internal sealed class VipsLargeImageSource : ILargeImageSource
             pixels);
     }
 
-    private sealed record CachedLevel(
-        (string Path, long Length, DateTime LastWrite, int Level, int Width, int Height) Identity,
-        Lazy<VipsImage> Image,
-        long EstimatedBytes);
+    private sealed class CachedLevel(
+        (string Path, long Length, DateTime LastWrite, int Level, int Width, int Height) identity,
+        Lazy<VipsImage> image,
+        long estimatedBytes)
+    {
+        public (string Path, long Length, DateTime LastWrite, int Level, int Width, int Height) Identity { get; } = identity;
+        public Lazy<VipsImage> Image { get; } = image;
+        public long EstimatedBytes { get; } = estimatedBytes;
+        // Both guarded by _levelGate.
+        public int Leases { get; set; }
+        public bool Evicted { get; set; }
+    }
 
     private static VipsImage Open(string path)
     {

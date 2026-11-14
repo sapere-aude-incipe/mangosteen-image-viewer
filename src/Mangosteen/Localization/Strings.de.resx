@@ -273,7 +273,7 @@ Portable Builds können sich nicht direkt aktualisieren. GitHub Releases-Seite �
   <data name="ModelView" xml:space="preserve"><value>3D-Ansicht</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Raster am Weltursprung</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Das Raster am ursprünglichen Koordinatenursprung statt unter dem Modell platzieren.</value></data>
-  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D-Modelle benötigen den 3D-Viewer, der in der Complete-Portable-Edition von Mangosteen enthalten ist.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D-Modelle benötigen den 3D-Viewer. Führen Sie das Mangosteen-Setup erneut aus und wählen Sie „Full“, oder verwenden Sie die Complete-Portable-Edition.</value></data>
   <data name="LoadingLargeModel" xml:space="preserve"><value>Großes 3D-Modell wird geladen... Dies kann eine Minute oder länger dauern.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} Eckpunkte · {1} Flächen</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} Flächen</value></data>
