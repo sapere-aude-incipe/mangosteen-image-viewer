@@ -519,6 +519,34 @@ begin
   if CurStep = ssInstall then
     RemoveDeselectedOptionalComponents;
 end;
+
+function HasExplicitSelectionParameter: Boolean;
+var
+  Index: Integer;
+  Parameter: String;
+begin
+  Result := False;
+  for Index := 1 to ParamCount do
+  begin
+    Parameter := Uppercase(ParamStr(Index));
+    if (Pos('/TYPE=', Parameter) = 1) or (Pos('/COMPONENTS=', Parameter) = 1) then
+      Result := True;
+  end;
+end;
+
+// An existing installation that has the 3D viewer keeps it on upgrade, including one made
+// with a setup type this installer no longer offers (0.2.25 had "Custom"), which Setup
+// would otherwise replace with the default Core type and then remove the viewer.
+procedure InitializeWizard;
+begin
+  if (not HasExplicitSelectionParameter) and
+    (not WizardIsComponentSelected('modelviewer')) and
+    FileExists(AddBackslash(WizardDirValue) + 'components\model-viewer\component.json') then
+  begin
+    WizardForm.TypesCombo.ItemIndex := 1;
+    WizardForm.TypesCombo.OnChange(WizardForm.TypesCombo);
+  end;
+end;
 #endif
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;

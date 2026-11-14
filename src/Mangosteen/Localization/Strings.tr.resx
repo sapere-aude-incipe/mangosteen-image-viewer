@@ -273,7 +273,7 @@ Taşınabilir sürümler yerinde güncellenemez. GitHub Releases sayfası açıl
   <data name="ModelView" xml:space="preserve"><value>3B görünüm</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Izgara dünya başlangıcında</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Izgarayı modelin altı yerine özgün koordinat başlangıcına yerleştir.</value></data>
-  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3B modeller için Mangosteen'in Complete taşınabilir sürümünde bulunan 3B görüntüleyici gerekir.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3B modeller için 3B görüntüleyici gerekir. Mangosteen kurulumunu yeniden çalıştırıp “Full” seçeneğini belirleyin veya Complete taşınabilir sürümünü kullanın.</value></data>
   <data name="LoadingLargeModel" xml:space="preserve"><value>Büyük 3B model yükleniyor... Bu işlem bir dakika veya daha uzun sürebilir.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} köşe · {1} yüz</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} yüz</value></data>

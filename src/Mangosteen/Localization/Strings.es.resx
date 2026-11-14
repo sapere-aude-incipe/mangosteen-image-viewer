@@ -273,7 +273,7 @@ Las versiones portables no pueden actualizarse en el mismo lugar. ¿Abrir la pá
   <data name="ModelView" xml:space="preserve"><value>Vista 3D</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Cuadrícula en el origen global</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Colocar la cuadrícula en el origen de coordenadas original en lugar de debajo del modelo.</value></data>
-  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>Los modelos 3D requieren el visor 3D, incluido en la edición portátil Complete de Mangosteen.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>Los modelos 3D requieren el visor 3D. Vuelva a ejecutar el instalador de Mangosteen y elija «Full», o use la edición portátil Complete.</value></data>
   <data name="LoadingLargeModel" xml:space="preserve"><value>Cargando modelo 3D grande... Esto puede tardar un minuto o más.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} vértices · {1} caras</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} caras</value></data>

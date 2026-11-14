@@ -3,7 +3,9 @@ param(
     [string] $InstallerPath,
     [string] $InstallDirectory,
     [string] $AllowedRoot = [System.IO.Path]::GetTempPath(),
-    [ValidateSet("core", "full")]
+    # "upgrade" installs Full, marks the installation as made with a setup type that no
+    # longer exists, and installs again without /TYPE: 3D model viewing must survive.
+    [ValidateSet("core", "full", "upgrade")]
     [string] $SetupType = "core"
 )
 
@@ -80,11 +82,24 @@ try {
         "/TASKS=associatefiles"
     )
     # Core is checked without /TYPE so the installer's default selection is what gets tested.
-    if ($SetupType -eq "full") {
+    if ($SetupType -ne "core") {
         $installArguments += "/TYPE=full"
     }
     Invoke-HiddenProcess -FilePath $resolvedInstaller -Arguments $installArguments
     $installed = $true
+
+    if ($SetupType -eq "upgrade") {
+        if (-not (Test-Path -LiteralPath $modelManifest)) {
+            throw "The full installation did not install the 3D model viewer before the upgrade."
+        }
+        # 0.2.25 offered a "Custom" setup type that later installers do not have.
+        Set-ItemProperty -LiteralPath $uninstallPath -Name "Inno Setup: Setup Type" -Value "custom"
+        $upgradeArguments = $installArguments | Where-Object { $_ -ne "/TYPE=full" }
+        Invoke-HiddenProcess -FilePath $resolvedInstaller -Arguments $upgradeArguments
+        if (-not (Test-Path -LiteralPath $modelManifest)) {
+            throw "Upgrading an installation with 3D model viewing removed the 3D model viewer."
+        }
+    }
 
     if (-not (Test-Path -LiteralPath $installedExe)) {
         throw "Installer did not create the application executable: $installedExe"

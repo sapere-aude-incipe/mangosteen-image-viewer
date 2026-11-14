@@ -121,6 +121,72 @@ public sealed class DecodeLatencyBehaviorTests
         }
     }
 
+    [TestMethod]
+    public async Task Reduced_Tiles_Of_A_16_Bit_Image_Stay_16_Bit()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"mangosteen-latency-{Guid.NewGuid():N}.tif");
+        try
+        {
+            using (var black = NetVips.Image.Black(5000, 3000, bands: 3))
+            using (var bright = black + 40000)
+            using (var cast = bright.Cast(NetVips.Enums.BandFormat.Ushort))
+            using (var rgb16 = cast.Copy(interpretation: NetVips.Enums.Interpretation.Rgb16))
+            {
+                rgb16.WriteToFile(path);
+            }
+
+            var source = new VipsLargeImageSource();
+            var pyramid = new ImagePyramid(5000, 3000);
+            var level = pyramid.Levels[2];
+            Assert.IsLessThanOrEqualTo(VipsLargeImageSource.MaximumCachedLevelBytes, VipsLargeImageSource.EstimateLevelBytes(level));
+
+            var full = await source.DecodeTileAsync(path, pyramid, new ImageTileKey(0, 0, 0), CancellationToken.None);
+            var reduced = await source.DecodeTileAsync(path, pyramid, new ImageTileKey(2, 0, 0), CancellationToken.None);
+            var edge = await source.DecodeTileAsync(path, pyramid, new ImageTileKey(2, 2, 1), CancellationToken.None);
+
+            Assert.AreEqual(ImageTilePixelFormat.Rgba16, full.PixelFormat);
+            Assert.AreEqual(ImageTilePixelFormat.Rgba16, reduced.PixelFormat, "Zoomed-out tiles must not drop to 8-bit.");
+            Assert.AreEqual(512, reduced.Width);
+            Assert.AreEqual(level.Width - 1024, edge.Width);
+            Assert.AreEqual(level.Height - 512, edge.Height);
+            Assert.IsTrue(reduced.HasExpectedPixelLength());
+            // The reduced tile carries the same 16-bit sample values as the full-resolution tile.
+            var fullRed = BitConverter.ToUInt16(full.Pixels.AsSpan(0, 2));
+            var reducedRed = BitConverter.ToUInt16(reduced.Pixels.AsSpan(0, 2));
+            Assert.IsGreaterThan(255, (int)reducedRed);
+            Assert.IsLessThanOrEqualTo(64, Math.Abs(fullRed - reducedRed));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
+    public async Task Closing_A_Large_Image_Releases_Its_Cached_Levels()
+    {
+        var path = CreateImage(".jpg", MagickFormat.Jpeg, 5000, 3000);
+        try
+        {
+            var source = new VipsLargeImageSource();
+            var pyramid = new ImagePyramid(5000, 3000);
+            await source.DecodeTileAsync(path, pyramid, new ImageTileKey(2, 0, 0), CancellationToken.None);
+            Assert.AreEqual(1, source.CachedLevelCount);
+
+            ((ILargeImageSource)source).ReleaseCachedData();
+            Assert.AreEqual(0, source.CachedLevelCount);
+
+            // The source stays usable: the level is rebuilt on demand.
+            var again = await source.DecodeTileAsync(path, pyramid, new ImageTileKey(2, 1, 0), CancellationToken.None);
+            Assert.AreEqual(512, again.Width);
+            Assert.AreEqual(1, source.CachedLevelCount);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private static string CreateImage(string extension, MagickFormat format, uint width, uint height)
     {
         var path = Path.Combine(Path.GetTempPath(), $"mangosteen-latency-{Guid.NewGuid():N}{extension}");

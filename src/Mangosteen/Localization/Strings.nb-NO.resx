@@ -273,7 +273,7 @@ Portable versjoner kan ikke oppdateres på stedet. Vil du åpne GitHub Releases-
   <data name="ModelView" xml:space="preserve"><value>3D-visning</value></data>
   <data name="ModelGridAtWorldOrigin" xml:space="preserve"><value>Rutenett ved verdens origo</value></data>
   <data name="ModelGridAtWorldOriginTooltip" xml:space="preserve"><value>Plasser rutenettet ved det opprinnelige koordinatsystemets origo i stedet for under modellen.</value></data>
-  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D-modeller krever 3D-visningen, som følger med Complete-portable-utgaven av Mangosteen.</value></data>
+  <data name="ModelViewerNotInstalled" xml:space="preserve"><value>3D-modeller krever 3D-visningen. Kjør Mangosteen-installasjonen på nytt og velg «Full», eller bruk Complete-portable-utgaven.</value></data>
   <data name="LoadingLargeModel" xml:space="preserve"><value>Laster stor 3D-modell... Dette kan ta et minutt eller mer.</value></data>
   <data name="ModelStatisticsFormat" xml:space="preserve"><value>{0} hjørnepunkter · {1} flater</value></data>
   <data name="ModelFacesFormat" xml:space="preserve"><value>{0} flater</value></data>

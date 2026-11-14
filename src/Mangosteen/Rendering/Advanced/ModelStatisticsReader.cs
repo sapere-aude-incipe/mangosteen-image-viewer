@@ -304,22 +304,31 @@ internal static class ModelStatisticsReader
 
         var sceneIndex = root.TryGetProperty("scene", out var defaultScene) ? defaultScene.GetInt32() : 0;
         var nodeList = nodes.EnumerateArray().ToArray();
-        var pending = new Stack<(int Node, int Depth)>();
+        var pending = new Stack<int>();
         if (scenes[sceneIndex].TryGetProperty("nodes", out var sceneNodes))
         {
-            foreach (var node in sceneNodes.EnumerateArray()) pending.Push((node.GetInt32(), 0));
+            foreach (var node in sceneNodes.EnumerateArray()) pending.Push(node.GetInt32());
         }
 
+        // glTF requires a strict tree: every node has at most one parent. Visiting each node
+        // once keeps malformed files (cycles, shared children) from looping or growing
+        // exponentially; a depth cap alone still allowed 2^256 visits.
+        var visited = new bool[nodeList.Length];
         while (pending.Count > 0)
         {
-            var (nodeIndex, depth) = pending.Pop();
-            // glTF forbids cycles; the depth cap keeps malformed files from looping forever.
-            if (depth > 256) continue;
+            var nodeIndex = pending.Pop();
+            if ((uint)nodeIndex >= (uint)nodeList.Length || visited[nodeIndex]) continue;
+            visited[nodeIndex] = true;
             var node = nodeList[nodeIndex];
-            if (node.TryGetProperty("mesh", out var mesh)) instances[mesh.GetInt32()]++;
-            if (node.TryGetProperty("children", out var children))
+            if (node.TryGetProperty("mesh", out var mesh) &&
+                mesh.TryGetInt32(out var meshIndex) && (uint)meshIndex < (uint)instances.Length)
             {
-                foreach (var child in children.EnumerateArray()) pending.Push((child.GetInt32(), depth + 1));
+                instances[meshIndex]++;
+            }
+
+            if (node.TryGetProperty("children", out var children) && children.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var child in children.EnumerateArray()) pending.Push(child.GetInt32());
             }
         }
 

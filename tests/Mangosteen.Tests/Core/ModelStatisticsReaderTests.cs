@@ -136,6 +136,27 @@ public sealed class ModelStatisticsReaderTests
     }
 
     [TestMethod]
+    public void Gltf_With_Cyclic_Or_Shared_Children_Finishes_And_Visits_Each_Node_Once()
+    {
+        // Each node lists the next one twice (2^39 paths) and the last one points back to the start.
+        var nodes = string.Join(", ", Enumerable.Range(0, 40).Select(i =>
+            $"{{ \"mesh\": 0, \"children\": [{(i + 1) % 40}, {(i + 1) % 40}, 999] }}"));
+        var gltf = $$"""
+            {
+              "scenes": [{ "nodes": [0] }],
+              "nodes": [{{nodes}}],
+              "meshes": [{ "primitives": [{ "attributes": { "POSITION": 0 }, "indices": 1 }] }],
+              "accessors": [{ "count": 8 }, { "count": 36 }]
+            }
+            """;
+
+        // On its own thread, so a regression fails here instead of hanging the test run.
+        var read = Task.Run(() => ModelStatisticsReader.ReadGltfJson(Encoding.UTF8.GetBytes(gltf)));
+        Assert.IsTrue(read.Wait(TimeSpan.FromSeconds(10)), "The glTF node traversal did not finish.");
+        Assert.AreEqual(new ModelStatistics(8 * 40, 12 * 40), read.Result);
+    }
+
+    [TestMethod]
     public void Gltf_Without_Scenes_Counts_Each_Mesh_Once()
     {
         const string gltf = """
