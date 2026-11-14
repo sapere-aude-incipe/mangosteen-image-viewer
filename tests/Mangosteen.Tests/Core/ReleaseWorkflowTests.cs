@@ -36,7 +36,10 @@ public sealed class ReleaseWorkflowTests
         Assert.IsFalse(dispatch.Contains("default:", StringComparison.Ordinal), "Manual releases must not default to an old version.");
         StringAssert.Contains(text, "if ($env:EVENT_NAME -eq \"workflow_dispatch\")");
         StringAssert.Contains(text, "git fetch --quiet --force --tags origin");
-        StringAssert.Contains(text, "git rev-parse -q --verify \"refs/tags/v$version\"");
+        // rev-parse leaves exit code 1 for a missing tag, which fails the pwsh step afterwards.
+        Assert.IsFalse(text.Contains("git rev-parse -q --verify", StringComparison.Ordinal));
+        StringAssert.Contains(text, "$existingTag = git tag --list \"v$version\"");
+        StringAssert.Contains(text, "if ($existingTag)");
         StringAssert.Contains(text, "Tag 'v$version' already exists.");
     }
 
@@ -93,6 +96,7 @@ public sealed class ReleaseWorkflowTests
             StringAssert.Contains(text, "- name: Smoke-test installer", workflow);
             StringAssert.Contains(text, "- name: Smoke-test full installer", workflow);
             StringAssert.Contains(text, "-SetupType full", workflow);
+            StringAssert.Contains(text, "-SetupType upgrade", workflow);
         }
     }
 

@@ -95,8 +95,14 @@ jobs:
               throw "Could not fetch tags to check whether v$version already exists."
             }
 
-            git rev-parse -q --verify "refs/tags/v$version" | Out-Null
-            if ($LASTEXITCODE -eq 0) {
+            # 'git tag --list' exits 0 whether or not the tag exists; a non-zero exit code
+            # left behind by the last command would fail this step for every new version.
+            $existingTag = git tag --list "v$version"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Could not check whether tag v$version already exists."
+            }
+
+            if ($existingTag) {
               throw "Tag 'v$version' already exists. Manual releases must use a new version so an existing release is not overwritten or re-marked as latest."
             }
           }
@@ -141,6 +147,15 @@ jobs:
             -InstallDirectory (Join-Path $env:RUNNER_TEMP "MangosteenInstallerSmoke") `
             -AllowedRoot $env:RUNNER_TEMP `
             -SetupType full
+
+      - name: Smoke-test installer upgrade keeps 3D viewing
+        shell: pwsh
+        run: |
+          ./scripts/test-installer.ps1 `
+            -InstallerPath "dist\Mangosteen-Setup-${{ steps.version.outputs.version }}-x64.exe" `
+            -InstallDirectory (Join-Path $env:RUNNER_TEMP "MangosteenInstallerSmoke") `
+            -AllowedRoot $env:RUNNER_TEMP `
+            -SetupType upgrade
 
       - name: Write release notes
         shell: pwsh

@@ -127,6 +127,7 @@ internal sealed class GpuLargeImageRenderer : IDisposable
             _previewTexture = 0;
         }
 
+        _source.ReleaseCachedData();
         _path = null;
         _sourceKey = null;
         _pyramid = null;

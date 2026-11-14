@@ -1193,10 +1193,12 @@ public partial class MainWindow : Window
         CancellationToken token)
     {
         var generation = _loadGeneration;
-        if (!IsGpuLargeImageRenderingEnabled ||
+        // The setting check comes last: its default asks DXGI for the graphics adapters, which
+        // should only happen once an image is large enough to need the GPU renderer.
+        if (image.FrameCount != 1 ||
             string.Equals(path, _gpuFailurePath, StringComparison.OrdinalIgnoreCase) ||
-            image.FrameCount != 1 ||
-            !LargeImageClassifier.Classify(image.Metadata, path).UseAdvancedRenderer)
+            !LargeImageClassifier.Classify(image.Metadata, path).UseAdvancedRenderer ||
+            !IsGpuLargeImageRenderingEnabled)
         {
             return false;
         }
@@ -1754,6 +1756,8 @@ public partial class MainWindow : Window
             CloseAdvancedContent();
             ShowImageSurface();
         }
+        // A model that is still loading has not switched the content mode yet.
+        StopModelLoadProgress();
         ClearModelStatistics();
         _animationTimer.Stop();
         var old = _image;
