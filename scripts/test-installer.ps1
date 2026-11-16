@@ -79,7 +79,8 @@ try {
         "/SUPPRESSMSGBOXES",
         "/NORESTART",
         "/DIR=`"$resolvedInstallDirectory`"",
-        "/TASKS=associatefiles"
+        # "*" also selects every per-format child task, as the interactive default does.
+        "/TASKS=*associatefiles"
     )
     # Core is checked without /TYPE so the installer's default selection is what gets tested.
     if ($SetupType -ne "core") {
@@ -147,6 +148,28 @@ try {
         if ($progId -ne "Mangosteen.Image") {
             throw "File association '$extension' was not installed correctly."
         }
+    }
+
+    # Unnamed, so Explorer's Type column names each format ("PNG File") instead of one shared name.
+    if ($null -ne (Get-RegistryValueOrNull -Path "HKCU:\Software\Classes\Mangosteen.Image" -Name "(default)")) {
+        throw "The shared image file type still has a name, which merges all formats in Explorer's Type column."
+    }
+
+    # Unticking a format on a reinstall removes only that format's registration.
+    $reinstallArguments = @($installArguments | Where-Object { $_ -notlike "/TASKS=*" -and $_ -ne "/TYPE=full" }) +
+        "/TASKS=*associatefiles,!associatefiles\raw"
+    Invoke-HiddenProcess -FilePath $resolvedInstaller -Arguments $reinstallArguments
+    if ($null -ne (Get-RegistryValueOrNull -Path $capabilitiesPath -Name ".dng")) {
+        throw "Unticking Camera RAW on a reinstall left '.dng' registered."
+    }
+    if ($null -ne (Get-RegistryValueOrNull -Path "HKCU:\Software\Classes\.dng\OpenWithProgids" -Name "Mangosteen.Image")) {
+        throw "Unticking Camera RAW on a reinstall left '.dng' in Open with."
+    }
+    if ((Get-RegistryValueOrNull -Path $capabilitiesPath -Name ".png") -ne "Mangosteen.Image") {
+        throw "Unticking Camera RAW on a reinstall removed '.png'."
+    }
+    if ($SetupType -ne "core" -and -not (Test-Path -LiteralPath $modelManifest)) {
+        throw "Reinstalling with different file types removed the 3D model viewer."
     }
 
     Invoke-HiddenProcess -FilePath $uninstaller -Arguments @(

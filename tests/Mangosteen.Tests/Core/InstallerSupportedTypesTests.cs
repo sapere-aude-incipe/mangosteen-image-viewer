@@ -24,8 +24,56 @@ public sealed partial class InstallerSupportedTypesTests
             .Split(["\r\n", "\n"], StringSplitOptions.None)
             .Single(line => line.Contains("Name: \"associatefiles\"", StringComparison.Ordinal));
 
-        StringAssert.Contains(taskLine, "Register supported image file types");
+        StringAssert.Contains(taskLine, "Register file types with {#AppDisplayName}");
         Assert.IsFalse(taskLine.Contains("unchecked", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod]
+    public void Inno_Setup_Lets_Each_Image_Format_Be_Chosen_And_Removes_Unticked_Ones()
+    {
+        var text = GetInstallerScriptText();
+        var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
+        var childTasks = lines
+            .Select(line => ChildTaskRegex().Match(line))
+            .Where(match => match.Success)
+            .Select(match => match.Groups["task"].Value)
+            .ToArray();
+        // Child tasks start checked, so a plain install still registers every format.
+        Assert.IsFalse(lines.Any(line => line.StartsWith("Name: \"associatefiles\\", StringComparison.Ordinal) &&
+            line.Contains("unchecked", StringComparison.OrdinalIgnoreCase)));
+
+        foreach (var extension in ImageFileExtensions.BroadImageExtensions)
+        {
+            var entries = lines
+                .Where(line => line.StartsWith("Root: ", StringComparison.Ordinal))
+                .Where(line =>
+                    line.Contains($@"\Classes\{extension}\OpenWithProgids""; ValueType: string; ValueName: ""{{#AppImageProgId}}""", StringComparison.OrdinalIgnoreCase) ||
+                    (line.Contains($"ValueName: \"{extension}\";", StringComparison.OrdinalIgnoreCase) &&
+                     (line.Contains(@"\Capabilities\FileAssociations""", StringComparison.Ordinal) || line.Contains(@"\SupportedTypes""", StringComparison.Ordinal))))
+                .ToArray();
+            // Capability and SupportedTypes for every format; the JPEG family also has OpenWithProgids.
+            Assert.IsGreaterThanOrEqualTo(2, entries.Length, extension);
+            var tasks = entries.Select(line => TaskOfLineRegex().Match(line).Groups["task"].Value).Distinct().ToArray();
+            Assert.HasCount(1, tasks, $"{extension} entries must share one format task.");
+            CollectionAssert.Contains(childTasks, tasks[0], $"{extension} uses a task that is not offered.");
+
+            // Unticking the format on a reinstall removes the same extension.
+            var removal = lines.Single(line =>
+                line.Contains($"RemoveImageAssociations(RegistryRoot, '{tasks[0]}',", StringComparison.Ordinal));
+            StringAssert.Contains(removal, $"'{extension}'");
+        }
+    }
+
+    [TestMethod]
+    public void Inno_Setup_Leaves_Shared_File_Types_Unnamed_So_Explorer_Names_Each_Format()
+    {
+        var text = GetInstallerScriptText();
+
+        // A named ProgID gives every format the same Type text, so sorting by type mixes PNG and DNG.
+        StringAssert.Contains(text, @"Subkey: ""Software\Classes\{#AppImageProgId}""; ValueType: none; ValueName: """"; Flags: deletevalue uninsdeletekey");
+        StringAssert.Contains(text, @"Subkey: ""Software\Classes\{#AppModelProgId}""; ValueType: none; ValueName: """"; Flags: deletevalue uninsdeletekey");
+        Assert.IsFalse(text.Contains(@"{#AppImageProgId}""; ValueType: string; ValueName: """"", StringComparison.Ordinal));
+        Assert.IsFalse(text.Contains(@"{#AppModelProgId}""; ValueType: string; ValueName: """"", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -241,4 +289,10 @@ public sealed partial class InstallerSupportedTypesTests
 
     [GeneratedRegex(@"Capabilities\\FileAssociations""; ValueType: string; ValueName: ""(?<extension>\.[^""]+)""; ValueData: ""\{#AppModelProgId\}""", RegexOptions.CultureInvariant)]
     private static partial Regex ModelCapabilityTypeRegex();
+
+    [GeneratedRegex(@"^Name: ""(?<task>associatefiles\\[a-z]+)""", RegexOptions.CultureInvariant)]
+    private static partial Regex ChildTaskRegex();
+
+    [GeneratedRegex(@"Tasks: (?<task>[^;]+)", RegexOptions.CultureInvariant)]
+    private static partial Regex TaskOfLineRegex();
 }

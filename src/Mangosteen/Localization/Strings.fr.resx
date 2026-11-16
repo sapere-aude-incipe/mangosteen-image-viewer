@@ -97,7 +97,7 @@
     <value>Supprimer image</value>
   </data>
   <data name="DeleteImageConfirmationFormat" xml:space="preserve">
-    <value>Deplacer {0} vers la Corbeille ?</value>
+    <value>Déplacer {0} vers la Corbeille ?</value>
   </data>
   <data name="Exit" xml:space="preserve">
     <value>Quitter</value>
