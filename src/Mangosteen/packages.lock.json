@@ -4,11 +4,11 @@
     "net10.0-windows10.0.19041": {
       "Magick.NET-Q16-HDRI-OpenMP-x64": {
         "type": "Direct",
-        "requested": "[14.13.1, )",
-        "resolved": "14.13.1",
-        "contentHash": "ElGwnfbdSeQVA/6UcMJ2+b0K24L5tJWZj9Z257Cl787+6sCUtEvYWh+j5ewKp07nH/yIDqK0sX7DPbgvbKhiig==",
+        "requested": "[15.1.0, )",
+        "resolved": "15.1.0",
+        "contentHash": "nAg3AdySh4y7yQ37nHucsSFGPzbSf1hx2NdN3oB+kcZCNr4M+Iq07mjsHAy8pG8GNwSOhnMV4sGowvOHVysygw==",
         "dependencies": {
-          "Magick.NET.Core": "14.13.1"
+          "Magick.NET.Core": "15.1.0"
         }
       },
       "NetVips": {
@@ -46,8 +46,8 @@
       },
       "Magick.NET.Core": {
         "type": "Transitive",
-        "resolved": "14.13.1",
-        "contentHash": "BhqOKCLixvj/Ofwe+aRPHqoGdWekvKavsQrivBSuUq0zzzijnIF/OxqVA+GCd6WP46C4PaIfGhR65BPi2M0cKg=="
+        "resolved": "15.1.0",
+        "contentHash": "WIaemRN4tJvw5BNUfsO8/V3LojV5FOCojQ/sQ4ruXme1o2frRYfcvHPhKV5E6TbYoEdVEvtGX+8Wbut0F2lJHg=="
       },
       "OpenTK": {
         "type": "Transitive",
@@ -159,14 +159,41 @@
         }
       }
     },
+    "net10.0-windows10.0.19041/linux-x64": {
+      "Magick.NET-Q16-HDRI-OpenMP-x64": {
+        "type": "Direct",
+        "requested": "[15.1.0, )",
+        "resolved": "15.1.0",
+        "contentHash": "nAg3AdySh4y7yQ37nHucsSFGPzbSf1hx2NdN3oB+kcZCNr4M+Iq07mjsHAy8pG8GNwSOhnMV4sGowvOHVysygw==",
+        "dependencies": {
+          "Magick.NET.Core": "15.1.0"
+        }
+      },
+      "NetVips.Native.win-x64": {
+        "type": "Direct",
+        "requested": "[8.18.2, )",
+        "resolved": "8.18.2",
+        "contentHash": "8C0JtAzUqaD3teufWGrA9iNwsr1koYj/ApBVh3DNIQwANkkAmwkuoLhKu86HjvGFzI0XiP06/LevpJrp+Oa+MQ=="
+      },
+      "OpenTK.redist.glfw": {
+        "type": "Transitive",
+        "resolved": "3.3.0-pre20200830200122",
+        "contentHash": "EKE9pJCFHScbqOv/t0zG1h5Eh24nWr44SXYnpYtAWDhJhzAoUoI8TwDRXGvTGhDeCBp8ONEaVsq9xRC+OQIxQA=="
+      },
+      "SkiaSharp.NativeAssets.Win32": {
+        "type": "Transitive",
+        "resolved": "3.119.4",
+        "contentHash": "XOpbx/4CReO2wYsq2s6rbvdauc6dntG4Zv499sHGTJ87bwZaFXszFkwql3+FIZMc8kUPeaj3Mx2ezIJmo8a1Kg=="
+      }
+    },
     "net10.0-windows10.0.19041/win-x64": {
       "Magick.NET-Q16-HDRI-OpenMP-x64": {
         "type": "Direct",
-        "requested": "[14.13.1, )",
-        "resolved": "14.13.1",
-        "contentHash": "ElGwnfbdSeQVA/6UcMJ2+b0K24L5tJWZj9Z257Cl787+6sCUtEvYWh+j5ewKp07nH/yIDqK0sX7DPbgvbKhiig==",
+        "requested": "[15.1.0, )",
+        "resolved": "15.1.0",
+        "contentHash": "nAg3AdySh4y7yQ37nHucsSFGPzbSf1hx2NdN3oB+kcZCNr4M+Iq07mjsHAy8pG8GNwSOhnMV4sGowvOHVysygw==",
         "dependencies": {
-          "Magick.NET.Core": "14.13.1"
+          "Magick.NET.Core": "15.1.0"
         }
       },
       "NetVips.Native.win-x64": {

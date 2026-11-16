@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Magick.NET-Q16-HDRI-OpenMP-x64" Version="14.13.1" />
+    <PackageReference Include="Magick.NET-Q16-HDRI-OpenMP-x64" Version="15.1.0" />
     <PackageReference Include="NetVips" Version="3.2.0" />
     <PackageReference Include="NetVips.Native.win-x64" Version="8.18.2" />
     <PackageReference Include="SkiaSharp" Version="3.119.4" />
