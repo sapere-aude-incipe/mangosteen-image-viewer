@@ -2798,6 +2798,21 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Windows only asks when its Recycle Bin confirmation setting is on (off by default),
+        // so ask here otherwise; asking in both places would show two prompts in a row.
+        if (!ShellDeleteSettings.WindowsConfirmsRecycle())
+        {
+            var confirmed = MessageBox.Show(this,
+                LocalizedText.Format(LocalizedText.DeleteImageConfirmationFormat, Path.GetFileName(path)),
+                LocalizedText.Get(LocalizedText.DeleteImage), MessageBoxButton.YesNo,
+                MessageBoxImage.Warning, MessageBoxResult.Yes) == MessageBoxResult.Yes;
+            if (!confirmed || _isClosing || _isApplyingRotation || !File.Exists(path))
+            {
+                if (!_isClosing) UpdateNavigationButtons();
+                return;
+            }
+        }
+
         // The shell confirmation dialog and the recycle are a single operation, so a
         // cancelled dialog can only be detected by the file still existing afterwards.
         // The dialog pumps the dispatcher, so an activation can open another image

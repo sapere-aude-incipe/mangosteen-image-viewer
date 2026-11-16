@@ -76,7 +76,7 @@ Mangosteen's regular image viewer stays lightweight and follows the existing Ski
 
 Grab the newest build from the [Releases](https://github.com/sapere-aude-incipe/mangosteen-image-viewer/releases) page:
 
-- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - installs the core image viewer by default, with a Start menu shortcut and an optional, checked-by-default file type registration step. Choose **Full** in setup to also install 3D model viewing.
+- **Installer**: `Mangosteen-Setup-<version>-x64.exe` - installs the core image viewer by default, with a Start menu shortcut and a checked-by-default file type registration step where each format (JPEG, PNG, RAW/DNG, and so on) can be ticked or unticked. Windows only lets you pick default apps yourself, so setup can open **Settings > Default apps** for Mangosteen at the end. Choose **Full** in setup to also install 3D model viewing. For silent installs, `/TASKS="*associatefiles"` registers every format and `!associatefiles\raw` leaves one group out.
 - **Standard portable**: `Mangosteen-Portable-<version>-x64.zip` - the same lightweight viewer without installation or a separate .NET runtime.
 - **Complete portable**: `Mangosteen-Complete-Portable-<version>-x64.zip` - a ready-to-run portable build with 3D model viewing already included.
 
