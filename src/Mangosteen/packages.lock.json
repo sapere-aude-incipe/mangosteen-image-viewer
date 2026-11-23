@@ -25,11 +25,11 @@
       },
       "SkiaSharp": {
         "type": "Direct",
-        "requested": "[3.119.4, )",
-        "resolved": "3.119.4",
-        "contentHash": "53NOSUZ1Us+91Sm0uCkIivh/k7jOowRErZT2sIWwPFN9mLUvdxnE6rS4sWo4255+Rd2MWUSF+j0NMZHD6Cke+Q==",
+        "requested": "[4.157.0, )",
+        "resolved": "4.157.0",
+        "contentHash": "C0PYSs8z0OGihExuIPaCEJnoEmDwiVRTFmDI2TZ44rWr2u7UiQX4rZyEwfVSHEiV5Zn/FYh1WbcO9uMPRxAsbw==",
         "dependencies": {
-          "SkiaSharp.NativeAssets.Win32": "3.119.4"
+          "SkiaSharp.NativeAssets.Win32": "4.157.0"
         }
       },
       "SkiaSharp.Views.WPF": {
@@ -147,8 +147,8 @@
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "3.119.4",
-        "contentHash": "XOpbx/4CReO2wYsq2s6rbvdauc6dntG4Zv499sHGTJ87bwZaFXszFkwql3+FIZMc8kUPeaj3Mx2ezIJmo8a1Kg=="
+        "resolved": "4.157.0",
+        "contentHash": "tP54cTnPqGrzf2pBcyupMZWdIUjV34ELdKuh3/c329kRQF4UCVLZvilQZrDMqPJ9P/+AUJC8kDRMBgT/jBvYug=="
       },
       "SkiaSharp.Views.Desktop.Common": {
         "type": "Transitive",
@@ -157,6 +157,33 @@
         "dependencies": {
           "SkiaSharp": "3.119.4"
         }
+      }
+    },
+    "net10.0-windows10.0.19041/linux-x64": {
+      "Magick.NET-Q16-HDRI-OpenMP-x64": {
+        "type": "Direct",
+        "requested": "[14.13.1, )",
+        "resolved": "14.13.1",
+        "contentHash": "ElGwnfbdSeQVA/6UcMJ2+b0K24L5tJWZj9Z257Cl787+6sCUtEvYWh+j5ewKp07nH/yIDqK0sX7DPbgvbKhiig==",
+        "dependencies": {
+          "Magick.NET.Core": "14.13.1"
+        }
+      },
+      "NetVips.Native.win-x64": {
+        "type": "Direct",
+        "requested": "[8.18.2, )",
+        "resolved": "8.18.2",
+        "contentHash": "8C0JtAzUqaD3teufWGrA9iNwsr1koYj/ApBVh3DNIQwANkkAmwkuoLhKu86HjvGFzI0XiP06/LevpJrp+Oa+MQ=="
+      },
+      "OpenTK.redist.glfw": {
+        "type": "Transitive",
+        "resolved": "3.3.0-pre20200830200122",
+        "contentHash": "EKE9pJCFHScbqOv/t0zG1h5Eh24nWr44SXYnpYtAWDhJhzAoUoI8TwDRXGvTGhDeCBp8ONEaVsq9xRC+OQIxQA=="
+      },
+      "SkiaSharp.NativeAssets.Win32": {
+        "type": "Transitive",
+        "resolved": "4.157.0",
+        "contentHash": "tP54cTnPqGrzf2pBcyupMZWdIUjV34ELdKuh3/c329kRQF4UCVLZvilQZrDMqPJ9P/+AUJC8kDRMBgT/jBvYug=="
       }
     },
     "net10.0-windows10.0.19041/win-x64": {
@@ -182,8 +209,8 @@
       },
       "SkiaSharp.NativeAssets.Win32": {
         "type": "Transitive",
-        "resolved": "3.119.4",
-        "contentHash": "XOpbx/4CReO2wYsq2s6rbvdauc6dntG4Zv499sHGTJ87bwZaFXszFkwql3+FIZMc8kUPeaj3Mx2ezIJmo8a1Kg=="
+        "resolved": "4.157.0",
+        "contentHash": "tP54cTnPqGrzf2pBcyupMZWdIUjV34ELdKuh3/c329kRQF4UCVLZvilQZrDMqPJ9P/+AUJC8kDRMBgT/jBvYug=="
       }
     }
   }
